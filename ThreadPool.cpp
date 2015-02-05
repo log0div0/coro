@@ -10,27 +10,30 @@ void ThreadPool::main(std::function<void()> program) {
 	_io_service.run();
 }
 
-void ThreadPool::parallel(std::initializer_list<std::function<void()>> programs,
-	std::function<void(const std::exception&)> errorHandler)
+void ThreadPool::parallel(const std::initializer_list<std::function<void()>>& programs,
+	const std::function<void(const std::exception&)>& errorHandler)
 {
 	Coro& old_coro = *Coro::current();
 
-	std::atomic_size_t coros_count(programs.size());
+	std::atomic_size_t corosCount(programs.size());
+	// этот callback возобновит текущую корутину, когда все дочерние корутины завершатся
 	auto onCoroDone = [&]() {
-		if (--coros_count == 0) {
+		if (--corosCount == 0) {
 			_io_service.post([&] {
 				old_coro.resume();
 			});
 		}
 	};
 
+	// создаём корутины, сохраняем их в стеке текущей корутины
 	std::vector<Coro> coros;
-	coros.reserve(coros_count);
+	coros.reserve(corosCount);
 	for (auto program: programs) {
-		coros.emplace_back(program, onCoroDone);
+		coros.emplace_back(std::move(program), onCoroDone);
 	};
 
 	old_coro.yield([&] {
+		// запланируем запуск корутин сразу же, как выйдем из текущей корутины
 		for (auto& new_coro: coros) {
 			_io_service.post([&new_coro]() {
 				new_coro.resume();
@@ -38,6 +41,7 @@ void ThreadPool::parallel(std::initializer_list<std::function<void()>> programs,
 		}
 	});
 
+	// обработка исключений
 	for (auto& new_coro: coros) {
 		if (new_coro.exception() != std::exception_ptr()) {
 			try {

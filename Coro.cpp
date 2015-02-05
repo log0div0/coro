@@ -22,6 +22,8 @@ void Coro::resume()
 {
 	Coro* temp = this;
 	std::swap(temp, t_coro);
+	// если это первый вызов jump_fcontext - то прыгаем в Coro::run(intptr_t)
+	// при последующих вызовах - выпрыгиваем из jump_fcontext, который ниже
 	boost::context::jump_fcontext(&_savedContext, _context, 0);
 	std::swap(temp, t_coro);
 	if (_callMeJustAfterYield) {
@@ -35,12 +37,13 @@ void Coro::resume()
 
 void Coro::yield()
 {
+	// выпрыгиваем из jump_fcontext, который выше
 	boost::context::jump_fcontext(&_context, _savedContext, 0);
 }
 
 void Coro::yield(std::function<void()> callMeJustAfterYield) {
 	_callMeJustAfterYield = std::move(callMeJustAfterYield);
-	boost::context::jump_fcontext(&_context, _savedContext, 0);
+	yield();
 }
 
 std::exception_ptr Coro::exception() {

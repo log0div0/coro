@@ -11,8 +11,6 @@ TcpServer::TcpServer(ThreadPool& threadPool, const TcpEndpoint& endpoint)
 
 }
 
-#include <iostream>
-
 TcpSocket TcpServer::accept() {
 	Coro& coro = *Coro::current();
 	error_code errorCode;

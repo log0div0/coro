@@ -1,57 +1,124 @@
 
 #include "Buffer.h"
 
-Buffer::Buffer(uint8_t* data, size_t size)
-	: _data(data), _size(size) {
+Buffer::Buffer(const std::initializer_list<uint8_t>& list)
+	: Buffer(list.size())
+{
+	std::copy(list.begin(), list.end(), _begin);
+	_usefulDataSize = list.size();
 }
 
-Buffer::Buffer(const Buffer& other)
-	: _data(other._data),
-	  _size(other._size)
+Buffer::Buffer(size_t size)
+	: _begin(new uint8_t[size]),
+	  _end(_begin + size),
+	  _usefulDataSize(0),
+	  _first(_begin),
+	  _last(_begin)
 {
 
 }
 
-boost::asio::const_buffers_1 Buffer::asio() const {
-	return boost::asio::buffer((const uint8_t*)_data, _size);
+Buffer::~Buffer()
+{
+	delete[] _begin;
 }
 
-boost::asio::mutable_buffers_1 Buffer::asio() {
-	return boost::asio::buffer(_data, _size);
+Buffer::Iterator Buffer::begin() {
+	return Iterator(this, _first);
 }
 
-uint8_t* Buffer::data() const {
-	return _data;
+Buffer::Iterator Buffer::end() {
+	return Iterator(this, 0);
 }
+
+Buffer::ConstIterator Buffer::begin() const {
+	return ConstIterator(this, _first);
+}
+
+Buffer::ConstIterator Buffer::end() const {
+	return ConstIterator(this, 0);
+
+}
+
+std::vector<boost::asio::const_buffer> Buffer::usefulData() const {
+	if ( (_first <= _last) && (usefulDataSize() != size()) ) {
+		return {
+			{ _first, static_cast<size_t>(_last - _first) }
+		};
+	} else {
+		return {
+			{ _first, static_cast<size_t>(_end - _first) },
+			{ _begin, static_cast<size_t>(_first - _begin) }
+		};
+	}
+}
+
+size_t Buffer::usefulDataSize() const {
+	return _usefulDataSize;
+}
+
+std::vector<boost::asio::mutable_buffer> Buffer::freeSpace() {
+	if ( (_first <= _last) && (usefulDataSize() != size()) ) {
+		return {
+			{ _last, static_cast<size_t>(_end - _last) },
+			{ _begin, static_cast<size_t>(_first - _begin) }
+		};
+	} else {
+		return {
+			{ _last, static_cast<size_t>(_first - _last) }
+		};
+	}
+}
+
+size_t Buffer::freeSpaceSize() const {
+	return size() - _usefulDataSize;
+}
+
+void Buffer::reduceFront(size_t size) {
+	if (usefulDataSize() < size) {
+		throw std::out_of_range("Buffer::reduceFront");
+	}
+	_usefulDataSize -= size;
+	_first = moveForward(_first, size);
+}
+
+void Buffer::reduceBack(size_t size) {
+	if (usefulDataSize() < size) {
+		throw std::out_of_range("Buffer::reduceBack");
+	}
+	_usefulDataSize -= size;
+	_last = moveBackward(_last, size);
+}
+
+void Buffer::expandFront(size_t size) {
+	if (freeSpaceSize() < size) {
+		throw std::out_of_range("Buffer::expandFront");
+	}
+	_usefulDataSize += size;
+	_first = moveBackward(_first, size);
+}
+
+void Buffer::expandBack(size_t size) {
+	if (freeSpaceSize() < size) {
+		throw std::out_of_range("Buffer::expandBack");
+	}
+	_usefulDataSize += size;
+	_last = moveForward(_last, size);
+}
+
 
 size_t Buffer::size() const {
-	return _size;
+	return _end - _begin;
 }
 
-void Buffer::truncate(size_t size) {
-	assert(size <= _size);
-	_size = size;
+bool Buffer::operator==(const Buffer& other) const {
+	if (this == &other) {
+		return true;
+	}
+	if (usefulDataSize() != other.usefulDataSize()) {
+		return false;
+	}
+	return std::equal(begin(), end(), other.begin());
 }
 
-bool Buffer::isEqual(const Buffer& other) {
-	return (_size == other._size) && !memcmp(_data, other._data, _size);
-}
 
-
-
-
-DynamicBuffer::DynamicBuffer(std::initializer_list<uint8_t> list)
-	: Buffer(new uint8_t[list.size()], list.size())
-{
-	std::copy(list.begin(), list.end(), _data);
-}
-
-DynamicBuffer::DynamicBuffer(size_t size)
-	: Buffer(new uint8_t[size], size)
-{
-
-}
-
-DynamicBuffer::~DynamicBuffer() {
-	delete[] _data;
-}

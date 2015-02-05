@@ -13,8 +13,9 @@ public:
 	// 3) Ждет заверщения всех запущеных корутин
 	// 4) Возобновляет корутину из п.1
 	// 5) Вызывает errorHandler, передавая в неё все брошенные исключения
-	void parallel(std::initializer_list<std::function<void()>> programs,
-		std::function<void(const std::exception&)> errorHandler = std::function<void(const std::exception&)>());
+	void parallel(const std::initializer_list<std::function<void()>>& programs,
+		const std::function<void(const std::exception&)>& errorHandler
+			= std::function<void(const std::exception&)>());
 
 	boost::asio::io_service& ioService();
 
