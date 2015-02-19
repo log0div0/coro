@@ -20,6 +20,7 @@ public:
 
 	void sendData(Buffer* buffer);
 	void receiveData(Buffer* buffer);
+	void receiveSomeData(Buffer* buffer);
 
 protected:
 	TcpSocket(boost::asio::ip::tcp::socket socket);

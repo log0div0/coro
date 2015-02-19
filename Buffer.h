@@ -1,9 +1,12 @@
 
 #pragma once
 
+
 #include <boost/asio.hpp>
 
+
 class Buffer;
+
 
 template <typename Buffer, typename T>
 class BufferIterator {
@@ -20,7 +23,7 @@ public:
 
 	}
 
-	BufferIterator(const Buffer* buffer, pointer it)
+	BufferIterator(Buffer* buffer, pointer it)
 		: _buffer(buffer),
 		  _it(it)
 	{
@@ -57,12 +60,12 @@ public:
 		return copy;
 	}
 
-	bool operator!=(const BufferIterator& other) const {
-		return _it != other._it;
-	}
-
-	bool operator==(const BufferIterator& other) const {
-		return _it == other._it;
+	BufferIterator operator+(difference_type distance) const {
+		auto it = _buffer->moveForward(_it, distance);
+		if (it == _buffer->_last) {
+			it = nullptr;
+		}
+		return BufferIterator(_buffer, it);
 	}
 
 	void operator=(const BufferIterator& other) {
@@ -70,8 +73,12 @@ public:
 		_it = other._it;
 	}
 
-	BufferIterator operator+(size_t size) const {
-		return BufferIterator(_buffer, _buffer->moveForward(_it, size));
+	bool operator!=(const BufferIterator& other) const {
+		return _it != other._it;
+	}
+
+	bool operator==(const BufferIterator& other) const {
+		return _it == other._it;
 	}
 
 	difference_type operator-(const BufferIterator& other) const {
@@ -86,23 +93,23 @@ public:
 		}
 	}
 
+	void reduceFromBeginToThis() {
+		_buffer->reduceFront(*this - _buffer->begin());
+	}
+
 public: //< Для конверсии Iterator -> ConstIterator
-	const Buffer* _buffer;
+	Buffer* _buffer;
 	pointer _it;
 };
 
-// Циклический буфер
-// boost::circular_buffer не даёт нам доступа к неиспользуемой памяти. Можно было бы выделить сразу
-// всю память целиком и итераторами обозначить границы "заполненной" и "пустой" частей. НО
-// возникает проблема: как только итератор достигнет позиции, которую boost::circular_buffer
-// считает концом полезной нагрузки - итератор обнуляется. Вариант второй: добраться до кишочков
-// boost::circular_buffer c помощью &front(). НО велосипед лучше костыля.
+
 class Buffer {
 public:
 	typedef BufferIterator<Buffer, uint8_t> Iterator;
-	typedef BufferIterator<Buffer, const uint8_t> ConstIterator;
+	typedef BufferIterator<const Buffer, const uint8_t> ConstIterator;
 	friend Iterator;
 	friend ConstIterator;
+	friend class NetworkIterator;
 
 	explicit Buffer(size_t size);
 	Buffer(const std::initializer_list<uint8_t>& list);
@@ -165,6 +172,20 @@ private:
 			return b - a;
 		} else {
 			return (_end - a) + (b - _first);
+		}
+	}
+
+	template <typename T>
+	bool isValid(T it) const {
+		if (usefulDataSize() == 0) {
+			return false;
+		}
+		if (_first <= _last) {
+			return (it >= _first) && (it < _last);
+		} else {
+			return
+				( (it >= _first) && (it < _end) ) ||
+				( (it >= _begin) && (it < _last) );
 		}
 	}
 

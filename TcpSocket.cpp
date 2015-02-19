@@ -76,6 +76,28 @@ void TcpSocket::receiveData(Buffer* buffer) {
 	}
 }
 
+void TcpSocket::receiveSomeData(Buffer* buffer) {
+	Coro& coro = *Coro::current();
+	error_code errorCode;
+
+	coro.yield([&]() {
+		_socket.async_read_some(buffer->freeSpace(),
+			[&](const error_code& ec, size_t bytes_tranfered) {
+				if (ec) {
+					errorCode = ec;
+				} else {
+					buffer->expandBack(bytes_tranfered);
+				}
+				coro.resume();
+			}
+		);
+	});
+
+	if (errorCode) {
+		throw system_error(errorCode);
+	}
+}
+
 TcpSocket::TcpSocket(boost::asio::ip::tcp::socket socket)
 	: _socket(std::move(socket)) {
 

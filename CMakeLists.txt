@@ -11,6 +11,7 @@ add_definitions(-std=c++1y -fPIC)
 set(SRCS
 	Buffer.cpp
 	Coro.cpp
+	NetworkIterator.cpp
 	TcpServer.cpp
 	TcpSocket.cpp
 	ThreadPool.cpp

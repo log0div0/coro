@@ -6,7 +6,7 @@ find_package(Boost COMPONENTS REQUIRED system unit_test_framework context)
 
 set(SRC main.cpp
 	TestBuffer.cpp
-	TestTcp.cpp
+	TestNetwork.cpp
 	TestThreadPool.cpp
 )
 
