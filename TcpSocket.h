@@ -13,6 +13,9 @@ public:
 
 	TcpSocket(ThreadPool& threadPool);
 
+	// VS2013 не умеет их генерить
+	TcpSocket(TcpSocket&& other);
+
 	void connect(const TcpEndpoint& endpoint);
 
 	void sendData(Buffer* buffer);

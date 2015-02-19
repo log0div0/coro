@@ -10,6 +10,10 @@ TcpSocket::TcpSocket(ThreadPool& threadPool)
 
 }
 
+TcpSocket::TcpSocket(TcpSocket&& other): _socket(std::move(other._socket)) {
+
+}
+
 void TcpSocket::connect(const TcpEndpoint& endpoint) {
 	Coro& coro = *Coro::current();
 	error_code errorCode;

@@ -6,12 +6,12 @@
 BOOST_AUTO_TEST_SUITE(SuiteCoro)
 
 
-BOOST_AUTO_TEST_CASE(Test1) {
+BOOST_AUTO_TEST_CASE(TestResumeYield) {
 	std::vector<uint32_t> a {1, 2, 3, 4, 5}, b;
 
 	Coro coro([&] {
 		b.push_back(2);
-		coro.yield();
+		yield();
 		b.push_back(4);
 	});
 	b.push_back(1);
@@ -24,9 +24,9 @@ BOOST_AUTO_TEST_CASE(Test1) {
 }
 
 
-BOOST_AUTO_TEST_CASE(Test2) {
+BOOST_AUTO_TEST_CASE(TestYieldWithCallback) {
 	Coro coro([&] {
-		coro.yield([]() {
+		yield([]() {
 			BOOST_REQUIRE(!Coro::current());
 		});
 	});
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(Test2) {
 }
 
 
-BOOST_AUTO_TEST_CASE(Test3) {
+BOOST_AUTO_TEST_CASE(TestException) {
 	Coro coro([&] {
 		throw std::runtime_error("catch me");
 	});

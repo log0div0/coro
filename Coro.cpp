@@ -1,7 +1,21 @@
 
 #include "Coro.h"
 
-thread_local Coro* t_coro = nullptr;
+#ifdef _MSC_VER
+#define THREAD_LOCAL __declspec(thread)
+#else
+#define THREAD_LOCAL thread_local
+#endif
+
+THREAD_LOCAL Coro* t_coro = nullptr;
+
+void yield() {
+	t_coro->yield();
+}
+
+void yield(std::function<void()> callMeJustAfterYield) {
+	t_coro->yield(callMeJustAfterYield);
+}
 
 Coro* Coro::current() {
 	return t_coro;

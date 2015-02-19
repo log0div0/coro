@@ -8,15 +8,29 @@ class Buffer;
 template <typename Buffer, typename T>
 class BufferIterator {
 public:
-	typedef size_t difference_type;
+	typedef ptrdiff_t difference_type;
 	typedef T value_type;
 	typedef T* pointer;
 	typedef T& reference;
-	typedef std::random_access_iterator_tag iterator_category;
+	typedef std::forward_iterator_tag iterator_category;
+
+	BufferIterator()
+		: _buffer(nullptr),
+		  _it(nullptr) {
+
+	}
 
 	BufferIterator(const Buffer* buffer, pointer it)
 		: _buffer(buffer),
 		  _it(it)
+	{
+
+	}
+
+	template <typename U>
+	BufferIterator(const BufferIterator<Buffer, U>& other)
+		: _buffer(other._buffer),
+		  _it(other._it)
 	{
 
 	}
@@ -32,7 +46,7 @@ public:
 	BufferIterator& operator++() {
 		_it = _buffer->moveForward(_it, 1);
 		if (_it == _buffer->_last) {
-			_it = 0;
+			_it = nullptr;
 		}
 		return *this;
 	}
@@ -43,25 +57,36 @@ public:
 		return copy;
 	}
 
-	BufferIterator& operator--() {
-		if (_it == _buffer->_first) {
-			throw std::out_of_range("BufferIterator decrement");
-		}
-		_it = _buffer->moveBackward(_it, 1);
-		return *this;
-	}
-
-	BufferIterator operator--(int) {
-		BufferIterator copy(*this);
-		--*this;
-		return copy;
-	}
-
 	bool operator!=(const BufferIterator& other) const {
 		return _it != other._it;
 	}
 
-private:
+	bool operator==(const BufferIterator& other) const {
+		return _it == other._it;
+	}
+
+	void operator=(const BufferIterator& other) {
+		_buffer = other._buffer;
+		_it = other._it;
+	}
+
+	BufferIterator operator+(size_t size) const {
+		return BufferIterator(_buffer, _buffer->moveForward(_it, size));
+	}
+
+	difference_type operator-(const BufferIterator& other) const {
+		if (_it != 0) {
+			return _buffer->distance(other._it, _it);
+		} else {
+			if (other._it != _buffer->_last) {
+				return _buffer->distance(other._it, _buffer->_last);
+			} else {
+				return _buffer->usefulDataSize();
+			}
+		}
+	}
+
+public: //< Для конверсии Iterator -> ConstIterator
 	const Buffer* _buffer;
 	pointer _it;
 };
@@ -79,8 +104,11 @@ public:
 	friend Iterator;
 	friend ConstIterator;
 
-	Buffer(const std::initializer_list<uint8_t>& list);
 	explicit Buffer(size_t size);
+	Buffer(const std::initializer_list<uint8_t>& list);
+	Buffer(const std::string& data);
+	Buffer(const std::vector<uint8_t>& data);
+	Buffer(Buffer&& other);
 	~Buffer();
 
 	// Итераторы для usefulData
@@ -88,6 +116,9 @@ public:
 	Iterator end();
 	ConstIterator begin() const;
 	ConstIterator end() const;
+
+	uint8_t& front();
+	uint8_t& back();
 
 	std::vector<boost::asio::const_buffer> usefulData() const;
 	size_t usefulDataSize() const;
@@ -104,19 +135,37 @@ public:
 	// Граница usefulData расширяется в конце за счёт freeSpace
 	void expandBack(size_t size);
 
+	template <typename T>
+	void expandBack(T begin, T end) {
+		Iterator last(this, _last);
+		expandBack(end - begin);
+		std::copy(begin, end, last);
+	}
+
 	size_t size() const;
 
 	bool operator==(const Buffer& other) const;
 
 private:
+	Buffer(const Buffer& other);
+
 	template <typename T>
 	T moveForward(T it, size_t distance) const {
-		return _begin + (it + distance - _begin) % size();
+		return _begin + (it - _begin + distance) % size();
 	}
 
 	template <typename T>
 	T moveBackward(T it, size_t distance) const {
-		return _begin + (it - distance - _begin) % size();
+		return _begin + (it - _begin - distance + size()) % int64_t(size());
+	}
+
+	template <typename T>
+	size_t distance(T a, T b) const {
+		if (a <= b) {
+			return b - a;
+		} else {
+			return (_end - a) + (b - _first);
+		}
 	}
 
 private:

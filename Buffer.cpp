@@ -18,6 +18,30 @@ Buffer::Buffer(size_t size)
 
 }
 
+Buffer::Buffer(const std::string& data)
+	: Buffer(data.size())
+{
+	std::copy(data.begin(), data.end(), _begin);
+	_usefulDataSize = data.size();
+}
+
+Buffer::Buffer(const std::vector<uint8_t>& data)
+	: Buffer(data.size())
+{
+	std::copy(data.begin(), data.end(), _begin);
+	_usefulDataSize = data.size();
+}
+
+Buffer::Buffer(Buffer&& other)
+	: _begin(other._begin),
+	  _end(other._end),
+	  _usefulDataSize(other._usefulDataSize),
+	  _first(other._first),
+	  _last(other._last)
+{
+	other._begin = nullptr;
+}
+
 Buffer::~Buffer()
 {
 	delete[] _begin;
@@ -28,7 +52,7 @@ Buffer::Iterator Buffer::begin() {
 }
 
 Buffer::Iterator Buffer::end() {
-	return Iterator(this, 0);
+	return Iterator(this, nullptr);
 }
 
 Buffer::ConstIterator Buffer::begin() const {
@@ -36,8 +60,17 @@ Buffer::ConstIterator Buffer::begin() const {
 }
 
 Buffer::ConstIterator Buffer::end() const {
-	return ConstIterator(this, 0);
+	return ConstIterator(this, nullptr);
+}
 
+uint8_t& Buffer::front() {
+	assert(_usefulDataSize);
+	return *_first;
+}
+
+uint8_t& Buffer::back() {
+	assert(_usefulDataSize);
+	return *moveForward(_first, _usefulDataSize - 1);
 }
 
 std::vector<boost::asio::const_buffer> Buffer::usefulData() const {

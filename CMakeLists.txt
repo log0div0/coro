@@ -6,7 +6,7 @@ find_package(Boost COMPONENTS REQUIRED system)
 
 include_directories(./)
 
-add_definitions(-std=c++11 -fPIC)
+add_definitions(-std=c++1y -fPIC)
 
 set(SRCS
 	Buffer.cpp
@@ -17,7 +17,9 @@ set(SRCS
 )
 
 add_definitions("-Wall")
+
 include_directories(../ ${Boost_INCLUDE_DIRS})
+
 add_library(coro STATIC ${SRCS})
 set_target_properties(coro PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
 

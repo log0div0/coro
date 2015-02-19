@@ -1,6 +1,7 @@
 
 #include "ThreadPool.h"
 #include "Coro.h"
+#include <atomic>
 
 void ThreadPool::main(std::function<void()> program) {
 	Coro coro(program);
