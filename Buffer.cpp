@@ -107,33 +107,33 @@ size_t Buffer::freeSpaceSize() const {
 	return size() - _usefulDataSize;
 }
 
-void Buffer::reduceFront(size_t size) {
+void Buffer::popFront(size_t size) {
 	if (usefulDataSize() < size) {
-		throw std::out_of_range("Buffer::reduceFront");
+		throw std::range_error("Buffer::popFront");
 	}
 	_usefulDataSize -= size;
 	_first = moveForward(_first, size);
 }
 
-void Buffer::reduceBack(size_t size) {
+void Buffer::popBack(size_t size) {
 	if (usefulDataSize() < size) {
-		throw std::out_of_range("Buffer::reduceBack");
+		throw std::range_error("Buffer::popBack");
 	}
 	_usefulDataSize -= size;
 	_last = moveBackward(_last, size);
 }
 
-void Buffer::expandFront(size_t size) {
+void Buffer::pushFront(size_t size) {
 	if (freeSpaceSize() < size) {
-		throw std::out_of_range("Buffer::expandFront");
+		throw std::range_error("Buffer::pushFront");
 	}
 	_usefulDataSize += size;
 	_first = moveBackward(_first, size);
 }
 
-void Buffer::expandBack(size_t size) {
+void Buffer::pushBack(size_t size) {
 	if (freeSpaceSize() < size) {
-		throw std::out_of_range("Buffer::expandBack");
+		throw std::range_error("Buffer::pushBack");
 	}
 	_usefulDataSize += size;
 	_last = moveForward(_last, size);

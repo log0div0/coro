@@ -42,7 +42,7 @@ void TcpSocket::sendData(Buffer* buffer) {
 				if (ec) {
 					errorCode = ec;
 				} else {
-					buffer->reduceFront(bytes_tranfered);
+					buffer->popFront(bytes_tranfered);
 				}
 				coro.resume();
 			}
@@ -64,7 +64,7 @@ void TcpSocket::receiveData(Buffer* buffer) {
 				if (ec) {
 					errorCode = ec;
 				} else {
-					buffer->expandBack(bytes_tranfered);
+					buffer->pushBack(bytes_tranfered);
 				}
 				coro.resume();
 			}
@@ -86,7 +86,7 @@ void TcpSocket::receiveSomeData(Buffer* buffer) {
 				if (ec) {
 					errorCode = ec;
 				} else {
-					buffer->expandBack(bytes_tranfered);
+					buffer->pushBack(bytes_tranfered);
 				}
 				coro.resume();
 			}

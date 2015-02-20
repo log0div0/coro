@@ -3,6 +3,7 @@
 
 #include "TcpSocket.h"
 
+/// @warning после Buffer::popFront & Buffer::pushFront - итератор становится невалидным
 class NetworkIterator {
 public:
 	typedef ptrdiff_t difference_type;
@@ -28,7 +29,9 @@ public:
 	difference_type operator-(const NetworkIterator& other) const;
 
 private:
+	pointer getPointer() const;
+
 	TcpSocket* _socket;
 	Buffer* _buffer;
-	pointer _it;
+	difference_type _offset;
 };

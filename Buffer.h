@@ -93,8 +93,8 @@ public:
 		}
 	}
 
-	void reduceFromBeginToThis() {
-		_buffer->reduceFront(*this - _buffer->begin());
+	void popFromBeginToThis() {
+		_buffer->popFront(*this - _buffer->begin());
 	}
 
 public: //< Для конверсии Iterator -> ConstIterator
@@ -132,20 +132,15 @@ public:
 	std::vector<boost::asio::mutable_buffer> freeSpace();
 	size_t freeSpaceSize() const;
 
-	// Первые size байт usefulData переходят в freeSpace
-	void reduceFront(size_t size);
-	// Последние size байт usefulData переходят в freeSpace
-	void reduceBack(size_t size);
-
-	// Граница usefulData расширяется в начале за счёт freeSpace
-	void expandFront(size_t size);
-	// Граница usefulData расширяется в конце за счёт freeSpace
-	void expandBack(size_t size);
+	void popFront(size_t size);
+	void popBack(size_t size);
+	void pushFront(size_t size);
+	void pushBack(size_t size);
 
 	template <typename T>
-	void expandBack(T begin, T end) {
+	void pushBack(T begin, T end) {
 		Iterator last(this, _last);
-		expandBack(end - begin);
+		pushBack(end - begin);
 		std::copy(begin, end, last);
 	}
 
