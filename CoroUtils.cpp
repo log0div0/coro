@@ -4,13 +4,13 @@
 #include "Coro.h"
 #include <atomic>
 
-void Parallel(const std::initializer_list<std::function<void()>>& programs,
+void Parallel(const std::initializer_list<std::function<void()>>& routines,
 	const std::function<void(const std::exception&)>& errorHandler)
 {
 	ThreadPool& threadPool = *ThreadPool::current();
 	Coro& oldCoro = *Coro::current();
 
-	std::atomic_size_t corosCount(programs.size());
+	std::atomic_size_t corosCount(routines.size());
 	// этот callback возобновит текущую корутину, когда все дочерние корутины завершатся
 	auto onCoroDone = [&]() {
 		if (--corosCount == 0) {
@@ -22,8 +22,8 @@ void Parallel(const std::initializer_list<std::function<void()>>& programs,
 
 	std::vector<Coro> coros;
 	coros.reserve(corosCount);
-	for (auto program: programs) {
-		coros.emplace_back(std::move(program), onCoroDone);
+	for (auto routine: routines) {
+		coros.emplace_back(std::move(routine), onCoroDone);
 	};
 
 	// запланируем запуск дочерних корутин, когда выйдем из текущей корутины

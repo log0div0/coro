@@ -7,6 +7,7 @@ find_package(Boost COMPONENTS REQUIRED system unit_test_framework context)
 set(SRC main.cpp
 	TestBuffer.cpp
 	TestCoroMutex.cpp
+	TestCoroPool.cpp
 	TestCoroQueue.cpp
 	TestCoroUtils.cpp
 	TestNetworkIterator.cpp

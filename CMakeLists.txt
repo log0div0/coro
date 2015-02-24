@@ -12,6 +12,7 @@ set(SRCS
 	Buffer.cpp
 	Coro.cpp
 	CoroMutex.cpp
+	CoroPool.cpp
 	CoroUtils.cpp
 	NetworkIterator.cpp
 	TcpServer.cpp

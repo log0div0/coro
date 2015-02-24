@@ -14,6 +14,7 @@ public:
 
 	// VS2013 не умеет их генерить
 	TcpSocket(TcpSocket&& other);
+	TcpSocket& operator=(TcpSocket&& other);
 
 	void connect(const TcpEndpoint& endpoint);
 

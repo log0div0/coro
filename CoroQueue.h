@@ -21,7 +21,7 @@ public:
 			}
 
 			_coroQueue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
-				threadPool->schedule([&](){
+				threadPool->schedule([coro]() {
 					coro->resume();
 				});
 			});

@@ -2,8 +2,9 @@
 #pragma once
 
 #include "TcpSocket.h"
+#include "CoroPool.h"
 
-class TcpServer {
+class TcpServer: public CoroPool {
 public:
 	TcpServer(const TcpEndpoint& endpoint);
 

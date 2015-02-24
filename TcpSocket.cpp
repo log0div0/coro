@@ -15,6 +15,11 @@ TcpSocket::TcpSocket(TcpSocket&& other): _socket(std::move(other._socket)) {
 
 }
 
+TcpSocket& TcpSocket::operator=(TcpSocket&& other) {
+	_socket = std::move(other._socket);
+	return *this;
+}
+
 void TcpSocket::connect(const TcpEndpoint& endpoint) {
 	Coro& coro = *Coro::current();
 	error_code errorCode;

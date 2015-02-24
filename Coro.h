@@ -14,13 +14,14 @@ struct Coro
 {
 	static Coro* current();
 
-	// onDone вызывается когда program отработает (или выбросит исключение) И! когда мы уже выйдем
+	// onDone вызывается когда routine отработает (или выбросит исключение) И! когда мы уже выйдем
 	// из корутины
-	Coro(std::function<void()> program,
+	Coro(std::function<void()> routine,
 		std::function<void()> onDone = std::function<void()>());
+	Coro(Coro&& other);
 	~Coro();
 
-	// если это первый вызов resume - то входим в program в новом стеке
+	// если это первый вызов resume - то входим в routine в новом стеке
 	// при последующих вызовах работает так:
 	// вызвали resume -> сделали return из yield в стеке корутины
 	void resume();
@@ -30,14 +31,16 @@ struct Coro
 	// используется для того, чтобы запланировать выполнение других корутин
 	void yield(std::function<void()> callMeJustAfterYield);
 
-	// если program выбросит исключение, то забрать его можно здесь
+	// если routine выбросит исключение, то забрать его можно здесь
 	std::exception_ptr exception();
 
 private:
+	Coro(const Coro& other);
+
 	static void run(intptr_t);
 	void doRun();
 
-	std::function<void()> _program, _onDone, _callMeJustAfterYield;
+	std::function<void()> _routine, _onDone, _callMeJustAfterYield;
 	bool _isDone;
 	std::vector<unsigned char> _stack;
 	boost::context::fcontext_t _context, _savedContext;
