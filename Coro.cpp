@@ -1,19 +1,14 @@
 
 #include "Coro.h"
-
-#ifdef _MSC_VER
-#define THREAD_LOCAL __declspec(thread)
-#else
-#define THREAD_LOCAL thread_local
-#endif
+#include "Common.h"
 
 THREAD_LOCAL Coro* t_coro = nullptr;
 
-void yield() {
+void Yield() {
 	t_coro->yield();
 }
 
-void yield(std::function<void()> callMeJustAfterYield) {
+void Yield(std::function<void()> callMeJustAfterYield) {
 	t_coro->yield(callMeJustAfterYield);
 }
 

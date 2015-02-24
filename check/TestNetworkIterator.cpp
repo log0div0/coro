@@ -2,55 +2,23 @@
 #include <boost/test/unit_test.hpp>
 #include "TcpServer.h"
 #include "NetworkIterator.h"
+#include "CoroUtils.h"
 
 
-extern ThreadPool g_threadPool;
-auto endpoint = TcpEndpoint(IPv4Address::from_string("127.0.0.1"), 44442);
-Buffer test_data({ 0x01, 0x02, 0x03, 0x04 });
-Buffer test_data2({ 0x05, 0x06, 0x07, 0x08 });
+static auto endpoint = TcpEndpoint(IPv4Address::from_string("127.0.0.1"), 44442);
+static Buffer test_data({ 0x01, 0x02, 0x03, 0x04 });
+static Buffer test_data2({ 0x05, 0x06, 0x07, 0x08 });
 
 
-BOOST_AUTO_TEST_SUITE(SuiteNetwork)
+BOOST_AUTO_TEST_SUITE(SuiteNetworkIterator)
 
 
-BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
+BOOST_AUTO_TEST_CASE(TestSTL) {
 	bool serverDone = false, clientDone = false;
 
-	g_threadPool.parallel({
+	Parallel({
 		[&]() {
-			TcpServer server(g_threadPool, endpoint);
-			TcpSocket socket = server.accept();
-			Buffer data(4);
-			socket.receiveData(&data);
-			BOOST_REQUIRE(data == test_data);
-			socket.sendData(&data);
-			BOOST_REQUIRE(data.usefulDataSize() == 0);
-			serverDone = true;
-		},
-		[&]() {
-			TcpSocket socket(g_threadPool);
-			socket.connect(endpoint);
-			Buffer data({ 0x01, 0x02, 0x03, 0x04 });
-			socket.sendData(&data);
-			BOOST_REQUIRE(data.usefulDataSize() == 0);
-			socket.receiveData(&data);
-			BOOST_REQUIRE(data == test_data);
-			clientDone = true;
-		}
-	}, [](const std::exception& exception) {
-		BOOST_REQUIRE(false);
-	});
-
-	BOOST_REQUIRE(serverDone && clientDone);
-}
-
-
-BOOST_AUTO_TEST_CASE(TestNetworkIterator) {
-	bool serverDone = false, clientDone = false;
-
-	g_threadPool.parallel({
-		[&]() {
-			TcpServer server(g_threadPool, endpoint);
+			TcpServer server(endpoint);
 			TcpSocket socket = server.accept();
 			{
 				Buffer buffer({ 0x01, 0x02, 0x03, 0x04 });
@@ -63,7 +31,7 @@ BOOST_AUTO_TEST_CASE(TestNetworkIterator) {
 			serverDone = true;
 		},
 		[&]() {
-			TcpSocket socket(g_threadPool);
+			TcpSocket socket;
 			socket.connect(endpoint);
 
 			Buffer buffer(1000);
@@ -92,8 +60,8 @@ BOOST_AUTO_TEST_CASE(TestNetworkIterator) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestNetworkIteratorRangeError) {
-	TcpSocket socket(g_threadPool);
+BOOST_AUTO_TEST_CASE(TestRangeError) {
+	TcpSocket socket;
 
 	Buffer buffer(4);
 

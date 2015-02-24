@@ -40,6 +40,10 @@ Buffer::Buffer(Buffer&& other)
 	  _last(other._last)
 {
 	other._begin = nullptr;
+	other._end = nullptr;
+	other._usefulDataSize = 0;
+	other._first = nullptr;
+	other._last = nullptr;
 }
 
 Buffer::~Buffer()

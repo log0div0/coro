@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_CASE(TestResumeYield) {
 
 	Coro coro([&] {
 		b.push_back(2);
-		yield();
+		Yield();
 		b.push_back(4);
 	});
 	b.push_back(1);
@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(TestResumeYield) {
 
 BOOST_AUTO_TEST_CASE(TestYieldWithCallback) {
 	Coro coro([&] {
-		yield([]() {
+		Yield([]() {
 			BOOST_REQUIRE(!Coro::current());
 		});
 	});

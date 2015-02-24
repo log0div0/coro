@@ -1,12 +1,13 @@
 
 #include "TcpSocket.h"
+#include "ThreadPool.h"
 #include "Coro.h"
 
 using boost::system::error_code;
 using boost::system::system_error;
 
-TcpSocket::TcpSocket(ThreadPool& threadPool)
-	: TcpSocket(std::move(boost::asio::ip::tcp::socket(threadPool.ioService()))) {
+TcpSocket::TcpSocket()
+	: TcpSocket(std::move(boost::asio::ip::tcp::socket(ThreadPool::current()->ioService()))) {
 
 }
 

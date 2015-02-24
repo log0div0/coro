@@ -1,18 +1,15 @@
 
 #include <boost/test/unit_test.hpp>
-#include "ThreadPool.h"
+#include "CoroUtils.h"
 
 
-extern ThreadPool g_threadPool;
-
-
-BOOST_AUTO_TEST_SUITE(SuiteThreadPool)
+BOOST_AUTO_TEST_SUITE(SuiteCoroUtils)
 
 
 BOOST_AUTO_TEST_CASE(TestParallel) {
 	uint32_t a = 0, b = 0;
 
-	g_threadPool.parallel({
+	Parallel({
 		[&] {
 			a = 10;
 		},

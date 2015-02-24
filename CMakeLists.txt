@@ -11,6 +11,8 @@ add_definitions(-std=c++1y -fPIC)
 set(SRCS
 	Buffer.cpp
 	Coro.cpp
+	CoroMutex.cpp
+	CoroUtils.cpp
 	NetworkIterator.cpp
 	TcpServer.cpp
 	TcpSocket.cpp

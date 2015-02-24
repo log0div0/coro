@@ -1,13 +1,14 @@
 
 #include "TcpServer.h"
+#include "ThreadPool.h"
 #include "Coro.h"
 
 using boost::system::error_code;
 using boost::system::system_error;
 
-TcpServer::TcpServer(ThreadPool& threadPool, const TcpEndpoint& endpoint)
-	: _acceptor(threadPool.ioService(), endpoint),
-	  _socket(threadPool.ioService()) {
+TcpServer::TcpServer(const TcpEndpoint& endpoint)
+	: _acceptor(ThreadPool::current()->ioService(), endpoint),
+	  _socket(ThreadPool::current()->ioService()) {
 
 }
 

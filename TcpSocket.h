@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "ThreadPool.h"
 #include "Buffer.h"
 
 typedef boost::asio::ip::address_v4 IPv4Address;
@@ -11,7 +10,7 @@ class TcpSocket {
 public:
 	friend class TcpServer;
 
-	TcpSocket(ThreadPool& threadPool);
+	TcpSocket();
 
 	// VS2013 не умеет их генерить
 	TcpSocket(TcpSocket&& other);

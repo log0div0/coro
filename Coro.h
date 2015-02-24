@@ -7,8 +7,8 @@
 
 #define CORO_STACK_SIZE 1024*32
 
-void yield();
-void yield(std::function<void()> callMeJustAfterYield);
+void Yield();
+void Yield(std::function<void()> callMeJustAfterYield);
 
 struct Coro
 {

@@ -5,7 +5,7 @@
 
 class TcpServer {
 public:
-	TcpServer(ThreadPool& threadPool, const TcpEndpoint& endpoint);
+	TcpServer(const TcpEndpoint& endpoint);
 
 	TcpSocket accept();
 
