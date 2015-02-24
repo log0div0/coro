@@ -31,3 +31,17 @@ TcpSocket TcpServer::accept() {
 
 	return TcpSocket(std::move(_socket));
 }
+
+void TcpServer::run(const std::function<void(TcpSocket socket)>& routine) {
+	TcpSocket socket;
+
+	auto acceptor = _coroPool.fork([&]() { socket = accept(); });
+	while (true) {
+		if (_coroPool.wait() == acceptor) {
+			_coroPool.fork([&]() {
+				routine(std::move(socket));
+			});
+			acceptor = _coroPool.fork([&]() { socket = accept(); });
+		}
+	}
+}
