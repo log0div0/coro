@@ -34,6 +34,12 @@ struct Coro
 	// если routine выбросит исключение, то забрать его можно здесь
 	std::exception_ptr exception();
 
+	// for std::set & std::map
+	bool operator==(const Coro& other) const;
+	bool operator<(const Coro& other) const;
+
+	void replaceDoneCallback(std::function<void()> onDone);
+
 private:
 	Coro(const Coro& other);
 

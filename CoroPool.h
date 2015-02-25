@@ -1,16 +1,17 @@
 
 #pragma once
 
-#include "CoroQueue.h"
+#include "Coro.h"
+#include <mutex>
+#include <set>
 
 class CoroPool {
 public:
-	uint64_t fork(const std::function<void()>& routine);
-	uint64_t wait();
+	void fork(const std::function<void()>& routine);
+	void join();
 
 private:
 	std::mutex _mutex;
-	uint64_t _coroCounter;
-	std::map<uint64_t, Coro> _coros;
-	CoroQueue<uint64_t> _doneCoros;
+	std::set<Coro> _coros;
+	std::function<void()> _onJoin;
 };

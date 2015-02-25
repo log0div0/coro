@@ -38,7 +38,7 @@ Coro::Coro(Coro&& other)
 	  _exception(std::move(other._exception))
 {
 	other._routine = nullptr;
-	other._isDone = nullptr;
+	other._onDone = nullptr;
 	other._callMeJustAfterYield = nullptr;
 	other._isDone = false;
 	other._stack.clear();
@@ -81,6 +81,18 @@ void Coro::yield(std::function<void()> callMeJustAfterYield) {
 
 std::exception_ptr Coro::exception() {
 	return _exception;
+}
+
+bool Coro::operator==(const Coro& other) const {
+	return this == &other;
+}
+
+bool Coro::operator<(const Coro& other) const {
+	return this < &other;
+}
+
+void Coro::replaceDoneCallback(std::function<void()> onDone) {
+	_onDone = std::move(onDone);
 }
 
 void Coro::run(intptr_t)

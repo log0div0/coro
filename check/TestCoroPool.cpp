@@ -11,15 +11,14 @@ BOOST_AUTO_TEST_CASE(Test) {
 
 	CoroPool pool;
 
-	auto first = pool.fork([&]() {
+	pool.fork([&]() {
 		actual.push_back(1);
 	});
-	auto second = pool.fork([&]() {
+	pool.fork([&]() {
 		actual.push_back(2);
 	});
 
-	BOOST_REQUIRE(pool.wait() == first);
-	BOOST_REQUIRE(pool.wait() == second);
+	pool.join();
 
 	BOOST_REQUIRE(actual == expected);
 }

@@ -1,23 +1,43 @@
 
 #include "CoroPool.h"
+#include "ThreadPool.h"
 
-uint64_t CoroPool::fork(const std::function<void()>& routine) {
+void CoroPool::fork(const std::function<void()>& routine) {
 	std::lock_guard<std::mutex> lock(_mutex);
-	uint64_t coroId = _coroCounter++;
-	auto result = _coros.emplace(std::piecewise_construct,
-		std::forward_as_tuple(coroId),
-		std::forward_as_tuple(routine, [&, coroId]() { _doneCoros.push(coroId); })
-	);
+
+	auto result = _coros.emplace(routine);
+	Coro& coro = const_cast<Coro&>(*result.first);
 	assert(result.second);
-	ThreadPool::current()->schedule([&coro = result.first->second]() {
+
+	coro.replaceDoneCallback([&]() {
+		ThreadPool::current()->schedule([&]() {
+			std::lock_guard<std::mutex> lock(_mutex);
+			_coros.erase(coro);
+			if (_coros.empty()) {
+				if (_onJoin) {
+					_onJoin();
+					_onJoin = nullptr;
+				}
+			}
+		});
+	});
+
+	ThreadPool::current()->schedule([&]() {
 		coro.resume();
 	});
-	return coroId;
 }
 
-uint64_t CoroPool::wait() {
-	uint64_t coroId = _doneCoros.pop();
-	std::lock_guard<std::mutex> lock(_mutex);
-	_coros.erase(coroId);
-	return coroId;
+void CoroPool::join() {
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		if (_coros.empty()) {
+			return;
+		}
+		_onJoin = [threadPool = ThreadPool::current(), coro = Coro::current()] {
+			threadPool->schedule([coro]() {
+				coro->resume();
+			});
+		};
+	}
+	Coro::current()->yield();
 }
