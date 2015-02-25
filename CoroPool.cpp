@@ -2,10 +2,10 @@
 #include "CoroPool.h"
 #include "ThreadPool.h"
 
-void CoroPool::fork(const std::function<void()>& routine) {
+void CoroPool::fork(std::function<void()> routine) {
 	std::lock_guard<std::mutex> lock(_mutex);
 
-	auto result = _coros.emplace(routine);
+	auto result = _coros.emplace(std::move(routine));
 	Coro& coro = const_cast<Coro&>(*result.first);
 	assert(result.second);
 

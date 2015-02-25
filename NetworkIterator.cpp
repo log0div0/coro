@@ -68,15 +68,20 @@ void NetworkIterator::operator=(const NetworkIterator& other) {
 }
 
 bool NetworkIterator::operator!=(const NetworkIterator& other) const {
-	return _offset != other._offset;
+	return (_buffer != other._buffer) || (_offset != other._offset);
 }
 
 bool NetworkIterator::operator==(const NetworkIterator& other) const {
-	return _offset == other._offset;
+	return (_buffer == other._buffer) && (_offset == other._offset);
 }
 
 NetworkIterator::difference_type NetworkIterator::operator-(const NetworkIterator& other) const {
 	return other._offset - _offset;
+}
+
+
+NetworkIterator::operator Buffer::Iterator() const {
+	return Buffer::Iterator(_buffer, getPointer());
 }
 
 NetworkIterator::pointer NetworkIterator::getPointer() const {

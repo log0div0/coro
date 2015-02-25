@@ -9,7 +9,7 @@ public:
 	TcpServer(const TcpEndpoint& endpoint);
 
 	TcpSocket accept();
-	void run(const std::function<void(TcpSocket socket)>& routine);
+	void run(std::function<void(TcpSocket socket)> routine);
 
 private:
 	boost::asio::ip::tcp::acceptor _acceptor;

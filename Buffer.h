@@ -93,10 +93,6 @@ public:
 		}
 	}
 
-	void popFromBeginToThis() {
-		_buffer->popFront(*this - _buffer->begin());
-	}
-
 public: //< Для конверсии Iterator -> ConstIterator
 	Buffer* _buffer;
 	pointer _it;
@@ -136,6 +132,8 @@ public:
 	void popBack(size_t size);
 	void pushFront(size_t size);
 	void pushBack(size_t size);
+
+	void popFront(const Iterator& it);
 
 	template <typename T>
 	void pushBack(T begin, T end) {

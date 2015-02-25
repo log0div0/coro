@@ -7,7 +7,7 @@
 
 class CoroPool {
 public:
-	void fork(const std::function<void()>& routine);
+	void fork(std::function<void()> routine);
 	void join();
 
 private:

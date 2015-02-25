@@ -28,6 +28,8 @@ public:
 	bool operator==(const NetworkIterator& other) const;
 	difference_type operator-(const NetworkIterator& other) const;
 
+	operator Buffer::Iterator() const;
+
 private:
 	pointer getPointer() const;
 

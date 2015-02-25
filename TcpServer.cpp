@@ -32,10 +32,13 @@ TcpSocket TcpServer::accept() {
 	return TcpSocket(std::move(_socket));
 }
 
-void TcpServer::run(const std::function<void(TcpSocket socket)>& routine) {
+void TcpServer::run(std::function<void(TcpSocket socket)> routine) {
 	while (true) {
 		TcpSocket socket = accept();
-		_coroPool.fork([&]() {
+		// мы не можем переместить сокет в лямду, т.к. лямда не сможет преобразоваться в std::function
+		_coroPool.fork([routine, temp = new TcpSocket(std::move(socket))]() {
+			TcpSocket socket(std::move(*temp));
+			delete temp;
 			routine(std::move(socket));
 		});
 	}
