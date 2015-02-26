@@ -21,6 +21,7 @@ public:
 
 	NetworkIterator& operator++();
 	NetworkIterator operator++(int);
+	NetworkIterator& operator+=(difference_type distance);
 	NetworkIterator operator+(difference_type distance) const;
 
 	void operator=(const NetworkIterator& other);

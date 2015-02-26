@@ -51,13 +51,16 @@ NetworkIterator NetworkIterator::operator++(int) {
 	return copy;
 }
 
-NetworkIterator NetworkIterator::operator+(difference_type distance) const {
+NetworkIterator& NetworkIterator::operator+=(difference_type distance) {
 	if (static_cast<size_t>(_offset + distance) > _buffer->size()) {
 		throw std::range_error("NetworkIterator::operator+");
 	}
-	NetworkIterator result(*this);
-	result._offset += distance;
-	return result;
+	_offset += distance;
+	return *this;
+}
+
+NetworkIterator NetworkIterator::operator+(difference_type distance) const {
+	return NetworkIterator(*this) += distance;
 }
 
 
@@ -81,7 +84,8 @@ NetworkIterator::difference_type NetworkIterator::operator-(const NetworkIterato
 
 
 NetworkIterator::operator Buffer::Iterator() const {
-	return Buffer::Iterator(_buffer, getPointer());
+	auto it = getPointer();
+	return Buffer::Iterator(_buffer, it != _buffer->_last ? it: 0);
 }
 
 NetworkIterator::pointer NetworkIterator::getPointer() const {

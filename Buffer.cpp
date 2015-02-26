@@ -51,6 +51,11 @@ Buffer::~Buffer()
 	delete[] _begin;
 }
 
+void Buffer::clear() {
+	_first = _last = _begin;
+	_usefulDataSize = 0;
+}
+
 Buffer::Iterator Buffer::begin() {
 	return Iterator(this, _first);
 }

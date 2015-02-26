@@ -60,12 +60,16 @@ public:
 		return copy;
 	}
 
-	BufferIterator operator+(difference_type distance) const {
-		auto it = _buffer->moveForward(_it, distance);
-		if (it == _buffer->_last) {
-			it = nullptr;
+	BufferIterator& operator+=(difference_type distance) {
+		_it = _buffer->moveForward(_it, distance);
+		if (_it == _buffer->_last) {
+			_it = nullptr;
 		}
-		return BufferIterator(_buffer, it);
+		return *this;
+	}
+
+	BufferIterator operator+(difference_type distance) const {
+		return BufferIterator(*this) += distance;
 	}
 
 	void operator=(const BufferIterator& other) {
@@ -114,6 +118,8 @@ public:
 	Buffer(Buffer&& other);
 	~Buffer();
 
+	void clear();
+
 	// Итераторы для usefulData
 	Iterator begin();
 	Iterator end();
@@ -134,6 +140,13 @@ public:
 	void pushBack(size_t size);
 
 	void popFront(const Iterator& it);
+
+	template <typename T>
+	void pushFront(T begin, T end) {
+		pushFront(end - begin);
+		Iterator first(this, _first);
+		std::copy(begin, end, first);
+	}
 
 	template <typename T>
 	void pushBack(T begin, T end) {

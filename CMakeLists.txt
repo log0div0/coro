@@ -18,6 +18,8 @@ set(SRCS
 	TcpServer.cpp
 	TcpSocket.cpp
 	ThreadPool.cpp
+	WsPayloadLength.cpp
+	WsProtocol.cpp
 )
 
 add_definitions("-Wall")
@@ -29,3 +31,4 @@ set_target_properties(coro PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DI
 
 subdirs(check)
 subdirs(test_coro)
+subdirs(examples/ws_echo_server)

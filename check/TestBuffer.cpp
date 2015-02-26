@@ -65,6 +65,17 @@ BOOST_AUTO_TEST_CASE(TestIteratorDifference) {
 	BOOST_REQUIRE( (buffer.end() - buffer.begin()) == 4 );
 }
 
+BOOST_AUTO_TEST_CASE(TestPushFront) {
+	std::string str("abcd");
+
+	Buffer buffer(5);
+	buffer.pushFront(str.begin(), str.end());
+	BOOST_REQUIRE(buffer.usefulDataSize() == 4);
+	BOOST_REQUIRE(std::equal(buffer.begin(), buffer.end(), str.begin()));
+
+	BOOST_REQUIRE_THROW(buffer.pushFront(str.begin(), str.end()), std::range_error);
+}
+
 BOOST_AUTO_TEST_CASE(TestPushBack) {
 	std::string str("abcd");
 

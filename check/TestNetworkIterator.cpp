@@ -80,5 +80,15 @@ BOOST_AUTO_TEST_CASE(TestRangeError) {
 	BOOST_REQUIRE_THROW(NetworkIterator(socket, buffer) + 4, std::range_error);
 }
 
+BOOST_AUTO_TEST_CASE(TestCastToBufferIterator) {
+	TcpSocket socket;
+
+	Buffer buffer(4);
+	auto it = NetworkIterator(socket, buffer);
+	buffer.pushBack(2);
+	BOOST_REQUIRE(*(it + 1) == *(buffer.begin() + 1));
+	BOOST_REQUIRE(buffer.end() == (it + 2));
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
