@@ -4,31 +4,14 @@ cmake_policy(SET CMP0017 OLD)
 include(FindBoost)
 find_package(Boost COMPONENTS REQUIRED system)
 
-include_directories(./)
+add_definitions(-std=c++1y -fPIC -Wall)
 
-add_definitions(-std=c++1y -fPIC)
+include_directories(${Boost_INCLUDE_DIRS} ./include)
+file(GLOB SRC "src/*.cpp")
 
-set(SRCS
-	Buffer.cpp
-	Coro.cpp
-	CoroMutex.cpp
-	CoroPool.cpp
-	CoroUtils.cpp
-	NetworkIterator.cpp
-	TcpServer.cpp
-	TcpSocket.cpp
-	ThreadPool.cpp
-	WsPayloadLength.cpp
-	WsProtocol.cpp
-)
-
-add_definitions("-Wall")
-
-include_directories(../ ${Boost_INCLUDE_DIRS})
-
-add_library(coro STATIC ${SRCS})
+add_library(coro STATIC ${SRC})
 set_target_properties(coro PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
 
-subdirs(check)
-subdirs(test_coro)
+subdirs(tests/just_coro)
+subdirs(tests/single_thread)
 subdirs(examples/ws_echo_server)
