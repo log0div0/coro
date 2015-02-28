@@ -4,6 +4,7 @@
 #include "Coro.h"
 #include <mutex>
 #include <set>
+#include <queue>
 
 class CoroPool {
 public:
@@ -13,5 +14,5 @@ public:
 private:
 	std::mutex _mutex;
 	std::set<Coro> _coros;
-	std::function<void()> _onJoin;
+	std::queue<std::function<void()>> _callOnJoin;
 };

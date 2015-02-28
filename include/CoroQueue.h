@@ -10,24 +10,25 @@ template <typename T>
 class CoroQueue {
 public:
 	T pop() {
-		{
-			std::lock_guard<std::mutex> lock(_mutex);
+		_mutex.lock();
 
-			if (_size) {
-				--_size;
-				T t = _dataQueue.front();
-				_dataQueue.pop();
-				return t;
-			}
-
-			_coroQueue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
-				threadPool->schedule([coro]() {
-					coro->resume();
-				});
-			});
+		if (_size) {
+			--_size;
+			T t = _dataQueue.front();
+			_dataQueue.pop();
+			_mutex.unlock();
+			return t;
 		}
 
-		Coro::current()->yield();
+		_coroQueue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
+			threadPool->schedule([coro]() {
+				coro->resume();
+			});
+		});
+
+		Coro::current()->yield([&]() {
+			_mutex.unlock();
+		});
 
 		std::lock_guard<std::mutex> lock(_mutex);
 

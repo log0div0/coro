@@ -4,30 +4,31 @@
 #include "Coro.h"
 
 void CoroMutex::lock() {
-	{
-		std::lock_guard<std::mutex> lock(_mutex);
+	_mutex.lock();
 
-		if (!_isLocked) {
-			_isLocked = true;
-			return;
-		}
-
-		_queue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
-			threadPool->schedule([&](){
-				coro->resume();
-			});
-		});
+	if (!_isLocked) {
+		_isLocked = true;
+		_mutex.unlock();
+		return;
 	}
 
-	Coro::current()->yield();
+	_coroQueue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
+		threadPool->schedule([&](){
+			coro->resume();
+		});
+	});
+
+	Coro::current()->yield([&]() {
+		_mutex.unlock();
+	});
 }
 
 void CoroMutex::unlock() {
 	std::lock_guard<std::mutex> lock(_mutex);
 
-	if (_queue.size()) {
-		_queue.front()();
-		_queue.pop();
+	if (_coroQueue.size()) {
+		_coroQueue.front()();
+		_coroQueue.pop();
 	} else {
 		_isLocked = false;
 	}

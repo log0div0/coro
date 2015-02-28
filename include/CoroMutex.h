@@ -13,5 +13,5 @@ public:
 private:
 	bool _isLocked = false;
 	std::mutex _mutex;
-	std::queue<std::function<void()>> _queue;
+	std::queue<std::function<void()>> _coroQueue;
 };
