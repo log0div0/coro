@@ -11,4 +11,4 @@ add_definitions(-std=c++11 -DBOOST_TEST_DYN_LINK -DBOOST_TEST_NO_MAIN)
 
 add_executable(test_just_coro ${SRC})
 target_link_libraries(test_just_coro coro)
-target_link_libraries(test_just_coro ${Boost_LIBRARIES} pthread rt z dl)
+target_link_libraries(test_just_coro ${Boost_LIBRARIES} pthread z dl)

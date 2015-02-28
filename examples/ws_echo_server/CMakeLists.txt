@@ -11,4 +11,4 @@ add_definitions(-std=c++1y)
 
 add_executable(example_ws_echo_server ${SRC})
 target_link_libraries(example_ws_echo_server coro ssl crypto)
-target_link_libraries(example_ws_echo_server ${Boost_LIBRARIES} pthread rt z dl)
+target_link_libraries(example_ws_echo_server ${Boost_LIBRARIES} pthread z dl)
