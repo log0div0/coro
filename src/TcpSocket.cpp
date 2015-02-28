@@ -38,17 +38,18 @@ void TcpSocket::connect(const TcpEndpoint& endpoint) {
 	}
 }
 
-void TcpSocket::sendData(Buffer* buffer) {
+size_t TcpSocket::sendData(const Buffer& buffer) {
 	Coro& coro = *Coro::current();
 	error_code errorCode;
+	size_t bytesTranfered = 0;
 
 	coro.yield([&]() {
-		boost::asio::async_write(_socket, buffer->usefulData(),
-			[&](const error_code& ec, size_t bytes_tranfered) {
+		boost::asio::async_write(_socket, buffer.usefulData(),
+			[&](const error_code& ec, size_t bytesTranfered_) {
 				if (ec) {
 					errorCode = ec;
 				} else {
-					buffer->popFront(bytes_tranfered);
+					bytesTranfered = bytesTranfered_;
 				}
 				coro.resume();
 			}
@@ -58,6 +59,8 @@ void TcpSocket::sendData(Buffer* buffer) {
 	if (errorCode) {
 		throw system_error(errorCode);
 	}
+
+	return bytesTranfered;
 }
 
 void TcpSocket::receiveData(Buffer* buffer) {
@@ -66,11 +69,11 @@ void TcpSocket::receiveData(Buffer* buffer) {
 
 	coro.yield([&]() {
 		boost::asio::async_read(_socket, buffer->freeSpace(),
-			[&](const error_code& ec, size_t bytes_tranfered) {
+			[&](const error_code& ec, size_t bytesTranfered) {
 				if (ec) {
 					errorCode = ec;
 				} else {
-					buffer->pushBack(bytes_tranfered);
+					buffer->pushBack(bytesTranfered);
 				}
 				coro.resume();
 			}
@@ -88,11 +91,11 @@ void TcpSocket::receiveSomeData(Buffer* buffer) {
 
 	coro.yield([&]() {
 		_socket.async_read_some(buffer->freeSpace(),
-			[&](const error_code& ec, size_t bytes_tranfered) {
+			[&](const error_code& ec, size_t bytesTranfered) {
 				if (ec) {
 					errorCode = ec;
 				} else {
-					buffer->pushBack(bytes_tranfered);
+					buffer->pushBack(bytesTranfered);
 				}
 				coro.resume();
 			}

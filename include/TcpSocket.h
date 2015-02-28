@@ -12,13 +12,13 @@ public:
 
 	TcpSocket();
 
-	// VS2013 не умеет их генерить
+	// VS2013 РЅРµ СѓРјРµРµС‚ РёС… РіРµРЅРµСЂРёС‚СЊ
 	TcpSocket(TcpSocket&& other);
 	TcpSocket& operator=(TcpSocket&& other);
 
 	void connect(const TcpEndpoint& endpoint);
 
-	void sendData(Buffer* buffer);
+	size_t sendData(const Buffer& buffer);
 	void receiveData(Buffer* buffer);
 	void receiveSomeData(Buffer* buffer);
 

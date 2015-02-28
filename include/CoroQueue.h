@@ -31,15 +31,16 @@ public:
 
 		std::lock_guard<std::mutex> lock(_mutex);
 
-		T t = _dataQueue.front();
+		T t = std::move(_dataQueue.front());
 		_dataQueue.pop();
 		return t;
 	}
 
-	void push(const T& t) {
+	template <typename U>
+	void push(U&& u) {
 		std::lock_guard<std::mutex> lock(_mutex);
 
-		_dataQueue.push(t);
+		_dataQueue.push(std::forward<U>(u));
 
 		if (_coroQueue.size()) {
 			_coroQueue.front()();

@@ -155,6 +155,12 @@ public:
 		std::copy(begin, end, last);
 	}
 
+	template <typename T>
+	void assign(T begin, T end) {
+		clear();
+		pushBack(begin, end);
+	}
+
 	size_t size() const;
 
 	bool operator==(const Buffer& other) const;

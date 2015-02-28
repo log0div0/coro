@@ -21,16 +21,14 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 			Buffer data(4);
 			socket.receiveData(&data);
 			BOOST_REQUIRE(data == test_data);
-			socket.sendData(&data);
-			BOOST_REQUIRE(data.usefulDataSize() == 0);
+			socket.sendData(data);
 			serverDone = true;
 		},
 		[&]() {
 			TcpSocket socket;
 			socket.connect(endpoint);
-			Buffer data({ 0x01, 0x02, 0x03, 0x04 });
-			socket.sendData(&data);
-			BOOST_REQUIRE(data.usefulDataSize() == 0);
+			socket.sendData(test_data);
+			Buffer data(4);
 			socket.receiveData(&data);
 			BOOST_REQUIRE(data == test_data);
 			clientDone = true;

@@ -20,14 +20,8 @@ BOOST_AUTO_TEST_CASE(TestSTL) {
 		[&]() {
 			TcpServer server(endpoint);
 			TcpSocket socket = server.accept();
-			{
-				Buffer buffer({ 0x01, 0x02, 0x03, 0x04 });
-				socket.sendData(&buffer);
-			}
-			{
-				Buffer buffer({ 0x05, 0x06, 0x07, 0x08 });
-				socket.sendData(&buffer);
-			}
+			socket.sendData(test_data);
+			socket.sendData(test_data2);
 			serverDone = true;
 		},
 		[&]() {

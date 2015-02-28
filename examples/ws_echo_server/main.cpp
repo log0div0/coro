@@ -14,11 +14,14 @@ void SessionRoutine(TcpSocket socket) {
 
 	try {
 		WsServerProtocol protocol;
-
 		Buffer input(1000), output(1000);
+
 		input.popFront(
-			protocol.doHandshake(NetworkIterator(socket, input), NetworkIterator(), output));
-		socket.sendData(&output);
+			protocol.doHandshake(NetworkIterator(socket, input), NetworkIterator(), output)
+		);
+		output.popFront(
+			socket.sendData(output)
+		);
 
 		while (true) {
 			WsMessage message;
@@ -30,11 +33,12 @@ void SessionRoutine(TcpSocket socket) {
 				cout << endl;
 			}
 
-			output.pushBack(message.payloadBegin(), message.payloadEnd());
-			input.popFront(message.end());
-
+			output.assign(message.payloadBegin(), message.payloadEnd());
 			protocol.writeMessage(message.opCode(), output);
-			socket.sendData(&output);
+
+			input.popFront(message.end());
+			output.popFront(socket.sendData(output));
+
 		}
 	}
 	catch (const exception& e) {

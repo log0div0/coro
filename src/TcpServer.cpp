@@ -34,12 +34,9 @@ TcpSocket TcpServer::accept() {
 
 void TcpServer::run(std::function<void(TcpSocket socket)> routine) {
 	while (true) {
-		TcpSocket socket = accept();
-		// мы не можем переместить сокет в лямду, т.к. лямда не сможет преобразоваться в std::function
-		_coroPool.fork([routine, temp = new TcpSocket(std::move(socket))]() {
-			TcpSocket socket(std::move(*temp));
-			delete temp;
-			routine(std::move(socket));
+		auto socket = std::make_shared<TcpSocket>(std::move(accept()));
+		_coroPool.fork([routine, socket]() {
+			routine(std::move(*socket));
 		});
 	}
 }
