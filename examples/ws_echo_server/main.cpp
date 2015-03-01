@@ -19,9 +19,8 @@ void SessionRoutine(TcpSocket socket) {
 		input.popFront(
 			protocol.doHandshake(NetworkIterator(socket, input), NetworkIterator(), output)
 		);
-		output.popFront(
-			socket.sendData(output)
-		);
+		socket.sendData(output)
+		output.clear();
 
 		while (true) {
 			WsMessage message;
@@ -35,9 +34,10 @@ void SessionRoutine(TcpSocket socket) {
 
 			output.assign(message.payloadBegin(), message.payloadEnd());
 			protocol.writeMessage(message.opCode(), output);
+			socket.sendData(output);
 
 			input.popFront(message.end());
-			output.popFront(socket.sendData(output));
+			output.clear();
 
 		}
 	}
