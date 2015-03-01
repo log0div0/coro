@@ -112,10 +112,16 @@ public:
 	friend class NetworkIterator;
 
 	explicit Buffer(size_t size);
+
 	Buffer(const std::initializer_list<uint8_t>& list);
 	Buffer(const std::string& data);
 	Buffer(const std::vector<uint8_t>& data);
-	Buffer(Buffer&& other);
+
+	Buffer(const Buffer& other) = delete;
+	Buffer& operator=(const Buffer& other) = delete;
+	Buffer(Buffer&& other) = delete;
+	Buffer& operator=(Buffer&& other) = delete;
+
 	~Buffer();
 
 	void clear();
@@ -166,7 +172,6 @@ public:
 	bool operator==(const Buffer& other) const;
 
 private:
-	Buffer(const Buffer& other);
 
 	template <typename T>
 	T moveForward(T it, size_t distance) const {

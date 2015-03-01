@@ -2,6 +2,11 @@
 #include "CoroPool.h"
 #include "ThreadPool.h"
 
+CoroPool& CoroPool::global() {
+	static CoroPool pool;
+	return pool;
+}
+
 void CoroPool::fork(std::function<void()> routine) {
 	std::lock_guard<std::mutex> lock(_mutex);
 
@@ -40,4 +45,8 @@ void CoroPool::join() {
 	Coro::current()->yield([&]() {
 		_mutex.unlock();
 	});
+}
+
+void Fork(std::function<void()> routine) {
+	CoroPool::global().fork(routine);
 }

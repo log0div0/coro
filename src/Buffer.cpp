@@ -1,13 +1,6 @@
 
 #include "Buffer.h"
 
-Buffer::Buffer(const std::initializer_list<uint8_t>& list)
-	: Buffer(list.size())
-{
-	std::copy(list.begin(), list.end(), _begin);
-	_usefulDataSize = list.size();
-}
-
 Buffer::Buffer(size_t size)
 	: _begin(new uint8_t[size]),
 	  _end(_begin + size),
@@ -16,6 +9,13 @@ Buffer::Buffer(size_t size)
 	  _last(_begin)
 {
 
+}
+
+Buffer::Buffer(const std::initializer_list<uint8_t>& list)
+	: Buffer(list.size())
+{
+	std::copy(list.begin(), list.end(), _begin);
+	_usefulDataSize = list.size();
 }
 
 Buffer::Buffer(const std::string& data)
@@ -30,20 +30,6 @@ Buffer::Buffer(const std::vector<uint8_t>& data)
 {
 	std::copy(data.begin(), data.end(), _begin);
 	_usefulDataSize = data.size();
-}
-
-Buffer::Buffer(Buffer&& other)
-	: _begin(other._begin),
-	  _end(other._end),
-	  _usefulDataSize(other._usefulDataSize),
-	  _first(other._first),
-	  _last(other._last)
-{
-	other._begin = nullptr;
-	other._end = nullptr;
-	other._usefulDataSize = 0;
-	other._first = nullptr;
-	other._last = nullptr;
 }
 
 Buffer::~Buffer()
