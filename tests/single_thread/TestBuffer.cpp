@@ -104,4 +104,10 @@ BOOST_AUTO_TEST_CASE(TestIteratorMovement) {
 	BOOST_REQUIRE(*(it + 2) == 'c');
 }
 
+BOOST_AUTO_TEST_CASE(TestEmpty) {
+	Buffer buffer(1000);
+	BOOST_REQUIRE(buffer.begin() == buffer.end());
+	BOOST_REQUIRE((buffer.end() - buffer.begin()) == 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

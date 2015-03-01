@@ -5,57 +5,87 @@
 #include "TcpServer.h"
 #include "WsProtocol.h"
 #include "NetworkIterator.h"
+#include "DynamicMemoryPool.h"
 #include <iostream>
 
 using namespace std;
 
-void SessionRoutine(TcpSocket socket) {
-	cout << "start SessionRoutine" << endl;
+class WsEchoSession {
+public:
+	WsEchoSession(TcpSocket socket)
+		: _socket(std::move(socket)),
+		  _inputBuffer(1000)
+	{
+		cout << "WsEchoSession" << endl;
+	}
+	~WsEchoSession() {
+		cout << "~WsEchoSession" << endl;
+	}
 
-	try {
-		WsServerProtocol protocol;
-		Buffer input(1000), output(1000);
-
-		input.popFront(
-			protocol.doHandshake(NetworkIterator(socket, input), NetworkIterator(), output)
+	void doHandshake() {
+		auto outputBuffer = DynamicMemoryPool::global<1000>().makeUnique();
+		_inputBuffer.popFront(
+			_wsProtocol.doHandshake(
+				NetworkIterator(_socket, _inputBuffer),
+				NetworkIterator(),
+				*outputBuffer
+			)
 		);
-		socket.sendData(output)
-		output.clear();
+		_socket.sendData(*outputBuffer);
+	}
 
-		while (true) {
-			WsMessage message;
-			protocol.readMessage(NetworkIterator(socket, input), NetworkIterator(), &message);
-
-			if (message.opCode() == WsMessage::OpCode::Text) {
-				copy(message.payloadBegin(), message.payloadEnd(),
-					ostream_iterator<char>(cout));
-				cout << endl;
-			}
-
-			output.assign(message.payloadBegin(), message.payloadEnd());
-			protocol.writeMessage(message.opCode(), output);
-			socket.sendData(output);
-
-			input.popFront(message.end());
-			output.clear();
-
+	void printMessage(const WsMessage& message) {
+		if (message.opCode() == WsMessage::OpCode::Text) {
+			copy(message.payloadBegin(), message.payloadEnd(),
+				ostream_iterator<char>(cout));
+			cout << endl;
 		}
 	}
-	catch (const exception& e) {
-		cout << e.what() << endl;
+
+	void operator()() {
+		try {
+			doHandshake();
+
+			while (true) {
+				WsMessage message;
+				_wsProtocol.readMessage(
+					NetworkIterator(_socket, _inputBuffer),
+					NetworkIterator(),
+					&message
+				);
+
+				printMessage(message);
+
+				auto outputBuffer = DynamicMemoryPool::global<1000>().makeUnique();
+				// копируем payload
+				outputBuffer->assign(message.payloadBegin(), message.payloadEnd());
+				// запаковываем в websockets
+				_wsProtocol.writeMessage(message.opCode(), *outputBuffer);
+				// отправляем
+				_socket.sendData(*outputBuffer);
+
+				_inputBuffer.popFront(message.end());
+			}
+		}
+		catch (const exception& e) {
+			cout << e.what() << endl;
+		}
 	}
 
-	cout << "stop SessionRoutine" << endl;
-}
+private:
+	TcpSocket _socket;
+	WsServerProtocol _wsProtocol;
+	Buffer _inputBuffer;
+};
 
-void ServerRoutine() {
+void StartAccept() {
 	auto endpoint = TcpEndpoint(IPv4Address::from_string("127.0.0.1"), 44442);
 	TcpServer server(endpoint);
-	server.run(SessionRoutine);
+	server.run<WsEchoSession>();
 }
 
 int main() {
-	Coro coro(ServerRoutine);
+	Coro coro(StartAccept);
 	ThreadPool threadPool;
 	threadPool.schedule([&]() {
 		coro.resume();

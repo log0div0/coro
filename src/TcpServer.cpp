@@ -31,12 +31,3 @@ TcpSocket TcpServer::accept() {
 
 	return TcpSocket(std::move(_socket));
 }
-
-void TcpServer::run(std::function<void(TcpSocket socket)> routine) {
-	while (true) {
-		auto socket = std::make_shared<TcpSocket>(std::move(accept()));
-		_coroPool.fork([routine, socket]() {
-			routine(std::move(*socket));
-		});
-	}
-}

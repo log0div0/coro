@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(TestSTL) {
 			BOOST_REQUIRE(std::equal(
 				test_data2.begin(),
 				test_data2.end(),
-				NetworkIterator(socket, buffer.begin() + 4)
+				NetworkIterator(socket, buffer) + 4
 			));
 
 			BOOST_REQUIRE(buffer.usefulDataSize() == 8);
@@ -68,10 +68,10 @@ BOOST_AUTO_TEST_CASE(TestRangeError) {
 	buffer.pushBack(test_data.begin(), test_data.end());
 
 	BOOST_REQUIRE_NO_THROW(NetworkIterator(socket, buffer) + 0);
-	BOOST_REQUIRE_THROW(NetworkIterator(socket, buffer) + 1, std::range_error);
-	BOOST_REQUIRE_THROW(NetworkIterator(socket, buffer) + 2, std::range_error);
-	BOOST_REQUIRE_THROW(NetworkIterator(socket, buffer) + 3, std::range_error);
-	BOOST_REQUIRE_THROW(NetworkIterator(socket, buffer) + 4, std::range_error);
+	BOOST_REQUIRE_NO_THROW(NetworkIterator(socket, buffer) + 4);
+	BOOST_REQUIRE_THROW(NetworkIterator(socket, buffer) + 4 + 1, std::range_error);
+	BOOST_REQUIRE_THROW(NetworkIterator(socket, buffer) + 5, std::range_error);
+	BOOST_REQUIRE_THROW(NetworkIterator(socket, buffer) + 8, std::range_error);
 }
 
 BOOST_AUTO_TEST_CASE(TestCastToBufferIterator) {

@@ -43,7 +43,7 @@ void Buffer::clear() {
 }
 
 Buffer::Iterator Buffer::begin() {
-	return Iterator(this, _first);
+	return Iterator(this, _usefulDataSize ? _first : nullptr);
 }
 
 Buffer::Iterator Buffer::end() {

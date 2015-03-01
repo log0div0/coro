@@ -11,7 +11,7 @@ NetworkIterator::NetworkIterator()
 }
 
 NetworkIterator::NetworkIterator(TcpSocket& socket, Buffer& buffer)
-	: NetworkIterator(socket, buffer.end())
+	: NetworkIterator(socket, buffer.begin())
 {
 
 }

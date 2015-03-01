@@ -86,9 +86,12 @@ public:
 	}
 
 	difference_type operator-(const BufferIterator& other) const {
-		if (_it != 0) {
+		if (_it != nullptr) {
 			return _buffer->distance(other._it, _it);
 		} else {
+			if (other._it == nullptr) {
+				return 0;
+			}
 			if (other._it != _buffer->_last) {
 				return _buffer->distance(other._it, _buffer->_last);
 			} else {
