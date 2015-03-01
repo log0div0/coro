@@ -53,6 +53,11 @@ BOOST_AUTO_TEST_CASE(TestPushPop) {
 
 	BOOST_REQUIRE(boost::asio::buffer_size(buffer.usefulData()) == 1);
 	BOOST_REQUIRE(boost::asio::buffer_size(buffer.freeSpace()) == 3);
+
+	buffer.pushFront(2);
+
+	BOOST_REQUIRE(boost::asio::buffer_size(buffer.usefulData()) == 3);
+	BOOST_REQUIRE(boost::asio::buffer_size(buffer.freeSpace()) == 1);
 }
 
 BOOST_AUTO_TEST_CASE(TestIteratorDifference) {

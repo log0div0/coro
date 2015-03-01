@@ -76,7 +76,7 @@ std::vector<boost::asio::const_buffer> Buffer::usefulData() const {
 	} else {
 		return {
 			{ _first, static_cast<size_t>(_end - _first) },
-			{ _begin, static_cast<size_t>(_first - _begin) }
+			{ _begin, static_cast<size_t>(_last - _begin) }
 		};
 	}
 }

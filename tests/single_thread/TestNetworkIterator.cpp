@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(TestSTL) {
 			BOOST_REQUIRE(std::equal(
 				test_data2.begin(),
 				test_data2.end(),
-				NetworkIterator(socket, buffer)
+				NetworkIterator(socket, buffer.begin() + 4)
 			));
 
 			BOOST_REQUIRE(buffer.usefulDataSize() == 8);

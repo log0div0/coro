@@ -9,7 +9,7 @@ BOOST_AUTO_TEST_SUITE(SuiteMemoryPool)
 
 
 BOOST_AUTO_TEST_CASE(TestFixedSizedMemoryPool) {
-	std::vector<uint8_t> actual, expected = {1, 2};
+	std::vector<uint8_t> actual, expected = {1, 2, 3, 4};
 
 	FixedSizedMemoryPool pool(2, 1000);
 

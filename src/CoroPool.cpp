@@ -38,7 +38,7 @@ void CoroPool::join() {
 	}
 	_mutex.lock();
 	_callOnJoin.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
-		threadPool->schedule([coro]() {
+		threadPool->schedule([=]() {
 			coro->resume();
 		});
 	});
