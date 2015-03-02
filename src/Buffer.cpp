@@ -32,6 +32,29 @@ Buffer::Buffer(const std::vector<uint8_t>& data)
 	_usefulDataSize = data.size();
 }
 
+Buffer::Buffer(Buffer&& other)
+	: _begin(other._begin),
+	  _end(other._end),
+	  _usefulDataSize(other._usefulDataSize),
+	  _first(other._first),
+	  _last(other._last)
+{
+	other._begin = nullptr;
+	other._end = nullptr;
+	other._usefulDataSize = 0;
+	other._first = nullptr;
+	other._last = nullptr;
+}
+
+Buffer& Buffer::operator=(Buffer&& other) {
+	std::swap(_begin, other._begin);
+	std::swap(_end, other._end);
+	std::swap(_usefulDataSize, other._usefulDataSize);
+	std::swap(_first, other._first);
+	std::swap(_last, other._last);
+	return *this;
+}
+
 Buffer::~Buffer()
 {
 	delete[] _begin;

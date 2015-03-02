@@ -122,8 +122,8 @@ public:
 
 	Buffer(const Buffer& other) = delete;
 	Buffer& operator=(const Buffer& other) = delete;
-	Buffer(Buffer&& other) = delete;
-	Buffer& operator=(Buffer&& other) = delete;
+	Buffer(Buffer&& other);
+	Buffer& operator=(Buffer&& other);
 
 	~Buffer();
 
