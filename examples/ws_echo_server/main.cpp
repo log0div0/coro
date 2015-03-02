@@ -5,7 +5,7 @@
 #include "TcpServer.h"
 #include "WsProtocol.h"
 #include "NetworkIterator.h"
-#include "DynamicMemoryPool.h"
+#include "NonBlockingBufferPool.h"
 #include <iostream>
 
 using namespace std;
@@ -23,7 +23,7 @@ public:
 	}
 
 	void doHandshake() {
-		auto outputBuffer = DynamicMemoryPool::global<1000>().makeUnique();
+		auto outputBuffer = MakeBufferUnique<1000>();
 		_inputBuffer.popFront(
 			_wsProtocol.doHandshake(
 				NetworkIterator(_socket, _inputBuffer),
@@ -56,7 +56,7 @@ public:
 
 				printMessage(message);
 
-				auto outputBuffer = DynamicMemoryPool::global<1000>().makeUnique();
+				auto outputBuffer = MakeBufferUnique<1000>();
 				// копируем payload
 				outputBuffer->assign(message.payloadBegin(), message.payloadEnd());
 				// запаковываем в websockets

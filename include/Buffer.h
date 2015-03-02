@@ -6,6 +6,8 @@
 
 
 class Buffer;
+typedef std::shared_ptr<Buffer> BufferSharedPtr;
+typedef std::unique_ptr<Buffer, std::function<void(Buffer*)>&> BufferUniquePtr;
 
 
 template <typename Buffer, typename T>

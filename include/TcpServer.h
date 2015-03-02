@@ -14,7 +14,7 @@ public:
 	void run() {
 		while (true) {
 			auto session = std::make_shared<T>(accept());
-			_coroPool.fork([session = std::move(session)]() {
+			_coroPool.exec([session = std::move(session)]() {
 				(*session)();
 			});
 		}

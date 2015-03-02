@@ -14,7 +14,7 @@ public:
 
 		if (_size) {
 			--_size;
-			T t = _dataQueue.front();
+			T t = std::move(_dataQueue.front());
 			_dataQueue.pop();
 			_mutex.unlock();
 			return t;

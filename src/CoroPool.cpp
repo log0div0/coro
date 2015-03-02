@@ -7,7 +7,7 @@ CoroPool& CoroPool::global() {
 	return pool;
 }
 
-void CoroPool::fork(std::function<void()> routine) {
+void CoroPool::exec(std::function<void()> routine) {
 	std::lock_guard<std::mutex> lock(_mutex);
 
 	auto result = _coros.emplace(std::move(routine));
@@ -47,6 +47,6 @@ void CoroPool::join() {
 	});
 }
 
-void Fork(std::function<void()> routine) {
-	CoroPool::global().fork(routine);
+void Exec(std::function<void()> routine) {
+	CoroPool::global().exec(routine);
 }

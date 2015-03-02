@@ -11,10 +11,10 @@ BOOST_AUTO_TEST_CASE(Test) {
 
 	CoroPool pool;
 
-	pool.fork([&]() {
+	pool.exec([&]() {
 		actual.push_back(1);
 	});
-	pool.fork([&]() {
+	pool.exec([&]() {
 		actual.push_back(2);
 	});
 

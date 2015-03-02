@@ -1,7 +1,7 @@
 
-#include "DynamicMemoryPool.h"
+#include "NonBlockingBufferPool.h"
 
-DynamicMemoryPool::DynamicMemoryPool(size_t bufferSize)
+NonBlockingBufferPool::NonBlockingBufferPool(size_t bufferSize)
 	: _poolSize(0), _bufferSize(bufferSize)
 {
 	_deleter = [&](Buffer* buffer) {
@@ -11,7 +11,7 @@ DynamicMemoryPool::DynamicMemoryPool(size_t bufferSize)
 	};
 }
 
-DynamicMemoryPool::~DynamicMemoryPool() {
+NonBlockingBufferPool::~NonBlockingBufferPool() {
 	assert(_poolSize == _buffers.size());
 	for (size_t i = 0; i < _poolSize; ++i) {
 		delete _buffers.front();
@@ -19,19 +19,19 @@ DynamicMemoryPool::~DynamicMemoryPool() {
 	}
 }
 
-std::unique_ptr<Buffer, std::function<void(Buffer*)>&> DynamicMemoryPool::makeUnique() {
+BufferUniquePtr NonBlockingBufferPool::makeUnique() {
 	return { makeBuffer(), _deleter };
 }
 
-std::shared_ptr<Buffer> DynamicMemoryPool::makeShared() {
+BufferSharedPtr NonBlockingBufferPool::makeShared() {
 	return { makeBuffer(), _deleter };
 }
 
-size_t DynamicMemoryPool::size() const {
+size_t NonBlockingBufferPool::size() const {
 	return _poolSize;
 }
 
-Buffer* DynamicMemoryPool::makeBuffer() {
+Buffer* NonBlockingBufferPool::makeBuffer() {
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		if (_buffers.size()) {
