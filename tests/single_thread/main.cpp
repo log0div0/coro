@@ -16,7 +16,6 @@ main( int argc, char* argv[] )
 	threadPool.schedule([&]() {
 		coro.resume();
 	});
-	threadPool.sync();
 
 	return result;
 }

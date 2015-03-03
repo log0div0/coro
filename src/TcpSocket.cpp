@@ -1,7 +1,6 @@
 
 #include "TcpSocket.h"
 #include "ThreadPool.h"
-#include "Coro.h"
 
 using boost::system::error_code;
 using boost::system::system_error;
@@ -11,23 +10,14 @@ TcpSocket::TcpSocket()
 
 }
 
-TcpSocket::TcpSocket(TcpSocket&& other): _socket(std::move(other._socket)) {
-
-}
-
-TcpSocket& TcpSocket::operator=(TcpSocket&& other) {
-	_socket = std::move(other._socket);
-	return *this;
-}
-
 void TcpSocket::connect(const TcpEndpoint& endpoint) {
 	Coro& coro = *Coro::current();
 	error_code errorCode;
 
 	coro.yield([&]() {
-		_socket.async_connect(endpoint, [&](const error_code& ec) {
-			if (ec) {
-				errorCode = ec;
+		_handle.async_connect(endpoint, [&](const error_code& errorCode_) {
+			if (errorCode_) {
+				errorCode = errorCode_;
 			}
 			coro.resume();
 		});
@@ -38,76 +28,7 @@ void TcpSocket::connect(const TcpEndpoint& endpoint) {
 	}
 }
 
-size_t TcpSocket::sendData(const Buffer& buffer) {
-	Coro& coro = *Coro::current();
-	error_code errorCode;
-	size_t bytesTranfered = 0;
-
-	coro.yield([&]() {
-		boost::asio::async_write(_socket, buffer.usefulData(),
-			[&](const error_code& ec, size_t bytesTranfered_) {
-				if (ec) {
-					errorCode = ec;
-				} else {
-					bytesTranfered = bytesTranfered_;
-				}
-				coro.resume();
-			}
-		);
-	});
-
-	if (errorCode) {
-		throw system_error(errorCode);
-	}
-
-	return bytesTranfered;
-}
-
-void TcpSocket::receiveData(Buffer* buffer) {
-	Coro& coro = *Coro::current();
-	error_code errorCode;
-
-	coro.yield([&]() {
-		boost::asio::async_read(_socket, buffer->freeSpace(),
-			[&](const error_code& ec, size_t bytesTranfered) {
-				if (ec) {
-					errorCode = ec;
-				} else {
-					buffer->pushBack(bytesTranfered);
-				}
-				coro.resume();
-			}
-		);
-	});
-
-	if (errorCode) {
-		throw system_error(errorCode);
-	}
-}
-
-void TcpSocket::receiveSomeData(Buffer* buffer) {
-	Coro& coro = *Coro::current();
-	error_code errorCode;
-
-	coro.yield([&]() {
-		_socket.async_read_some(buffer->freeSpace(),
-			[&](const error_code& ec, size_t bytesTranfered) {
-				if (ec) {
-					errorCode = ec;
-				} else {
-					buffer->pushBack(bytesTranfered);
-				}
-				coro.resume();
-			}
-		);
-	});
-
-	if (errorCode) {
-		throw system_error(errorCode);
-	}
-}
-
 TcpSocket::TcpSocket(boost::asio::ip::tcp::socket socket)
-	: _socket(std::move(socket)) {
+	: IoHandle(std::move(socket)) {
 
 }

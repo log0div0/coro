@@ -27,7 +27,7 @@ NetworkIterator::NetworkIterator(TcpSocket& socket, const Buffer::Iterator& iter
 NetworkIterator::reference NetworkIterator::operator*() const {
 	pointer it = getPointer();
 	while (!_buffer->isValid(it)) {
-		_socket->receiveSomeData(_buffer);
+		_socket->receiveData(_buffer);
 	}
 	return *it;
 }

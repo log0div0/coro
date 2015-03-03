@@ -90,6 +90,5 @@ int main() {
 	threadPool.schedule([&]() {
 		coro.resume();
 	});
-	threadPool.sync();
 	return 0;
 }

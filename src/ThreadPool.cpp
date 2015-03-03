@@ -42,9 +42,7 @@ void ThreadPool::startThreads() {
 	for (size_t i = 0; i < _threadCount; ++i) {
 		_threads.emplace_back(std::thread([this] {
 			t_threadPool = this;
-			while (true) {
-				_ioService.run();
-			}
+			_ioService.run();
 		}));
 	}
 }
