@@ -86,10 +86,10 @@ void StartAccept() {
 
 int main() {
 	Coro coro(StartAccept);
-	ThreadPool threadPool;
+	ThreadPool threadPool(std::thread::hardware_concurrency());
 	threadPool.schedule([&]() {
 		coro.resume();
 	});
-	threadPool.run();
+	threadPool.sync();
 	return 0;
 }
