@@ -109,13 +109,9 @@ BOOST_AUTO_TEST_CASE(TestIteratorMovement) {
 }
 
 BOOST_AUTO_TEST_CASE(TestEmpty) {
-	printf("0000\n");
 	Buffer buffer;
-	printf("1111\n");
 	BOOST_REQUIRE(buffer.begin() == buffer.end());
-	printf("2222\n");
 	BOOST_REQUIRE((buffer.end() - buffer.begin()) == 0);
-	printf("3333\n");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
