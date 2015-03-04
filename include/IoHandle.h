@@ -1,12 +1,14 @@
 
 #pragma once
 
+#include "IoHandleIterator.h"
 #include "Coro.h"
-#include "Buffer.h"
 
 template <typename Handle>
 class IoHandle {
 public:
+	typedef IoHandleIterator<IoHandle> Iterator;
+
 	IoHandle(Handle handle): _handle(std::move(handle)) {}
 
 	// VS2013 не умеет их генерить
@@ -14,6 +16,14 @@ public:
 
 	IoHandle& operator=(IoHandle&& other) {
 		_handle = std::move(other._handle);
+	}
+
+	Iterator iterator(Buffer& buffer) {
+		return Iterator(*this, buffer);
+	}
+
+	Iterator iterator() {
+		return Iterator();
 	}
 
 	/**

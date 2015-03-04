@@ -4,7 +4,6 @@
 #include "CoroUtils.h"
 #include "TcpServer.h"
 #include "WsProtocol.h"
-#include "NetworkIterator.h"
 #include "NonBlockingBufferPool.h"
 #include <iostream>
 
@@ -26,8 +25,8 @@ public:
 		auto outputBuffer = MakeBufferUnique<1000>();
 		_inputBuffer.popFront(
 			_wsProtocol.doHandshake(
-				NetworkIterator(_socket, _inputBuffer),
-				NetworkIterator(),
+				_socket.iterator(_inputBuffer),
+				_socket.iterator(),
 				*outputBuffer
 			)
 		);
@@ -49,8 +48,8 @@ public:
 			while (true) {
 				WsMessage message;
 				_wsProtocol.readMessage(
-					NetworkIterator(_socket, _inputBuffer),
-					NetworkIterator(),
+					_socket.iterator(_inputBuffer),
+					_socket.iterator(),
 					&message
 				);
 

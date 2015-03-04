@@ -114,7 +114,6 @@ public:
 	typedef BufferIterator<const Buffer, const uint8_t> ConstIterator;
 	friend Iterator;
 	friend ConstIterator;
-	friend class NetworkIterator;
 
 	explicit Buffer(size_t size);
 
@@ -187,11 +186,15 @@ public:
 
 	bool operator==(const Buffer& other) const;
 
+	uint8_t* getPointer(ptrdiff_t offset) {
+		return moveForward(_first, offset);
+	}
+
 private:
 
 	template <typename T>
 	T moveForward(T it, size_t distance) const {
-		return _begin + (it - _begin + distance) % size();
+		return _begin + (it - _begin + distance) % int64_t(size());
 	}
 
 	template <typename T>
@@ -205,20 +208,6 @@ private:
 			return b - a;
 		} else {
 			return (_end - a) + (b - _first);
-		}
-	}
-
-	template <typename T>
-	bool isValid(T it) const {
-		if (usefulDataSize() == 0) {
-			return false;
-		}
-		if (_first <= _last) {
-			return (it >= _first) && (it < _last);
-		} else {
-			return
-				( (it >= _first) && (it < _end) ) ||
-				( (it >= _begin) && (it < _last) );
 		}
 	}
 
