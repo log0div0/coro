@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_SUITE(SuiteBufferPool)
 BOOST_AUTO_TEST_CASE(TestBlockingBufferPool) {
 	std::vector<uint8_t> actual, expected = {1, 2, 3, 4};
 
-	BlockingBufferPool pool(2, 1000);
+	BlockingBufferPool pool(2);
 
 	BOOST_REQUIRE(pool.size() == 2);
 
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(TestBlockingBufferPool) {
 
 
 BOOST_AUTO_TEST_CASE(TestNonBlockingBufferPool) {
-	NonBlockingBufferPool pool(1000);
+	NonBlockingBufferPool pool;
 
 	BOOST_REQUIRE(pool.size() == 0);
 

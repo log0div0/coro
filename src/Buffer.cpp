@@ -11,6 +11,17 @@ Buffer::Buffer(size_t size)
 
 }
 
+Buffer::Buffer(const std::string& string): Buffer(string.begin(), string.end()) {
+
+}
+
+Buffer::Buffer(const std::initializer_list<uint8_t>& list): Buffer(list.begin(), list.end()) {
+}
+
+Buffer::Buffer(const std::vector<uint8_t>& vector): Buffer(vector.begin(), vector.end()) {
+
+}
+
 Buffer::Buffer(Buffer&& other)
 	: _begin(other._begin),
 	  _end(other._end),
@@ -122,7 +133,7 @@ void Buffer::popBack(size_t size) {
 
 void Buffer::pushFront(size_t size) {
 	if (freeSpaceSize() < size) {
-		throw std::range_error("Buffer::pushFront");
+		realloc(usefulDataSize() + size + 1);
 	}
 	_usefulDataSize += size;
 	_first = moveBackward(_first, size);
@@ -130,7 +141,7 @@ void Buffer::pushFront(size_t size) {
 
 void Buffer::pushBack(size_t size) {
 	if (freeSpaceSize() < size) {
-		throw std::range_error("Buffer::pushBack");
+		realloc(usefulDataSize() + size + 1);
 	}
 	_usefulDataSize += size;
 	_last = moveForward(_last, size);
@@ -161,4 +172,19 @@ bool Buffer::operator==(const Buffer& other) const {
 	return std::equal(begin(), end(), other.begin());
 }
 
-
+void Buffer::realloc(size_t minimum) {
+	size_t size = this->size();
+	while (size < minimum) {
+		size *= 2;
+		if (size > MAXIMUM_BUFFER_SIZE) {
+			throw std::runtime_error("Buffer::realloc");
+		}
+	}
+	uint8_t* data = new uint8_t[size];
+	std::copy(begin(), end(), data);
+	delete[] _begin;
+	_begin = data;
+	_end = data + size;
+	_first = _begin;
+	_last = _begin + _usefulDataSize;
+}

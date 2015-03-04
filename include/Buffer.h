@@ -5,6 +5,9 @@
 #include <boost/asio.hpp>
 
 
+#define MAXIMUM_BUFFER_SIZE 1024 * 1024
+
+
 class Buffer;
 typedef std::shared_ptr<Buffer> BufferSharedPtr;
 typedef std::unique_ptr<Buffer, std::function<void(Buffer*)>&> BufferUniquePtr;
@@ -91,13 +94,14 @@ public:
 		if (_it != nullptr) {
 			return _buffer->distance(other._it, _it);
 		} else {
-			if (other._it == nullptr) {
-				return 0;
-			}
-			if (other._it != _buffer->_last) {
-				return _buffer->distance(other._it, _buffer->_last);
+			if (other._it != nullptr) {
+				if (other._it != _buffer->_last) {
+					return _buffer->distance(other._it, _buffer->_last);
+				} else {
+					return _buffer->usefulDataSize();
+				}
 			} else {
-				return _buffer->usefulDataSize();
+				return 0;
 			}
 		}
 	}
@@ -115,19 +119,14 @@ public:
 	friend Iterator;
 	friend ConstIterator;
 
-	explicit Buffer(size_t size);
+	Buffer(size_t size = 1024);
+
+	Buffer(const std::string& string);
+	Buffer(const std::initializer_list<uint8_t>& list);
+	Buffer(const std::vector<uint8_t>& vector);
 
 	template <typename T>
-	Buffer(size_t size, const T& container): Buffer(size) {
-		pushBack(container.begin(), container.end());
-	}
-
-	Buffer(size_t size, const char* string): Buffer(size) {
-		pushBack(string, string + strlen(string));
-	}
-
-	template <typename T>
-	Buffer(size_t size, T first, T last): Buffer(size) {
+	Buffer(T first, T last): Buffer(last - first) {
 		pushBack(first, last);
 	}
 
@@ -177,8 +176,9 @@ public:
 
 	template <typename T>
 	void pushBack(T first, T last) {
-		Iterator pos(this, _last);
-		pushBack(last - first);
+		auto size = last - first;
+		pushBack(size);
+		Iterator pos(this, moveBackward(_last, size));
 		std::copy(first, last, pos);
 	}
 
@@ -191,7 +191,6 @@ public:
 	}
 
 private:
-
 	template <typename T>
 	T moveForward(T it, size_t distance) const {
 		return _begin + (it - _begin + distance) % int64_t(size());
@@ -210,6 +209,8 @@ private:
 			return (_end - a) + (b - _first);
 		}
 	}
+
+	void realloc(size_t minimum);
 
 private:
 	uint8_t *_begin, *_end;

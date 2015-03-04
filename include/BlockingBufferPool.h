@@ -6,7 +6,7 @@
 
 class BlockingBufferPool {
 public:
-	BlockingBufferPool(size_t poolSize, size_t bufferSize);
+	BlockingBufferPool(size_t size);
 	~BlockingBufferPool();
 
 	BlockingBufferPool(const BlockingBufferPool& other) = delete;
@@ -21,7 +21,7 @@ protected:
 	Buffer* makeBuffer();
 
 private:
-	size_t _poolSize;
+	size_t _size;
 	std::function<void(Buffer*)> _deleter;
 	CoroQueue<Buffer*> _buffers;
 };

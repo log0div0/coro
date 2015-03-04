@@ -1,8 +1,8 @@
 
 #include "NonBlockingBufferPool.h"
 
-NonBlockingBufferPool::NonBlockingBufferPool(size_t bufferSize)
-	: _poolSize(0), _bufferSize(bufferSize)
+NonBlockingBufferPool::NonBlockingBufferPool()
+	: _size(0)
 {
 	_deleter = [&](Buffer* buffer) {
 		buffer->clear();
@@ -12,8 +12,8 @@ NonBlockingBufferPool::NonBlockingBufferPool(size_t bufferSize)
 }
 
 NonBlockingBufferPool::~NonBlockingBufferPool() {
-	assert(_poolSize == _buffers.size());
-	for (size_t i = 0; i < _poolSize; ++i) {
+	assert(_size == _buffers.size());
+	for (size_t i = 0; i < _size; ++i) {
 		delete _buffers.front();
 		_buffers.pop();
 	}
@@ -28,7 +28,7 @@ BufferSharedPtr NonBlockingBufferPool::makeShared() {
 }
 
 size_t NonBlockingBufferPool::size() const {
-	return _poolSize;
+	return _size;
 }
 
 Buffer* NonBlockingBufferPool::makeBuffer() {
@@ -39,8 +39,21 @@ Buffer* NonBlockingBufferPool::makeBuffer() {
 			_buffers.pop();
 			return buffer;
 		} else {
-			++_poolSize;
+			++_size;
 		}
 	}
-	return new Buffer(_bufferSize);
+	return new Buffer();
+}
+
+
+static NonBlockingBufferPool pool;
+
+
+BufferUniquePtr MakeBufferUnique() {
+	return pool.makeUnique();
+}
+
+
+BufferSharedPtr MakeBufferShared() {
+	return pool.makeShared();
 }

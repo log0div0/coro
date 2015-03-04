@@ -11,9 +11,7 @@ using namespace std;
 
 class WsEchoSession {
 public:
-	WsEchoSession(TcpSocket socket)
-		: _socket(std::move(socket)),
-		  _inputBuffer(1000)
+	WsEchoSession(TcpSocket socket): _socket(std::move(socket))
 	{
 		cout << "WsEchoSession" << endl;
 	}
@@ -22,7 +20,7 @@ public:
 	}
 
 	void doHandshake() {
-		auto outputBuffer = MakeBufferUnique<1000>();
+		auto outputBuffer = MakeBufferUnique();
 		_inputBuffer.popFront(
 			_wsProtocol.doHandshake(
 				_socket.iterator(_inputBuffer),
@@ -55,7 +53,7 @@ public:
 
 				printMessage(message);
 
-				auto outputBuffer = MakeBufferUnique<1000>();
+				auto outputBuffer = MakeBufferUnique();
 				// копируем payload
 				outputBuffer->assign(message.payloadBegin(), message.payloadEnd());
 				// запаковываем в websockets
