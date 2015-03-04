@@ -15,7 +15,7 @@ public:
 	IoHandleIterator()
 		: _handle(nullptr),
 		  _buffer(nullptr),
-		  _offset(0)
+		  _offset(-1)
 	{
 
 	}
@@ -70,11 +70,11 @@ public:
 	}
 
 	bool operator!=(const IoHandleIterator& other) const {
-		return (_handle != other._handle) || (_offset != other._offset);
+		return _offset != other._offset;
 	}
 
 	bool operator==(const IoHandleIterator& other) const {
-		return (_handle == other._handle) && (_offset == other._offset);
+		return _offset == other._offset;
 	}
 
 	difference_type operator-(const IoHandleIterator& other) const {
