@@ -11,27 +11,6 @@ Buffer::Buffer(size_t size)
 
 }
 
-Buffer::Buffer(const std::initializer_list<uint8_t>& list)
-	: Buffer(list.size())
-{
-	std::copy(list.begin(), list.end(), _begin);
-	_usefulDataSize = list.size();
-}
-
-Buffer::Buffer(const std::string& data)
-	: Buffer(data.size())
-{
-	std::copy(data.begin(), data.end(), _begin);
-	_usefulDataSize = data.size();
-}
-
-Buffer::Buffer(const std::vector<uint8_t>& data)
-	: Buffer(data.size())
-{
-	std::copy(data.begin(), data.end(), _begin);
-	_usefulDataSize = data.size();
-}
-
 Buffer::Buffer(Buffer&& other)
 	: _begin(other._begin),
 	  _end(other._end),
@@ -160,6 +139,11 @@ void Buffer::pushBack(size_t size) {
 
 void Buffer::popFront(const Iterator& it) {
 	popFront(it - begin());
+}
+
+
+void Buffer::popBack(const Iterator& it) {
+	popBack(end() - it);
 }
 
 

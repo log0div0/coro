@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_SUITE(SuiteWsProtocol)
 
 
 BOOST_AUTO_TEST_CASE(TestHttpHeadersParser) {
-	Buffer buffer("AAAA: 1111\r\nBBBB: 2222\r\n");
+	Buffer buffer(1000, "AAAA: 1111\r\nBBBB: 2222\r\n");
 	HttpHeadersParser<Buffer::Iterator> parser;
 	HttpHeaders headers;
 
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(TestHttpHeadersParser) {
 
 
 BOOST_AUTO_TEST_CASE(TestHttpHeadersParser2) {
-	Buffer buffer(realRequestHeaders);
+	Buffer buffer(1000, realRequestHeaders);
 	HttpHeadersParser<Buffer::Iterator> parser;
 	HttpHeaders headers;
 
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(TestHttpHeadersParser2) {
 
 
 BOOST_AUTO_TEST_CASE(TestHttpRequestParser) {
-	Buffer buffer(clientHandshake);
+	Buffer buffer(1000, clientHandshake);
 	HttpRequestParser<Buffer::Iterator> parser;
 	HttpRequest request;
 
@@ -99,13 +99,13 @@ BOOST_AUTO_TEST_CASE(TestHttpRequestParser) {
 	BOOST_REQUIRE(request.headers["X-SSL-Client-Cert"] == certificate);
 
 
-	Buffer buffer2("aaaa");
+	Buffer buffer2(1000, "aaaa");
 	BOOST_REQUIRE(!qi::parse(buffer2.begin(), buffer2.end(), parser, request));
 }
 
 
 BOOST_AUTO_TEST_CASE(TestHttpResponseParser) {
-	Buffer buffer(serverHandshake);
+	Buffer buffer(1000, serverHandshake);
 	HttpResponseParser<Buffer::Iterator> parser;
 	HttpResponse response;
 
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE(TestHttpResponseParser) {
 	BOOST_REQUIRE(response.headers.size() == 3);
 
 
-	Buffer buffer2("aaaa");
+	Buffer buffer2(1000, "aaaa");
 	BOOST_REQUIRE(!qi::parse(buffer2.begin(), buffer2.end(), parser, response));
 }
 
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(TestWriteText) {
 	Buffer buffer(1000);
 	buffer.pushBack(textMessage.begin() + 2, textMessage.end());
 	protocol.writeMessage(WsMessage::OpCode::Text, buffer);
-	BOOST_REQUIRE(buffer == Buffer(textMessage));
+	BOOST_REQUIRE(buffer == Buffer(1000, textMessage));
 }
 
 
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(TestWriteBinary) {
 	Buffer buffer(1000);
 	buffer.pushBack(binaryMessage.begin() + 2, binaryMessage.end());
 	protocol.writeMessage(WsMessage::OpCode::Binary, buffer);
-	BOOST_REQUIRE(buffer == Buffer(binaryMessage));
+	BOOST_REQUIRE(buffer == Buffer(1000, binaryMessage));
 }
 
 
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE(TestClientSuccessfulConnection) {
 
 BOOST_AUTO_TEST_CASE(TestServerInvalidHTTPRequest) {
 	WsServerProtocol protocol;
-	Buffer inputBuffer("aaaa"), outputBuffer(1000);
+	Buffer inputBuffer(1000, "aaaa"), outputBuffer(1000);
 	BOOST_REQUIRE_THROW(protocol.doHandshake(inputBuffer.begin(), inputBuffer.end(), outputBuffer),
 		std::runtime_error);
 }

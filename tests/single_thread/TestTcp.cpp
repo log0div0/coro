@@ -5,7 +5,7 @@
 
 
 static auto endpoint = TcpEndpoint(IPv4Address::from_string("127.0.0.1"), 44442);
-static Buffer test_data({ 0x01, 0x02, 0x03, 0x04 });
+static Buffer test_data(1000, std::vector<uint8_t> { 0x01, 0x02, 0x03, 0x04 });
 
 
 BOOST_AUTO_TEST_SUITE(SuiteTcp)
@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		[&]() {
 			TcpServer server(endpoint);
 			TcpSocket socket = server.accept();
-			Buffer data(4);
+			Buffer data(1000);
 			socket.receiveData(&data);
 			BOOST_REQUIRE(data == test_data);
 			socket.sendData(data);
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 			TcpSocket socket;
 			socket.connect(endpoint);
 			socket.sendData(test_data);
-			Buffer data(4);
+			Buffer data(1000);
 			socket.receiveData(&data);
 			BOOST_REQUIRE(data == test_data);
 			clientDone = true;

@@ -6,8 +6,8 @@
 
 
 static auto endpoint = TcpEndpoint(IPv4Address::from_string("127.0.0.1"), 44442);
-static Buffer test_data({ 0x01, 0x02, 0x03, 0x04 });
-static Buffer test_data2({ 0x05, 0x06, 0x07, 0x08 });
+static Buffer test_data(1000, std::vector<uint8_t> { 0x01, 0x02, 0x03, 0x04 });
+static Buffer test_data2(1000, std::vector<uint8_t> { 0x05, 0x06, 0x07, 0x08 });
 
 
 BOOST_AUTO_TEST_SUITE(SuiteNetworkIterator)

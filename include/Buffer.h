@@ -118,9 +118,19 @@ public:
 
 	explicit Buffer(size_t size);
 
-	Buffer(const std::initializer_list<uint8_t>& list);
-	Buffer(const std::string& data);
-	Buffer(const std::vector<uint8_t>& data);
+	template <typename T>
+	Buffer(size_t size, const T& container): Buffer(size) {
+		pushBack(container.begin(), container.end());
+	}
+
+	Buffer(size_t size, const char* string): Buffer(size) {
+		pushBack(string, string + strlen(string));
+	}
+
+	template <typename T>
+	Buffer(size_t size, T first, T last): Buffer(size) {
+		pushBack(first, last);
+	}
 
 	Buffer(const Buffer& other) = delete;
 	Buffer& operator=(const Buffer& other) = delete;
@@ -128,6 +138,12 @@ public:
 	Buffer& operator=(Buffer&& other);
 
 	~Buffer();
+
+	template <typename T>
+	void assign(T first, T last) {
+		clear();
+		pushBack(first, last);
+	}
 
 	void clear();
 
@@ -151,25 +167,20 @@ public:
 	void pushBack(size_t size);
 
 	void popFront(const Iterator& it);
+	void popBack(const Iterator& it);
 
 	template <typename T>
-	void pushFront(T begin, T end) {
-		pushFront(end - begin);
-		Iterator first(this, _first);
-		std::copy(begin, end, first);
+	void pushFront(T first, T last) {
+		pushFront(last - first);
+		Iterator pos(this, _first);
+		std::copy(first, last, pos);
 	}
 
 	template <typename T>
-	void pushBack(T begin, T end) {
-		Iterator last(this, _last);
-		pushBack(end - begin);
-		std::copy(begin, end, last);
-	}
-
-	template <typename T>
-	void assign(T begin, T end) {
-		clear();
-		pushBack(begin, end);
+	void pushBack(T first, T last) {
+		Iterator pos(this, _last);
+		pushBack(last - first);
+		std::copy(first, last, pos);
 	}
 
 	size_t size() const;
