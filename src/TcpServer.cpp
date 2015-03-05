@@ -5,15 +5,16 @@
 
 using boost::system::error_code;
 using boost::system::system_error;
+using namespace boost::asio::ip;
 
-TcpServer::TcpServer(const boost::asio::ip::tcp::endpoint& endpoint)
+TcpServer::TcpServer(const tcp::endpoint& endpoint)
 	: _acceptor(ThreadPool::current()->ioService(), endpoint)
 {
 
 }
 
-boost::asio::ip::tcp::socket TcpServer::accept() {
-	boost::asio::ip::tcp::socket socket(ThreadPool::current()->ioService());
+tcp::socket TcpServer::accept() {
+	tcp::socket socket(ThreadPool::current()->ioService());
 
 	Coro& coro = *Coro::current();
 	error_code errorCode;

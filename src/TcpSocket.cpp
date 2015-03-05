@@ -4,17 +4,18 @@
 
 using boost::system::error_code;
 using boost::system::system_error;
+using namespace boost::asio::ip;
 
 TcpSocket::TcpSocket()
-	: TcpSocket(boost::asio::ip::tcp::socket(ThreadPool::current()->ioService())) {
+	: TcpSocket(tcp::socket(ThreadPool::current()->ioService())) {
 
 }
 
-TcpSocket::TcpSocket(boost::asio::ip::tcp::socket socket): IoHandle(std::move(socket)) {
+TcpSocket::TcpSocket(tcp::socket socket): IoHandle(std::move(socket)) {
 
 }
 
-void TcpSocket::connect(const boost::asio::ip::tcp::endpoint& endpoint) {
+void TcpSocket::connect(const tcp::endpoint& endpoint) {
 	Coro& coro = *Coro::current();
 	error_code errorCode;
 

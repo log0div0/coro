@@ -3,15 +3,17 @@
 #include "Coro.h"
 #include "CoroUtils.h"
 #include "TcpServer.h"
+#include "TcpSocket.h"
 #include "WsProtocol.h"
 #include "NonBlockingBufferPool.h"
 #include <iostream>
 
 using namespace std;
+using namespace boost::asio::ip;
 
 class WsEchoSession {
 public:
-	WsEchoSession(TcpSocket socket): _socket(std::move(socket))
+	WsEchoSession(TcpSocket socket): _socket(move(socket))
 	{
 		cout << "WsEchoSession" << endl;
 	}
@@ -28,7 +30,7 @@ public:
 				*outputBuffer
 			)
 		);
-		_socket.sendData(*outputBuffer);
+		_socket.write(*outputBuffer);
 	}
 
 	void printMessage(const WsMessage& message) {
@@ -59,7 +61,7 @@ public:
 				// запаковываем в websockets
 				_wsProtocol.writeMessage(message.opCode(), *outputBuffer);
 				// отправляем
-				_socket.sendData(*outputBuffer);
+				_socket.write(*outputBuffer);
 
 				_inputBuffer.popFront(message.end());
 			}
@@ -76,14 +78,14 @@ private:
 };
 
 void StartAccept() {
-	auto endpoint = TcpEndpoint(IPv4Address::from_string("127.0.0.1"), 44442);
+	auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
 	TcpServer server(endpoint);
 	server.run<WsEchoSession>();
 }
 
 int main() {
 	Coro coro(StartAccept);
-	ThreadPool threadPool(std::thread::hardware_concurrency());
+	ThreadPool threadPool(thread::hardware_concurrency());
 	threadPool.schedule([&]() {
 		coro.resume();
 	});

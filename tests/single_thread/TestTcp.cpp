@@ -5,8 +5,9 @@
 #include "CoroUtils.h"
 
 
-static auto endpoint = boost::asio::ip::tcp::endpoint(
-	boost::asio::ip::address_v4::from_string("127.0.0.1"), 44442);
+using namespace boost::asio::ip;
+
+static auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
 static Buffer test_data { 0x01, 0x02, 0x03, 0x04 };
 
 
