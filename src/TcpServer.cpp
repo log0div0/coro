@@ -6,18 +6,20 @@
 using boost::system::error_code;
 using boost::system::system_error;
 
-TcpServer::TcpServer(const TcpEndpoint& endpoint)
-	: _acceptor(ThreadPool::current()->ioService(), endpoint),
-	  _socket(ThreadPool::current()->ioService()) {
+TcpServer::TcpServer(const boost::asio::ip::tcp::endpoint& endpoint)
+	: _acceptor(ThreadPool::current()->ioService(), endpoint)
+{
 
 }
 
-TcpSocket TcpServer::accept() {
+boost::asio::ip::tcp::socket TcpServer::accept() {
+	boost::asio::ip::tcp::socket socket(ThreadPool::current()->ioService());
+
 	Coro& coro = *Coro::current();
 	error_code errorCode;
 
 	coro.yield([&]() {
-		_acceptor.async_accept(_socket, [&](const error_code& ec) {
+		_acceptor.async_accept(socket, [&](const error_code& ec) {
 			if (ec) {
 				errorCode = ec;
 			}
@@ -29,5 +31,5 @@ TcpSocket TcpServer::accept() {
 		throw system_error(errorCode);
 	}
 
-	return TcpSocket(std::move(_socket));
+	return socket;
 }

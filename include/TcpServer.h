@@ -1,14 +1,14 @@
 
 #pragma once
 
-#include "TcpSocket.h"
 #include "CoroPool.h"
+#include <boost/asio.hpp>
 
 class TcpServer {
 public:
-	TcpServer(const TcpEndpoint& endpoint);
+	TcpServer(const boost::asio::ip::tcp::endpoint& endpoint);
 
-	TcpSocket accept();
+	boost::asio::ip::tcp::socket accept();
 
 	template <typename T>
 	void run() {
@@ -22,6 +22,5 @@ public:
 
 private:
 	boost::asio::ip::tcp::acceptor _acceptor;
-	boost::asio::ip::tcp::socket _socket;
 	CoroPool _coroPool;
 };

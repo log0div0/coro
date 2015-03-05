@@ -30,7 +30,7 @@ public:
 	  * @brief Отправить buffer.usefulData()
 	  * @return Кол-во отправленных байт
 	  */
-	size_t sendData(const Buffer& buffer) {
+	size_t write(const Buffer& buffer) {
 		Coro& coro = *Coro::current();
 		boost::system::error_code errorCode;
 		size_t bytesTranfered = 0;
@@ -58,7 +58,7 @@ public:
 	/**
 	  * @brief Принять хоть сколько-нибудь байт (и записать их в конец буфера)
 	  */
-	void receiveData(Buffer* buffer) {
+	void read(Buffer* buffer) {
 		Coro& coro = *Coro::current();
 		boost::system::error_code errorCode;
 

@@ -6,3 +6,4 @@
 #else
 #define THREAD_LOCAL __thread
 #endif
+

@@ -1,10 +1,12 @@
 
 #include <boost/test/unit_test.hpp>
 #include "TcpServer.h"
+#include "TcpSocket.h"
 #include "CoroUtils.h"
 
 
-static auto endpoint = TcpEndpoint(IPv4Address::from_string("127.0.0.1"), 44442);
+static auto endpoint = boost::asio::ip::tcp::endpoint(
+	boost::asio::ip::address_v4::from_string("127.0.0.1"), 44442);
 static Buffer test_data { 0x01, 0x02, 0x03, 0x04 };
 
 
@@ -19,17 +21,17 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 			TcpServer server(endpoint);
 			TcpSocket socket = server.accept();
 			Buffer data;
-			socket.receiveData(&data);
+			socket.read(&data);
 			BOOST_REQUIRE(data == test_data);
-			socket.sendData(data);
+			socket.write(data);
 			serverDone = true;
 		},
 		[&]() {
 			TcpSocket socket;
 			socket.connect(endpoint);
-			socket.sendData(test_data);
+			socket.write(test_data);
 			Buffer data;
-			socket.receiveData(&data);
+			socket.read(&data);
 			BOOST_REQUIRE(data == test_data);
 			clientDone = true;
 		}

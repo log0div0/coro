@@ -6,11 +6,15 @@ using boost::system::error_code;
 using boost::system::system_error;
 
 TcpSocket::TcpSocket()
-	: TcpSocket(std::move(boost::asio::ip::tcp::socket(ThreadPool::current()->ioService()))) {
+	: TcpSocket(boost::asio::ip::tcp::socket(ThreadPool::current()->ioService())) {
 
 }
 
-void TcpSocket::connect(const TcpEndpoint& endpoint) {
+TcpSocket::TcpSocket(boost::asio::ip::tcp::socket socket): IoHandle(std::move(socket)) {
+
+}
+
+void TcpSocket::connect(const boost::asio::ip::tcp::endpoint& endpoint) {
 	Coro& coro = *Coro::current();
 	error_code errorCode;
 
@@ -26,9 +30,4 @@ void TcpSocket::connect(const TcpEndpoint& endpoint) {
 	if (errorCode) {
 		throw system_error(errorCode);
 	}
-}
-
-TcpSocket::TcpSocket(boost::asio::ip::tcp::socket socket)
-	: IoHandle(std::move(socket)) {
-
 }

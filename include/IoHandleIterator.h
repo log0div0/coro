@@ -28,12 +28,12 @@ public:
 	}
 
 	reference operator*() {
-		receiveData();
+		read();
 		return *_buffer->getPointer(_offset);
 	}
 
 	pointer operator->() {
-		receiveData();
+		read();
 		return _buffer->getPointer(_offset);
 	}
 
@@ -86,9 +86,9 @@ public:
 	}
 
 private:
-	void receiveData() {
+	void read() {
 		while (static_cast<size_t>(_offset) >= _buffer->usefulDataSize()) {
-			_handle->receiveData(_buffer);
+			_handle->read(_buffer);
 		}
 	}
 
