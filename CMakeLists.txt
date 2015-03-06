@@ -14,4 +14,6 @@ set_target_properties(coro PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DI
 
 subdirs(tests/just_coro)
 subdirs(tests/single_thread)
+subdirs(examples/stress_client)
+subdirs(examples/stress_server)
 subdirs(examples/ws_echo_server)

@@ -52,6 +52,7 @@ Coro::~Coro() {
 
 void Coro::resume()
 {
+	std::lock_guard<std::mutex> lock(_mutex);
 	Coro* temp = this;
 	std::swap(temp, t_coro);
 	// если это первый вызов jump_fcontext - то прыгаем в Coro::run(intptr_t)
