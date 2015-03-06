@@ -2,6 +2,9 @@
 #include "CoroPool.h"
 #include "ThreadPool.h"
 
+CoroPool::CoroPool() {
+}
+
 CoroPool::~CoroPool() {
 	join();
 }

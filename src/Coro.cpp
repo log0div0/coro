@@ -52,20 +52,25 @@ Coro::~Coro() {
 
 void Coro::resume()
 {
-	std::lock_guard<std::mutex> lock(_mutex);
 	Coro* temp = this;
+
 	std::swap(temp, t_coro);
+	assert(_savedContext || _context);
 	// если это первый вызов jump_fcontext - то прыгаем в Coro::run(intptr_t)
 	// при последующих вызовах - выпрыгиваем из jump_fcontext, который ниже
-	assert(_savedContext || _context);
 	boost::context::jump_fcontext(&_savedContext, _context, 0);
 	std::swap(temp, t_coro);
-	if (_callMeJustAfterYield) {
-		_callMeJustAfterYield();
-		_callMeJustAfterYield = nullptr;
+
+	std::function<void()> callMeJustAfterYield, onDone;
+	std::swap(callMeJustAfterYield, _callMeJustAfterYield);
+	if (_isDone) {
+		std::swap(onDone, _onDone);
 	}
-	if (_onDone && _isDone) {
-		_onDone();
+	if (callMeJustAfterYield) {
+		callMeJustAfterYield();
+	}
+	if (onDone) {
+		onDone();
 	}
 }
 

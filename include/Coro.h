@@ -4,7 +4,6 @@
 #include <functional>
 #include <vector>
 #include <boost/context/all.hpp>
-#include <mutex>
 
 #define CORO_STACK_SIZE 1024*32
 
@@ -52,5 +51,4 @@ private:
 	std::vector<unsigned char> _stack;
 	boost::context::fcontext_t _context, _savedContext;
 	std::exception_ptr _exception;
-	std::mutex _mutex;
 };

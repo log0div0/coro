@@ -8,6 +8,7 @@
 
 class CoroPool {
 public:
+	CoroPool();
 	~CoroPool();
 	void exec(std::function<void()> routine);
 	void join();

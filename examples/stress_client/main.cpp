@@ -10,23 +10,37 @@ using namespace boost::asio::ip;
 void Main() {
 	auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
 	uint64_t totalDataSize = 1024 * 1024 * 1024;
-	uint64_t coroCount = 128;
-	uint64_t dataSizePerCoro = totalDataSize / coroCount;
+	uint64_t clientCount = 1024;
+	uint64_t dataSizePerClient = totalDataSize / clientCount;
 	uint64_t chunkSize = 1024;
+	uint64_t chunkCountPerClient = dataSizePerClient / chunkSize;
 
 	auto start = std::chrono::system_clock::now();
-	for (uint64_t i = 0; i < coroCount; ++i) {
+	for (auto i = 0; i < clientCount; ++i) {
 		Exec([&]() {
 			TcpSocket socket;
 			socket.connect(endpoint);
-			Buffer buffer;
-			buffer.pushBack(chunkSize);
-			for (uint64_t i = 0; i < dataSizePerCoro; i += chunkSize) {
-				buffer.popFront(socket.write(buffer));
-				while (buffer.usefulDataSize() != chunkSize) {
-					socket.read(&buffer);
+
+			CoroPool pool;
+			pool.exec([&]() {
+				Buffer buffer;
+				buffer.pushBack(chunkSize);
+				for (auto i = 0; i < chunkCountPerClient; i++) {
+					socket.write(buffer);
 				}
-			}
+			});
+			pool.exec([&]() {
+				uint64_t counter = 0;
+
+				Buffer buffer(chunkSize);
+				while (true) {
+					socket.read(&buffer);
+					if ((counter += buffer.usefulDataSize()) == dataSizePerClient) {
+						return;
+					}
+					buffer.clear();
+				}
+			});
 		});
 	}
 	Join();
