@@ -40,7 +40,7 @@ public:
 		}
 	}
 
-	void operator()() {
+	void run() {
 		try {
 			doHandshake();
 
@@ -86,7 +86,10 @@ private:
 void StartAccept() {
 	auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
 	TcpServer server(endpoint);
-	server.run<WsEchoSession>();
+	server.run([](TcpSocket socket) {
+		WsEchoSession session(std::move(socket));
+		session.run();
+	});
 }
 
 int main() {

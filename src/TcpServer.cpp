@@ -34,3 +34,12 @@ tcp::socket TcpServer::accept() {
 
 	return socket;
 }
+
+void TcpServer::run(std::function<void(tcp::socket)> callback) {
+	while (true) {
+		auto socket = std::make_shared<tcp::socket>(accept());
+		_coroPool.exec([callback, socket = std::move(socket)]() {
+			callback(std::move(*socket));
+		});
+	}
+}

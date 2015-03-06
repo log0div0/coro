@@ -9,16 +9,7 @@ public:
 	TcpServer(const boost::asio::ip::tcp::endpoint& endpoint);
 
 	boost::asio::ip::tcp::socket accept();
-
-	template <typename T>
-	void run() {
-		while (true) {
-			auto session = std::make_shared<T>(accept());
-			_coroPool.exec([session = std::move(session)]() {
-				(*session)();
-			});
-		}
-	}
+	void run(std::function<void(boost::asio::ip::tcp::socket)> callback);
 
 private:
 	boost::asio::ip::tcp::acceptor _acceptor;
