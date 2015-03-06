@@ -16,7 +16,8 @@ public:
 	enum class OpCode: uint8_t {
 		Undefined = 0x00,
 		Text = 0x01,
-		Binary = 0x02
+		Binary = 0x02,
+		Close = 0x08
 	};
 
 	OpCode opCode() const;
@@ -76,7 +77,7 @@ public:
 
 class WsClientProtocol: public WsProtocol {
 public:
-	WsClientProtocol(const std::string& url = std::string());
+	WsClientProtocol(const std::string& url = "/");
 
 	void writeHandshakeRequest(Buffer& buffer) const;
 	/**

@@ -2,7 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include "TcpServer.h"
 #include "TcpSocket.h"
-#include "CoroUtils.h"
+#include "CoroPool.h"
 
 
 using namespace boost::asio::ip;
@@ -17,28 +17,25 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 	bool serverDone = false, clientDone = false;
 
-	Parallel({
-		[&]() {
-			TcpServer server(endpoint);
-			TcpSocket socket = server.accept();
-			Buffer data;
-			socket.read(&data);
-			BOOST_REQUIRE(data == test_data);
-			socket.write(data);
-			serverDone = true;
-		},
-		[&]() {
-			TcpSocket socket;
-			socket.connect(endpoint);
-			socket.write(test_data);
-			Buffer data;
-			socket.read(&data);
-			BOOST_REQUIRE(data == test_data);
-			clientDone = true;
-		}
-	}, [](const std::exception& exception) {
-		BOOST_REQUIRE(false);
+	Exec([&]() {
+		TcpServer server(endpoint);
+		TcpSocket socket = server.accept();
+		Buffer data;
+		socket.read(&data);
+		BOOST_REQUIRE(data == test_data);
+		socket.write(data);
+		serverDone = true;
 	});
+	Exec([&]() {
+		TcpSocket socket;
+		socket.connect(endpoint);
+		socket.write(test_data);
+		Buffer data;
+		socket.read(&data);
+		BOOST_REQUIRE(data == test_data);
+		clientDone = true;
+	});
+	Join();
 
 	BOOST_REQUIRE(serverDone && clientDone);
 }

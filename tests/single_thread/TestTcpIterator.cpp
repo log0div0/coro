@@ -2,7 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include "TcpServer.h"
 #include "TcpSocket.h"
-#include "CoroUtils.h"
+#include "CoroPool.h"
 
 
 using namespace boost::asio::ip;
@@ -18,39 +18,36 @@ BOOST_AUTO_TEST_SUITE(SuiteTcpIterator)
 BOOST_AUTO_TEST_CASE(TestSTL) {
 	bool serverDone = false, clientDone = false;
 
-	Parallel({
-		[&]() {
-			TcpServer server(endpoint);
-			TcpSocket socket = server.accept();
-			socket.write(test_data);
-			socket.write(test_data2);
-			serverDone = true;
-		},
-		[&]() {
-			TcpSocket socket;
-			socket.connect(endpoint);
-
-			Buffer buffer;
-
-			BOOST_REQUIRE(std::equal(
-				test_data.begin(),
-				test_data.end(),
-				socket.iterator(buffer)
-			));
-
-			buffer.popFront(4);
-
-			BOOST_REQUIRE(std::equal(
-				socket.iterator(buffer),
-				socket.iterator(buffer) + 4,
-				test_data2.begin()
-			));
-
-			clientDone = true;
-		}
-	}, [](const std::exception& exception) {
-		BOOST_REQUIRE(false);
+	Exec([&]() {
+		TcpServer server(endpoint);
+		TcpSocket socket = server.accept();
+		socket.write(test_data);
+		socket.write(test_data2);
+		serverDone = true;
 	});
+	Exec([&]() {
+		TcpSocket socket;
+		socket.connect(endpoint);
+
+		Buffer buffer;
+
+		BOOST_REQUIRE(std::equal(
+			test_data.begin(),
+			test_data.end(),
+			socket.iterator(buffer)
+		));
+
+		buffer.popFront(4);
+
+		BOOST_REQUIRE(std::equal(
+			socket.iterator(buffer),
+			socket.iterator(buffer) + 4,
+			test_data2.begin()
+		));
+
+		clientDone = true;
+	});
+	Join();
 
 	BOOST_REQUIRE(serverDone && clientDone);
 }

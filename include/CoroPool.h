@@ -8,8 +8,7 @@
 
 class CoroPool {
 public:
-	static CoroPool& global();
-
+	~CoroPool();
 	void exec(std::function<void()> routine);
 	void join();
 
@@ -19,4 +18,5 @@ private:
 	std::queue<std::function<void()>> _callOnJoin;
 };
 
-void Exec(std::function<void()> routine); //< CoroPool::global
+void Exec(std::function<void()> routine);
+void Join();

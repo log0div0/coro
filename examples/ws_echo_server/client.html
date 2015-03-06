@@ -11,6 +11,7 @@
 
 		socket.onmessage = function(message) {
 			console.log("message: ", message);
+			socket.close();
 		}
 	</script>
 </head>

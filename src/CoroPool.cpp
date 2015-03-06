@@ -2,9 +2,8 @@
 #include "CoroPool.h"
 #include "ThreadPool.h"
 
-CoroPool& CoroPool::global() {
-	static CoroPool pool;
-	return pool;
+CoroPool::~CoroPool() {
+	join();
 }
 
 void CoroPool::exec(std::function<void()> routine) {
@@ -47,6 +46,12 @@ void CoroPool::join() {
 	});
 }
 
+static CoroPool pool;
+
 void Exec(std::function<void()> routine) {
-	CoroPool::global().exec(routine);
+	pool.exec(routine);
+}
+
+void Join() {
+	pool.join();
 }

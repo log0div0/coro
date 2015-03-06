@@ -1,7 +1,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "CoroQueue.h"
-#include "CoroUtils.h"
+#include "CoroPool.h"
 #include <map>
 
 
@@ -13,16 +13,15 @@ BOOST_AUTO_TEST_CASE(TestOneConsumer) {
 
 	CoroQueue<uint8_t> queue;
 
-	Parallel({
-		[&]() {
-			actual.push_back(queue.pop());
-			actual.push_back(queue.pop());
-		},
-		[&]() {
-			queue.push(1);
-			queue.push(2);
-		}
+	Exec([&]() {
+		actual.push_back(queue.pop());
+		actual.push_back(queue.pop());
 	});
+	Exec([&]() {
+		queue.push(1);
+		queue.push(2);
+	});
+	Join();
 
 	BOOST_REQUIRE(actual == expected);
 }
@@ -33,18 +32,17 @@ BOOST_AUTO_TEST_CASE(TestTwoConsumers) {
 
 	CoroQueue<uint8_t> queue;
 
-	Parallel({
-		[&]() {
-			actual[1] = queue.pop();
-		},
-		[&]() {
-			actual[2] = queue.pop();
-		},
-		[&]() {
-			queue.push(1);
-			queue.push(2);
-		}
+	Exec([&]() {
+		actual[1] = queue.pop();
 	});
+	Exec([&]() {
+		actual[2] = queue.pop();
+	});
+	Exec([&]() {
+		queue.push(1);
+		queue.push(2);
+	});
+	Join();
 
 	BOOST_REQUIRE(actual == expected);
 }

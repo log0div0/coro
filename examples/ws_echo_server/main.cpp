@@ -1,7 +1,6 @@
 
 #include "ThreadPool.h"
-#include "Coro.h"
-#include "CoroUtils.h"
+#include "CoroPool.h"
 #include "TcpServer.h"
 #include "TcpSocket.h"
 #include "WsProtocol.h"
@@ -53,6 +52,13 @@ public:
 					&message
 				);
 
+				if (message.opCode() == WsMessage::OpCode::Close) {
+					auto outputBuffer = MakeBufferUnique();
+					_wsProtocol.writeMessage(WsMessage::OpCode::Close, *outputBuffer);
+					_socket.write(*outputBuffer);
+					return;
+				}
+
 				printMessage(message);
 
 				auto outputBuffer = MakeBufferUnique();
@@ -66,8 +72,8 @@ public:
 				_inputBuffer.popFront(message.end());
 			}
 		}
-		catch (const exception& e) {
-			cout << e.what() << endl;
+		catch (const exception& error) {
+			cout << error.what() << endl;
 		}
 	}
 

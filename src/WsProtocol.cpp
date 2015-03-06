@@ -71,12 +71,16 @@ const HttpHeaders& WsServerProtocol::handshakeHeaders() const {
 }
 
 std::string WsServerProtocol::generateResponse() {
-	std::string acceptKey;
-	acceptKey += _headers.at("Sec-WebSocket-Key");
-	acceptKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //RFC6544_MAGIC_KEY
-	std::vector<uint8_t> acceptKeyHash(20, 0);
-	SHA1(reinterpret_cast<const uint8_t*>(acceptKey.data()), acceptKey.size(),
-		acceptKeyHash.data());
-	std::string acceptKeyBase64 = base64::encode(acceptKeyHash);
-	return Format(handshakeResponse ,acceptKeyBase64);
+	if (_headers.count("Sec-WebSocket-Key")) {
+		std::string acceptKey;
+		acceptKey += _headers["Sec-WebSocket-Key"];
+		acceptKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"; //RFC6544_MAGIC_KEY
+		std::vector<uint8_t> acceptKeyHash(20, 0);
+		SHA1(reinterpret_cast<const uint8_t*>(acceptKey.data()), acceptKey.size(),
+			acceptKeyHash.data());
+		std::string acceptKeyBase64 = base64::encode(acceptKeyHash);
+		return Format(handshakeResponse, acceptKeyBase64);
+	} else {
+		return Format(handshakeResponse, "-");
+	}
 }
