@@ -22,9 +22,9 @@ public:
 
 	void doHandshake() {
 		auto outputBuffer = MakeBufferUnique();
-		_inputBuffer.popFront(
+		_inputBuffer->popFront(
 			_wsProtocol.doHandshake(
-				_socket.iterator(_inputBuffer),
+				_socket.iterator(*_inputBuffer),
 				_socket.iterator(),
 				*outputBuffer
 			)
@@ -47,7 +47,7 @@ public:
 			while (true) {
 				WsMessage message;
 				_wsProtocol.readMessage(
-					_socket.iterator(_inputBuffer),
+					_socket.iterator(*_inputBuffer),
 					_socket.iterator(),
 					&message
 				);
@@ -69,7 +69,7 @@ public:
 				// отправляем
 				_socket.write(*outputBuffer);
 
-				_inputBuffer.popFront(message.end());
+				_inputBuffer->popFront(message.end());
 			}
 		}
 		catch (const exception& error) {
@@ -80,7 +80,7 @@ public:
 private:
 	TcpSocket _socket;
 	WsServerProtocol _wsProtocol;
-	Buffer _inputBuffer;
+	BufferUniquePtr _inputBuffer = MakeBufferUnique();
 };
 
 void StartAccept() {
