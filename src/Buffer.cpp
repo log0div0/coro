@@ -132,7 +132,7 @@ void Buffer::popBack(size_t size) {
 }
 
 void Buffer::pushFront(size_t size) {
-	if (freeSpaceSize() < size) {
+	if (freeSpaceSize() < size + 1) {
 		realloc(usefulDataSize() + size + 1);
 	}
 	_usefulDataSize += size;
@@ -140,7 +140,7 @@ void Buffer::pushFront(size_t size) {
 }
 
 void Buffer::pushBack(size_t size) {
-	if (freeSpaceSize() < size) {
+	if (freeSpaceSize() < size + 1) {
 		realloc(usefulDataSize() + size + 1);
 	}
 	_usefulDataSize += size;
