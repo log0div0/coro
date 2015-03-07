@@ -1,5 +1,5 @@
 
-#define BOOST_TEST_MODULE coro_test
+#define BOOST_TEST_MODULE test_single_thread
 #include <boost/test/unit_test.hpp>
 #include "ThreadPool.h"
 #include "Coro.h"

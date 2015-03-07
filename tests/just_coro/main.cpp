@@ -1,5 +1,5 @@
 
-#define BOOST_TEST_MODULE coro_test_coro
+#define BOOST_TEST_MODULE test_just_coro
 #include <boost/test/unit_test.hpp>
 
 int BOOST_TEST_CALL_DECL
