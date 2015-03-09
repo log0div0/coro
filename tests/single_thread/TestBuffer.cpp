@@ -47,17 +47,18 @@ BOOST_AUTO_TEST_CASE(TestPushPop) {
 	buffer.pushBack(4);
 
 	BOOST_REQUIRE(boost::asio::buffer_size(buffer.usefulData()) == 4);
-	BOOST_REQUIRE(boost::asio::buffer_size(buffer.freeSpace()) == 0);
+	// realloc
+	BOOST_REQUIRE(boost::asio::buffer_size(buffer.freeSpace()) == 4);
 
 	buffer.popFront(3);
 
 	BOOST_REQUIRE(boost::asio::buffer_size(buffer.usefulData()) == 1);
-	BOOST_REQUIRE(boost::asio::buffer_size(buffer.freeSpace()) == 3);
+	BOOST_REQUIRE(boost::asio::buffer_size(buffer.freeSpace()) == 7);
 
 	buffer.pushFront(2);
 
 	BOOST_REQUIRE(boost::asio::buffer_size(buffer.usefulData()) == 3);
-	BOOST_REQUIRE(boost::asio::buffer_size(buffer.freeSpace()) == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(buffer.freeSpace()) == 5);
 }
 
 BOOST_AUTO_TEST_CASE(TestIteratorDifference) {

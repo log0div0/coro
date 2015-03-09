@@ -5,6 +5,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace std::chrono;
 using namespace boost::asio::ip;
 
 auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
@@ -41,18 +42,18 @@ void ClientRoutine() {
 }
 
 void Main() {
-	auto start = std::chrono::system_clock::now();
+	auto start = steady_clock::now();
 	for (auto i = 0; i < clientCount; ++i) {
 		Exec(ClientRoutine);
 	}
 	Join();
-	auto end = std::chrono::system_clock::now();
+	auto end = steady_clock::now();
 
-	std::chrono::duration<double> duration = end - start;
+	auto elapsed = duration_cast<seconds>(end - start).count();
 	cout << fixed;
 	cout
 		<< "bandwidth = "
-		<<  totalDataSize / 1024 / 1024 * 8 / duration.count()
+		<<  totalDataSize / 1024 / 1024 * 8 / elapsed
 		<< "Mb/s"
 		<< endl;
 }
