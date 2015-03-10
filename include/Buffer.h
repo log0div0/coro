@@ -5,9 +5,6 @@
 #include <boost/asio.hpp>
 
 
-#define MAXIMUM_BUFFER_SIZE 1024 * 1024
-
-
 class Buffer;
 typedef std::shared_ptr<Buffer> BufferSharedPtr;
 typedef std::unique_ptr<Buffer, std::function<void(Buffer*)>&> BufferUniquePtr;
@@ -114,12 +111,14 @@ public: //< Для конверсии Iterator -> ConstIterator
 
 class Buffer {
 public:
+	enum { DefaultSize = 1024, MaximumSize = 1024 * 1024 };
+
 	typedef BufferIterator<Buffer, uint8_t> Iterator;
 	typedef BufferIterator<const Buffer, const uint8_t> ConstIterator;
 	friend Iterator;
 	friend ConstIterator;
 
-	Buffer(size_t size = 1024);
+	Buffer(size_t size = DefaultSize);
 
 	Buffer(const std::string& string);
 	Buffer(const std::initializer_list<uint8_t>& list);
@@ -189,6 +188,8 @@ public:
 	uint8_t* getPointer(ptrdiff_t offset) {
 		return moveForward(_first, offset);
 	}
+
+	void reserve(size_t minimum);
 
 private:
 	template <typename T>

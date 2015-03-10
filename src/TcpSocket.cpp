@@ -19,13 +19,15 @@ void TcpSocket::connect(const tcp::endpoint& endpoint) {
 	Coro& coro = *Coro::current();
 	error_code errorCode;
 
+	auto callback = [&](const error_code& errorCode_) {
+		if (errorCode_) {
+			errorCode = errorCode_;
+		}
+		coro.resume();
+	};
+
 	coro.yield([&]() {
-		_handle.async_connect(endpoint, [&](const error_code& errorCode_) {
-			if (errorCode_) {
-				errorCode = errorCode_;
-			}
-			coro.resume();
-		});
+		_handle.async_connect(endpoint, callback);
 	});
 
 	if (errorCode) {

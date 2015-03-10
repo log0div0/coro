@@ -10,7 +10,8 @@ using namespace boost::asio::ip;
 TcpServer::TcpServer(const tcp::endpoint& endpoint)
 	: _acceptor(ThreadPool::current()->ioService(), endpoint)
 {
-
+	boost::asio::socket_base::reuse_address option(true);
+	_acceptor.set_option(option);
 }
 
 tcp::socket TcpServer::accept() {
@@ -19,13 +20,15 @@ tcp::socket TcpServer::accept() {
 	Coro& coro = *Coro::current();
 	error_code errorCode;
 
+	auto callback = [&](const error_code& ec) {
+		if (ec) {
+			errorCode = ec;
+		}
+		coro.resume();
+	};
+
 	coro.yield([&]() {
-		_acceptor.async_accept(socket, [&](const error_code& ec) {
-			if (ec) {
-				errorCode = ec;
-			}
-			coro.resume();
-		});
+		_acceptor.async_accept(socket, callback);
 	});
 
 	if (errorCode) {

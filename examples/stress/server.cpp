@@ -2,20 +2,26 @@
 #include "TcpServer.h"
 #include "TcpSocket.h"
 #include "ThreadPool.h"
+#include <iostream>
 
 using namespace std;
 using namespace boost::asio::ip;
 
 void Main() {
-	auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
-	TcpServer server(endpoint);
-	server.run([](TcpSocket socket) {
-		Buffer buffer;
-		while (true) {
-			socket.read(&buffer);
-			buffer.popFront(socket.write(buffer));
-		}
-	});
+	try {
+		auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44440);
+		TcpServer server(endpoint);
+		server.run([](TcpSocket socket) {
+			Buffer buffer(Buffer::MaximumSize);
+			while (true) {
+				socket.read(&buffer);
+				buffer.popFront(socket.write(buffer));
+			}
+		});
+	}
+	catch (const std::exception& error) {
+		cout << error.what() << endl;
+	}
 }
 
 int main() {

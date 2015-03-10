@@ -35,17 +35,17 @@ public:
 		boost::system::error_code errorCode;
 		size_t bytesTranfered = 0;
 
+		auto callback = [&](const boost::system::error_code& errorCode_, size_t bytesTranfered_) {
+			if (errorCode_) {
+				errorCode = errorCode_;
+			} else {
+				bytesTranfered = bytesTranfered_;
+			}
+			coro.resume();
+		};
+
 		coro.yield([&]() {
-			boost::asio::async_write(_handle, buffer.usefulData(),
-				[&](const boost::system::error_code& errorCode_, size_t bytesTranfered_) {
-					if (errorCode_) {
-						errorCode = errorCode_;
-					} else {
-						bytesTranfered = bytesTranfered_;
-					}
-					coro.resume();
-				}
-			);
+			boost::asio::async_write(_handle, buffer.usefulData(), callback);
 		});
 
 		if (errorCode) {
@@ -62,17 +62,17 @@ public:
 		Coro& coro = *Coro::current();
 		boost::system::error_code errorCode;
 
+		auto callback = [&](const boost::system::error_code& errorCode_, size_t bytesTranfered) {
+			if (errorCode_) {
+				errorCode = errorCode_;
+			} else {
+				buffer->pushBack(bytesTranfered);
+			}
+			coro.resume();
+		};
+
 		coro.yield([&]() {
-			_handle.async_read_some(buffer->freeSpace(),
-				[&](const boost::system::error_code& errorCode_, size_t bytesTranfered) {
-					if (errorCode_) {
-						errorCode = errorCode_;
-					} else {
-						buffer->pushBack(bytesTranfered);
-					}
-					coro.resume();
-				}
-			);
+			_handle.async_read_some(buffer->freeSpace(), callback);
 		});
 
 		if (errorCode) {

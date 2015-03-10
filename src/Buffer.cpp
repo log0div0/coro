@@ -132,16 +132,16 @@ void Buffer::popBack(size_t size) {
 }
 
 void Buffer::pushFront(size_t size) {
-	if (freeSpaceSize() < size + 1) {
-		realloc(usefulDataSize() + size + 1);
+	if (freeSpaceSize() < size) {
+		realloc(usefulDataSize() + size);
 	}
 	_usefulDataSize += size;
 	_first = moveBackward(_first, size);
 }
 
 void Buffer::pushBack(size_t size) {
-	if (freeSpaceSize() < size + 1) {
-		realloc(usefulDataSize() + size + 1);
+	if (freeSpaceSize() < size) {
+		realloc(usefulDataSize() + size);
 	}
 	_usefulDataSize += size;
 	_last = moveForward(_last, size);
@@ -172,11 +172,17 @@ bool Buffer::operator==(const Buffer& other) const {
 	return std::equal(begin(), end(), other.begin());
 }
 
+void Buffer::reserve(size_t minimum) {
+	if (size() < minimum) {
+		realloc(minimum);
+	}
+}
+
 void Buffer::realloc(size_t minimum) {
 	size_t size = this->size();
-	while (size < minimum) {
+	while (size <= minimum) {
 		size *= 2;
-		if (size > MAXIMUM_BUFFER_SIZE) {
+		if (size > MaximumSize) {
 			throw std::runtime_error("Buffer::realloc");
 		}
 	}
