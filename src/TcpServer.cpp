@@ -46,7 +46,3 @@ void TcpServer::run(std::function<void(tcp::socket)> callback) {
 		});
 	}
 }
-
-void TcpServer::cancel() {
-	_acceptor.cancel();
-}
