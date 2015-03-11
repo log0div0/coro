@@ -2,6 +2,7 @@
 #include "Coro.h"
 #include "Common.h"
 #include <cassert>
+#include <iostream>
 
 THREAD_LOCAL Coro* t_coro = nullptr;
 
@@ -114,6 +115,7 @@ void Coro::doRun()
 	}
 	catch (...)
 	{
+		std::cout << "Uncatched exception!!!!\n";
 		_exception = std::current_exception();
 	}
 	_isDone = true;

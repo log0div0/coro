@@ -16,21 +16,26 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 
 
 BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
-	for (auto i = 0; i < 10; i++) {
+	for (auto i = 0; i < 1000; i++) {
 		CoroPool serverPool;
 		TcpServer server(endpoint);
 		serverPool.exec([&]() {
 			try {
 				server.run([&](TcpSocket socket) {
-					Buffer buffer;
-					while (true) {
-						socket.read(&buffer);
-						buffer.clear();
+					try {
+						Buffer buffer;
+						while (true) {
+							socket.read(&buffer);
+							buffer.clear();
+						}
+					}
+					catch (const boost::system::system_error& error) {
+						// BOOST_REQUIRE(error.code() == boost::asio::error::eof);
 					}
 				});
 			}
 			catch (const boost::system::system_error& error) {
-				BOOST_REQUIRE(true);
+
 			}
 			catch (...) {
 				BOOST_REQUIRE(false);
@@ -39,14 +44,19 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		CoroPool clientPool;
 		for (auto i = 0; i < 1024; ++i) {
 			clientPool.exec([&]() {
-				TcpSocket socket;
-				socket.connect(endpoint);
-				for (auto i = 0; i < 10; i++) {
-					socket.write(test_data);
+				try {
+					TcpSocket socket;
+					socket.connect(endpoint);
+					for (auto i = 0; i < 10; i++) {
+						socket.write(test_data);
+					}
+				}
+				catch (...) {
+					BOOST_REQUIRE(false);
 				}
 			});
 		}
-		printf("%d\n", i);
+		BOOST_REQUIRE("in progress ...");
 	}
 }
 
