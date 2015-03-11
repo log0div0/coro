@@ -10,6 +10,7 @@ public:
 
 	boost::asio::ip::tcp::socket accept();
 	void run(std::function<void(boost::asio::ip::tcp::socket)> callback);
+	void shutdown();
 
 private:
 	CoroPool _coroPool;

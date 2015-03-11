@@ -33,10 +33,11 @@ void CoroPool::exec(std::function<void()> routine) {
 }
 
 void CoroPool::join() {
+	_mutex.lock();
 	if (_coros.empty()) {
+		_mutex.unlock();
 		return;
 	}
-	_mutex.lock();
 	_callOnJoin.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
 		threadPool->schedule([=]() {
 			coro->resume();

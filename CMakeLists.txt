@@ -4,8 +4,6 @@ cmake_policy(SET CMP0017 OLD)
 include(FindBoost)
 find_package(Boost COMPONENTS REQUIRED system)
 
-add_definitions(-std=c++1y -fPIC -Wall)
-
 include_directories(${Boost_INCLUDE_DIRS} ./include)
 file(GLOB SRC "src/*.cpp")
 

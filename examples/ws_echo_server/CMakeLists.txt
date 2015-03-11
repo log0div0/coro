@@ -7,7 +7,6 @@ find_package(Boost COMPONENTS REQUIRED system context)
 file(GLOB SRC "*.cpp")
 
 include_directories(${Boost_INCLUDE_DIRS})
-add_definitions(-std=c++1y)
 
 add_executable(example_ws_echo_server ${SRC})
 target_link_libraries(example_ws_echo_server coro ssl crypto)

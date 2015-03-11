@@ -49,6 +49,11 @@ Coro::Coro(Coro&& other)
 }
 
 Coro::~Coro() {
+#ifndef NDEBUG
+	if (!_isDone) {
+		std::cout << "Destroying active corourine!!!!\n";
+	}
+#endif
 }
 
 void Coro::resume()
@@ -115,7 +120,9 @@ void Coro::doRun()
 	}
 	catch (...)
 	{
+#ifndef NDEBUG
 		std::cout << "Uncatched exception!!!!\n";
+#endif
 		_exception = std::current_exception();
 	}
 	_isDone = true;
