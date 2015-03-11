@@ -17,16 +17,14 @@ void CoroPool::exec(std::function<void()> routine) {
 	assert(result.second);
 
 	coro.replaceDoneCallback([&]() {
-		ThreadPool::current()->schedule([&]() {
-			std::lock_guard<std::mutex> lock(_mutex);
-			_coros.erase(coro);
-			if (_coros.empty()) {
-				while (!_callOnJoin.empty()) {
-					_callOnJoin.front()();
-					_callOnJoin.pop();
-				}
+		std::lock_guard<std::mutex> lock(_mutex);
+		_coros.erase(coro);
+		if (_coros.empty()) {
+			while (!_callOnJoin.empty()) {
+				_callOnJoin.front()();
+				_callOnJoin.pop();
 			}
-		});
+		}
 	});
 
 	ThreadPool::current()->schedule([&]() {
