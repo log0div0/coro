@@ -10,31 +10,36 @@ template <typename T>
 class CoroQueue {
 public:
 	T pop() {
-		_mutex.lock();
+		{
+			auto lock = std::make_shared<
+				std::lock_guard<std::mutex>
+			>(_mutex);
 
-		if (_size) {
-			--_size;
-			T t = std::move(_dataQueue.front());
-			_dataQueue.pop();
-			_mutex.unlock();
-			return t;
+			if (_size) {
+				--_size;
+				T t = std::move(_dataQueue.front());
+				_dataQueue.pop();
+				return t;
+			}
+
+			_coroQueue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
+				threadPool->schedule([=]() {
+					coro->resume();
+				});
+			});
+
+			Coro::current()->yield([lock = std::move(lock)]() {
+
+			});
 		}
 
-		_coroQueue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
-			threadPool->schedule([=]() {
-				coro->resume();
-			});
-		});
+		{
+			std::lock_guard<std::mutex> lock(_mutex);
 
-		Coro::current()->yield([&]() {
-			_mutex.unlock();
-		});
-
-		std::lock_guard<std::mutex> lock(_mutex);
-
-		T t = std::move(_dataQueue.front());
-		_dataQueue.pop();
-		return t;
+			T t = std::move(_dataQueue.front());
+			_dataQueue.pop();
+			return t;
+		}
 	}
 
 	template <typename U>

@@ -4,11 +4,12 @@
 #include "Coro.h"
 
 void CoroMutex::lock() {
-	_mutex.lock();
+	auto lock = std::make_shared<
+		std::lock_guard<std::mutex>
+	>(_mutex);
 
 	if (!_isLocked) {
 		_isLocked = true;
-		_mutex.unlock();
 		return;
 	}
 
@@ -18,8 +19,8 @@ void CoroMutex::lock() {
 		});
 	});
 
-	Coro::current()->yield([&]() {
-		_mutex.unlock();
+	Coro::current()->yield([lock = std::move(lock)]() {
+
 	});
 }
 

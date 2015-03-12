@@ -39,18 +39,22 @@ void CoroPool::exec(std::function<void()> routine) {
 }
 
 void CoroPool::join() {
-	_mutex.lock();
+	auto lock = std::make_shared<
+		std::lock_guard<std::mutex>
+	>(_mutex);
+
 	if (_coros.empty()) {
-		_mutex.unlock();
 		return;
 	}
+
 	_callOnJoin.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
 		threadPool->schedule([=]() {
 			coro->resume();
 		});
 	});
-	Coro::current()->yield([&]() {
-		_mutex.unlock();
+
+	Coro::current()->yield([lock = std::move(lock)]() {
+
 	});
 }
 
