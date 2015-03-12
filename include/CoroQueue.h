@@ -11,9 +11,7 @@ class CoroQueue {
 public:
 	T pop() {
 		{
-			auto lock = std::make_shared<
-				std::lock_guard<std::mutex>
-			>(_mutex);
+			std::unique_lock<std::mutex> lock(_mutex);
 
 			if (_size) {
 				--_size;
@@ -28,8 +26,8 @@ public:
 				});
 			});
 
-			Coro::current()->yield([lock = std::move(lock)]() {
-
+			Coro::current()->yield([&]() {
+				lock.unlock();
 			});
 		}
 

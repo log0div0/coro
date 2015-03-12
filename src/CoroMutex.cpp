@@ -4,9 +4,7 @@
 #include "Coro.h"
 
 void CoroMutex::lock() {
-	auto lock = std::make_shared<
-		std::lock_guard<std::mutex>
-	>(_mutex);
+	std::unique_lock<std::mutex> lock(_mutex);
 
 	if (!_isLocked) {
 		_isLocked = true;
@@ -19,8 +17,8 @@ void CoroMutex::lock() {
 		});
 	});
 
-	Coro::current()->yield([lock = std::move(lock)]() {
-
+	Coro::current()->yield([&]() {
+		lock.unlock();
 	});
 }
 
