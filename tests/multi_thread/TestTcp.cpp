@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 
 BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 	try {
-		for (auto i = 0; i < 1000; i++) {
+		for (auto i = 0; i < 200; i++) {
 			printf("-------- %d --------\n", i);
 			TcpServer server(endpoint);
 			CoroPool serverPool;

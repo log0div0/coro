@@ -49,15 +49,13 @@ Coro::Coro(Coro&& other)
 }
 
 Coro::~Coro() {
-#ifndef NDEBUG
-	if (!_isDone) {
-		std::cout << "Destroying active corourine!!!!\n";
-	}
-#endif
+	assert(_isDone);
 }
 
 void Coro::resume()
 {
+	assert(!_isDone);
+
 	Coro* temp = this;
 
 	std::swap(temp, t_coro);

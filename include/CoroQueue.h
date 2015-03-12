@@ -39,15 +39,23 @@ public:
 
 	template <typename U>
 	void push(U&& u) {
-		std::lock_guard<std::mutex> lock(_mutex);
+		std::function<void()> callback;
 
-		_dataQueue.push(std::forward<U>(u));
+		{
+			std::lock_guard<std::mutex> lock(_mutex);
 
-		if (_coroQueue.size()) {
-			_coroQueue.front()();
-			_coroQueue.pop();
-		} else {
-			++_size;
+			_dataQueue.push(std::forward<U>(u));
+
+			if (_coroQueue.size()) {
+				callback = std::move(_coroQueue.front());
+				_coroQueue.pop();
+			} else {
+				++_size;
+			}
+		}
+
+		if (callback) {
+			callback();
 		}
 	}
 

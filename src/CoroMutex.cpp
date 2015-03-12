@@ -24,12 +24,20 @@ void CoroMutex::lock() {
 }
 
 void CoroMutex::unlock() {
-	std::lock_guard<std::mutex> lock(_mutex);
+	std::function<void()> callback;
 
-	if (_coroQueue.size()) {
-		_coroQueue.front()();
-		_coroQueue.pop();
-	} else {
-		_isLocked = false;
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+
+		if (_coroQueue.size()) {
+			callback = std::move(_coroQueue.front());
+			_coroQueue.pop();
+		} else {
+			_isLocked = false;
+		}
+	}
+
+	if (callback) {
+		callback();
 	}
 }
