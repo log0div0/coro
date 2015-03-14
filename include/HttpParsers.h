@@ -56,7 +56,10 @@ struct HttpRequestParser: boost::spirit::qi::grammar<Iterator, HttpRequest()>
 	{
 		using namespace boost::spirit::qi;
 
-		_request = "GET " >> _url >> " HTTP/1.1\r\n" >> _headers >> "\r\n";
+		_request = "GET "
+			>> _url
+			>> " " >> (lit("HTTP/1.0") | lit("HTTP/1.1")) >> "\r\n"
+			>> _headers >> "\r\n";
 		_url = +(char_ - ' ');
 	}
 
@@ -73,7 +76,9 @@ struct HttpResponseParser: boost::spirit::qi::grammar<Iterator, HttpResponse()>
 	{
 		using namespace boost::spirit::qi;
 
-		_response = "HTTP/1.1 " >> int_ >> omit[+(char_ - '\r')] >> "\r\n"
+		_response = (lit("HTTP/1.0") | lit("HTTP/1.1")) >> " "
+			>> int_
+			>> omit[+(char_ - "\r")] >> "\r\n"
 			>> _headers >> "\r\n";
 	}
 
