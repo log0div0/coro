@@ -6,6 +6,7 @@
 #include <iostream>
 
 
+using namespace std;
 using namespace boost::asio::ip;
 
 static auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
@@ -16,9 +17,11 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 
 
 BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
+	const auto iterations = 1000;
+	bool success = true;
 	try {
-		for (auto i = 0; i < 200; i++) {
-			printf("-------- %d --------\n", i);
+		for (auto i = 0; i < iterations; i++) {
+			cout << "SuiteTcp/TestTcpSocketAndServer " << i << " of " << iterations << endl;
 			TcpServer server(endpoint);
 			CoroPool serverPool;
 			serverPool.exec([&]() {
@@ -32,15 +35,19 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 							}
 						}
 						catch (const boost::system::system_error& error) {
-							// BOOST_REQUIRE(error.code() == boost::asio::error::eof);
+							if (error.code() != boost::asio::error::eof) {
+								success = false;
+							}
 						}
 					});
 				}
 				catch (const boost::system::system_error& error) {
-
+					if (error.code() != boost::system::errc::operation_canceled) {
+						success = false;
+					}
 				}
 				catch (...) {
-					BOOST_FAIL("Unexpected exception");
+					success = false;
 				}
 			});
 			{
@@ -55,7 +62,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 							}
 						}
 						catch (...) {
-							BOOST_FAIL("Unexpected exception");
+							success = false;
 						}
 					});
 				}
@@ -66,6 +73,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 	catch (...) {
 		BOOST_FAIL("Unexpected exception");
 	}
+	BOOST_REQUIRE(success);
 }
 
 

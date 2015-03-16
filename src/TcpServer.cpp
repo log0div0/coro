@@ -15,8 +15,8 @@ TcpServer::TcpServer(const tcp::endpoint& endpoint)
 }
 
 tcp::socket TcpServer::accept() {
-	tcp::socket socket(ThreadPool::current()->ioService());
 
+	ThreadPool& threadPool = *ThreadPool::current();
 	Coro& coro = *Coro::current();
 	error_code errorCode;
 
@@ -27,8 +27,19 @@ tcp::socket TcpServer::accept() {
 		coro.resume();
 	};
 
+	tcp::socket socket(threadPool.ioService());
+
 	coro.yield([&]() {
-		_acceptor.async_accept(socket, callback);
+		std::lock_guard<std::mutex> lock(_mutex);
+		if (!_shutdown) {
+			_acceptor.async_accept(socket, callback);
+		} else {
+			errorCode = error_code(boost::system::errc::operation_canceled,
+				boost::system::system_category());
+			threadPool.schedule([&]() {
+				coro.resume();
+			});
+		}
 	});
 
 	if (errorCode) {
@@ -48,5 +59,7 @@ void TcpServer::run(std::function<void(tcp::socket)> callback) {
 }
 
 void TcpServer::shutdown() {
-	_acceptor.close();
+	std::lock_guard<std::mutex> lock(_mutex);
+	_acceptor.cancel();
+	_shutdown = true;
 }

@@ -3,6 +3,7 @@
 
 #include "CoroPool.h"
 #include <boost/asio.hpp>
+#include <mutex>
 
 class TcpServer {
 public:
@@ -15,4 +16,6 @@ public:
 private:
 	CoroPool _coroPool;
 	boost::asio::ip::tcp::acceptor _acceptor;
+	std::mutex _mutex;
+	bool _shutdown = false;
 };
