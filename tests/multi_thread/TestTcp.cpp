@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 
 				}
 				catch (...) {
-					BOOST_REQUIRE(false);
+					BOOST_FAIL("Unexpected exception");
 				}
 			});
 			{
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 							}
 						}
 						catch (...) {
-							BOOST_REQUIRE(false);
+							BOOST_FAIL("Unexpected exception");
 						}
 					});
 				}
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		}
 	}
 	catch (...) {
-		BOOST_REQUIRE(false);
+		BOOST_FAIL("Unexpected exception");
 	}
 }
 

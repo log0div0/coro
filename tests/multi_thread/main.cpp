@@ -14,12 +14,9 @@ main( int argc, char* argv[] )
 		result = ::boost::unit_test::unit_test_main(&init_unit_test, argc, argv);
 	});
 
-	{
-		ThreadPool threadPool(std::thread::hardware_concurrency());
-		threadPool.schedule([&]() {
-			coro.resume();
-		});
-	}
+	ThreadPool(std::thread::hardware_concurrency()).schedule([&]() {
+		coro.resume();
+	});
 
 	std::cout << "OK" << std::endl;
 
