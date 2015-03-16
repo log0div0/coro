@@ -19,59 +19,54 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 	const auto iterations = 1000;
 	bool success = true;
-	try {
-		for (auto i = 0; i < iterations; i++) {
-			cout << "SuiteTcp/TestTcpSocketAndServer " << i << " of " << iterations << endl;
-			TcpServer server(endpoint);
-			CoroPool serverPool;
-			serverPool.exec([&]() {
-				try {
-					server.run([&](TcpSocket socket) {
-						try {
-							Buffer buffer;
-							while (true) {
-								socket.read(&buffer);
-								buffer.clear();
-							}
+	for (auto i = 0; i < iterations; i++) {
+		cout << "SuiteTcp/TestTcpSocketAndServer " << i << " of " << iterations << endl;
+		TcpServer server(endpoint);
+		CoroPool serverPool;
+		serverPool.exec([&]() {
+			try {
+				server.run([&](TcpSocket socket) {
+					try {
+						Buffer buffer;
+						while (true) {
+							socket.read(&buffer);
+							buffer.clear();
 						}
-						catch (const boost::system::system_error& error) {
-							if (error.code() != boost::asio::error::eof) {
-								success = false;
-							}
-						}
-					});
-				}
-				catch (const boost::system::system_error& error) {
-					if (error.code() != boost::system::errc::operation_canceled) {
-						success = false;
 					}
-				}
-				catch (...) {
-					success = false;
-				}
-			});
-			{
-				CoroPool clientPool;
-				for (auto i = 0; i < 1024; ++i) {
-					clientPool.exec([&]() {
-						try {
-							TcpSocket socket;
-							socket.connect(endpoint);
-							for (auto i = 0; i < 10; i++) {
-								socket.write(test_data);
-							}
-						}
-						catch (...) {
+					catch (const boost::system::system_error& error) {
+						if (error.code() != boost::asio::error::eof) {
 							success = false;
 						}
-					});
+					}
+				});
+			}
+			catch (const boost::system::system_error& error) {
+				if (error.code() != boost::system::errc::operation_canceled) {
+					success = false;
 				}
 			}
-			server.shutdown();
+			catch (...) {
+				success = false;
+			}
+		});
+		{
+			CoroPool clientPool;
+			for (auto i = 0; i < 1024; ++i) {
+				clientPool.exec([&]() {
+					try {
+						TcpSocket socket;
+						socket.connect(endpoint);
+						for (auto i = 0; i < 10; i++) {
+							socket.write(test_data);
+						}
+					}
+					catch (...) {
+						success = false;
+					}
+				});
+			}
 		}
-	}
-	catch (...) {
-		BOOST_FAIL("Unexpected exception");
+		server.shutdown();
 	}
 	BOOST_REQUIRE(success);
 }
