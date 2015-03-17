@@ -6,7 +6,7 @@
 #include <queue>
 
 
-/// Do not use this class. Use MakeBufferUnique and MakeBufferShared instead.
+/// Do not use this class. Use MallocUnique and MallocShared instead.
 class NonBlockingBufferPool {
 public:
 	NonBlockingBufferPool();
@@ -15,13 +15,13 @@ public:
 	NonBlockingBufferPool(const NonBlockingBufferPool& other) = delete;
 	NonBlockingBufferPool& operator=(const NonBlockingBufferPool& other) = delete;
 
-	BufferUniquePtr makeUnique();
-	BufferSharedPtr makeShared();
+	BufferUniquePtr mallocUnique();
+	BufferSharedPtr mallocShared();
 
 	size_t size() const;
 
 protected:
-	Buffer* makeBuffer();
+	Buffer* malloc();
 
 private:
 	size_t _size;
@@ -31,5 +31,5 @@ private:
 };
 
 
-BufferUniquePtr MakeBufferUnique();
-BufferSharedPtr MakeBufferShared();
+BufferUniquePtr MallocUnique();
+BufferSharedPtr MallocShared();

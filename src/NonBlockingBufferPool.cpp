@@ -19,19 +19,19 @@ NonBlockingBufferPool::~NonBlockingBufferPool() {
 	}
 }
 
-BufferUniquePtr NonBlockingBufferPool::makeUnique() {
-	return { makeBuffer(), _deleter };
+BufferUniquePtr NonBlockingBufferPool::mallocUnique() {
+	return { malloc(), _deleter };
 }
 
-BufferSharedPtr NonBlockingBufferPool::makeShared() {
-	return { makeBuffer(), _deleter };
+BufferSharedPtr NonBlockingBufferPool::mallocShared() {
+	return { malloc(), _deleter };
 }
 
 size_t NonBlockingBufferPool::size() const {
 	return _size;
 }
 
-Buffer* NonBlockingBufferPool::makeBuffer() {
+Buffer* NonBlockingBufferPool::malloc() {
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		if (_buffers.size()) {
@@ -49,11 +49,11 @@ Buffer* NonBlockingBufferPool::makeBuffer() {
 static NonBlockingBufferPool pool;
 
 
-BufferUniquePtr MakeBufferUnique() {
-	return pool.makeUnique();
+BufferUniquePtr MallocUnique() {
+	return pool.mallocUnique();
 }
 
 
-BufferSharedPtr MakeBufferShared() {
-	return pool.makeShared();
+BufferSharedPtr MallocShared() {
+	return pool.mallocShared();
 }

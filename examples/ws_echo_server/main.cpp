@@ -21,7 +21,7 @@ public:
 	}
 
 	void doHandshake() {
-		auto outputBuffer = MakeBufferUnique();
+		auto outputBuffer = MallocUnique();
 		_inputBuffer->popFront(
 			_wsProtocol.doHandshake(
 				_socket.iterator(*_inputBuffer),
@@ -53,7 +53,7 @@ public:
 				);
 
 				if (message.opCode() == WsMessage::OpCode::Close) {
-					auto outputBuffer = MakeBufferUnique();
+					auto outputBuffer = MallocUnique();
 					_wsProtocol.writeMessage(WsMessage::OpCode::Close, *outputBuffer);
 					_socket.write(*outputBuffer);
 					return;
@@ -61,7 +61,7 @@ public:
 
 				printMessage(message);
 
-				auto outputBuffer = MakeBufferUnique();
+				auto outputBuffer = MallocUnique();
 				// копируем payload
 				outputBuffer->assign(message.payloadBegin(), message.payloadEnd());
 				// запаковываем в websockets
@@ -80,7 +80,7 @@ public:
 private:
 	TcpSocket _socket;
 	WsServerProtocol _wsProtocol;
-	BufferUniquePtr _inputBuffer = MakeBufferUnique();
+	BufferUniquePtr _inputBuffer = MallocUnique();
 };
 
 void StartAccept() {

@@ -15,8 +15,8 @@ BOOST_AUTO_TEST_CASE(TestBlockingBufferPool) {
 
 	BOOST_REQUIRE(pool.size() == 2);
 
-	auto a = pool.makeUnique();
-	auto b = pool.makeShared();
+	auto a = pool.mallocUnique();
+	auto b = pool.mallocShared();
 
 	actual.push_back(1);
 
@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE(TestBlockingBufferPool) {
 	});
 
 	actual.push_back(2);
-	auto c = pool.makeUnique();
+	auto c = pool.mallocUnique();
 	actual.push_back(4);
 
 	BOOST_REQUIRE(pool.size() == 2);
@@ -38,8 +38,8 @@ BOOST_AUTO_TEST_CASE(TestNonBlockingBufferPool) {
 
 	BOOST_REQUIRE(pool.size() == 0);
 
-	auto a = pool.makeUnique();
-	auto b = pool.makeShared();
+	auto a = pool.mallocUnique();
+	auto b = pool.mallocShared();
 
 	BOOST_REQUIRE(pool.size() == 2);
 

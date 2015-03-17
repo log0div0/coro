@@ -19,18 +19,18 @@ BlockingBufferPool::~BlockingBufferPool() {
 	}
 }
 
-BufferUniquePtr BlockingBufferPool::makeUnique() {
-	return { makeBuffer(), _deleter };
+BufferUniquePtr BlockingBufferPool::mallocUnique() {
+	return { malloc(), _deleter };
 }
 
-BufferSharedPtr BlockingBufferPool::makeShared() {
-	return { makeBuffer(), _deleter };
+BufferSharedPtr BlockingBufferPool::mallocShared() {
+	return { malloc(), _deleter };
 }
 
 size_t BlockingBufferPool::size() const {
 	return _size;
 }
 
-Buffer* BlockingBufferPool::makeBuffer() {
+Buffer* BlockingBufferPool::malloc() {
 	return _buffers.pop();
 }

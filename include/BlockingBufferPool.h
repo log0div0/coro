@@ -12,13 +12,13 @@ public:
 	BlockingBufferPool(const BlockingBufferPool& other) = delete;
 	BlockingBufferPool& operator=(const BlockingBufferPool& other) = delete;
 
-	BufferUniquePtr makeUnique();
-	BufferSharedPtr makeShared();
+	BufferUniquePtr mallocUnique();
+	BufferSharedPtr mallocShared();
 
 	size_t size() const;
 
 protected:
-	Buffer* makeBuffer();
+	Buffer* malloc();
 
 private:
 	size_t _size;
