@@ -43,7 +43,7 @@ public:
 	  * @throw std::runtime_error eсли [begin, end) содержит некорректное сообщение
 	  */
 	template <typename Iterator>
-	void readMessage(const Iterator& begin, const Iterator& end, WsMessage* message) const {
+	WsMessage readMessage(const Iterator& begin, const Iterator& end) const {
 		Iterator it = begin;
 		uint8_t finFlag = *it & 0x80;
 		auto opCode = static_cast<WsMessage::OpCode>(*it & 0x0f);
@@ -52,7 +52,9 @@ public:
 		uint64_t payloadLength;
 		it = ReadWsPayloadLength(it, end, &payloadLength);
 
-		assert(finFlag); //< unused
+		if (!finFlag) {
+			throw std::runtime_error("Websocket message segmentation is not implemented");
+		}
 
 		if (maskFlag) {
 			std::vector<uint8_t> maskingKey(it, it + 4);
@@ -62,12 +64,14 @@ public:
 			}
 		}
 
-		message->_opCode = opCode;
-		message->_begin = begin;
-		message->_payloadBegin = it;
-		*(it + (payloadLength - 1)); // загрузим payload (если это NetworkIterator)
-		message->_payloadEnd = it + payloadLength;
-		message->_end = it + payloadLength;
+		WsMessage message;
+		message._opCode = opCode;
+		message._begin = begin;
+		message._payloadBegin = it;
+		*(it + (payloadLength - 1)); // загрузим payload (если это IoHandleIterator)
+		message._payloadEnd = it + payloadLength;
+		message._end = it + payloadLength;
+		return message;
 	}
 
 	// Обрамляют данные в буфере так, чтобы получилось ws сообщение

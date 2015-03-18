@@ -144,8 +144,7 @@ BOOST_AUTO_TEST_CASE(TestReadMaskedMessage) {
 	WsProtocol protocol;
 	Buffer buffer;
 	buffer.pushBack(maskedMessage.begin(), maskedMessage.end());
-	WsMessage message;
-	protocol.readMessage(buffer.begin(), buffer.end(), &message);
+	WsMessage message = protocol.readMessage(buffer.begin(), buffer.end());
 	BOOST_REQUIRE(message.payloadLength() == expected.size());
 	BOOST_REQUIRE(std::equal(expected.begin(), expected.end(), message.payloadBegin()));
 }
@@ -171,7 +170,7 @@ BOOST_AUTO_TEST_CASE(TestServerSuccessfulConnection) {
 	BOOST_REQUIRE(headers.at("Connection") == "Upgrade");
 
 	WsMessage message;
-	BOOST_REQUIRE_NO_THROW(protocol.readMessage(inputBuffer.begin(), inputBuffer.end(), &message));
+	BOOST_REQUIRE_NO_THROW(message = protocol.readMessage(inputBuffer.begin(), inputBuffer.end()));
 	BOOST_REQUIRE(inputBuffer.usefulDataSize() == textMessage.size() + binaryMessage.size());
 
 	BOOST_REQUIRE(message.opCode() == WsMessage::OpCode::Text);
@@ -181,7 +180,7 @@ BOOST_AUTO_TEST_CASE(TestServerSuccessfulConnection) {
 	inputBuffer.popFront(message.end());
 	BOOST_REQUIRE(inputBuffer.usefulDataSize() == binaryMessage.size());
 
-	BOOST_REQUIRE_NO_THROW(protocol.readMessage(inputBuffer.begin(), inputBuffer.end(), &message));
+	BOOST_REQUIRE_NO_THROW(message = protocol.readMessage(inputBuffer.begin(), inputBuffer.end()));
 	BOOST_REQUIRE(inputBuffer.usefulDataSize() == binaryMessage.size());
 
 	BOOST_REQUIRE(message.opCode() == WsMessage::OpCode::Binary);

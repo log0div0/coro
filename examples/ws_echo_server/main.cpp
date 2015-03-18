@@ -45,11 +45,9 @@ public:
 			doHandshake();
 
 			while (true) {
-				WsMessage message;
-				_wsProtocol.readMessage(
+				WsMessage message = _wsProtocol.readMessage(
 					_socket.iterator(*_inputBuffer),
-					_socket.iterator(),
-					&message
+					_socket.iterator()
 				);
 
 				if (message.opCode() == WsMessage::OpCode::Close) {
