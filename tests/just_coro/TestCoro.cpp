@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(TestYieldWithCallback) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestException) {
+BOOST_AUTO_TEST_CASE(TestCatchException) {
 	Coro coro([&] {
 		throw std::runtime_error("catch me");
 	});
@@ -49,6 +49,26 @@ BOOST_AUTO_TEST_CASE(TestException) {
 	} catch (const std::exception& exception) {
 		BOOST_REQUIRE(exception.what() == std::string("catch me"));
 	}
+}
+
+
+BOOST_AUTO_TEST_CASE(TestThrowException) {
+	bool success = false;
+
+	Coro coro([&] {
+		try {
+			Yield();
+		}
+		catch (const std::exception& exception) {
+			success = true;
+			BOOST_REQUIRE(exception.what() == std::string("catch me"));
+		}
+	});
+
+	coro.resume();
+	coro.resume(std::runtime_error("catch me"));
+
+	BOOST_REQUIRE(success);
 }
 
 

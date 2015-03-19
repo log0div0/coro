@@ -82,6 +82,11 @@ void Coro::yield()
 {
 	// выпрыгиваем из jump_fcontext, который выше
 	boost::context::jump_fcontext(&_context, _savedContext, 0);
+	if (_exception) {
+		std::exception_ptr exception = _exception;
+		_exception = nullptr;
+		std::rethrow_exception(exception);
+	}
 }
 
 void Coro::yield(std::function<void()> callMeJustAfterYield) {

@@ -27,8 +27,18 @@ struct Coro
 	void resume();
 	// вызвали yield -> сделали return из resume, стек вернули на место
 	void yield();
+	// бросить исключение внутри корутины
+	template <typename Exception>
+	void resume(Exception exception) {
+		try {
+			throw exception;
+		}
+		catch (...) {
+			_exception = std::current_exception();
+		}
+		resume();
+	}
 	// callMeJustAfterYield вызывается после yield, но перед возвратом из resume
-	// используется для того, чтобы запланировать выполнение других корутин
 	void yield(std::function<void()> callMeJustAfterYield);
 
 	// если routine выбросит исключение, то забрать его можно здесь
