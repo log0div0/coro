@@ -50,6 +50,10 @@ Buffer::~Buffer()
 	delete[] _begin;
 }
 
+void Buffer::assign(const std::initializer_list<uint8_t>& list) {
+	assign(list.begin(), list.end());
+}
+
 void Buffer::clear() {
 	_first = _last = _begin;
 	_usefulDataSize = 0;

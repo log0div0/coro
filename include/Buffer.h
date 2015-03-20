@@ -136,6 +136,8 @@ public:
 
 	~Buffer();
 
+	void assign(const std::initializer_list<uint8_t>& list);
+
 	template <typename T>
 	void assign(T first, T last) {
 		clear();
