@@ -9,7 +9,7 @@ BOOST_AUTO_TEST_SUITE(SuiteMultibyteInteger)
 BOOST_AUTO_TEST_CASE(TestReadMultibyteInteger) {
 	Buffer buffer {0x81, 0x20, 0x00, 0x2b};
 	auto it = buffer.begin();
-	size_t integer;
+	uint64_t integer;
 	BOOST_REQUIRE_NO_THROW(it = ReadMultibyteInteger(it, buffer.end(), &integer));
 	BOOST_REQUIRE(integer == 160);
 	BOOST_REQUIRE_NO_THROW(it = ReadMultibyteInteger(it, buffer.end(), &integer));
