@@ -209,7 +209,7 @@ private:
 		if (a <= b) {
 			return b - a;
 		} else {
-			return (_end - a) + (b - _first);
+			return (_end - a) + (b - _begin);
 		}
 	}
 
