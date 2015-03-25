@@ -32,31 +32,18 @@ public:
 
 	void set(T t) {
 		std::unique_lock<std::mutex> lock(_mutex);
-
 		_t = std::forward<T>(t);
 		_isSet = true;
-
-		_producer = Task::current();
-		Coro::current()->yield([&]() {
-			lock.unlock();
-			_consumer();
-		});
+		_consumer();
 	}
 
 	void reset() {
+		std::unique_lock<std::mutex> lock(_mutex);
 		_isSet = false;
 		_producer();
 	}
 
-	T& operator*() {
-		return _t;
-	}
-
-	T* operator->() {
-		return &_t;
-	}
-
-	void wait() {
+	void wait_for_set() {
 		std::unique_lock<std::mutex> lock(_mutex);
 
 		if (!_isValid) {
@@ -73,14 +60,40 @@ public:
 		});
 	}
 
+	void wait_for_reset() {
+		std::unique_lock<std::mutex> lock(_mutex);
+
+		if (!_isValid) {
+			throw InvalidValueError();
+		}
+
+		if (!_isSet) {
+			return;
+		}
+
+		_producer = Task::current();
+		Coro::current()->yield([&]() {
+			lock.unlock();
+		});
+	}
+
+	T& operator*() {
+		return _t;
+	}
+
+	T* operator->() {
+		return &_t;
+	}
+
 	void invalidate() {
 		std::unique_lock<std::mutex> lock(_mutex);
 		_isValid = false;
+		_producer.terminate(InvalidValueError());
 		_consumer.terminate(InvalidValueError());
 	}
 
 	void lock() {
-		wait();
+		wait_for_set();
 	}
 
 	void unlock() {

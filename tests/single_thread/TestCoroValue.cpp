@@ -37,9 +37,13 @@ BOOST_AUTO_TEST_CASE(TestSetReset) {
 		actual.push_back(2);
 
 		value.set(1111);
+		value.wait_for_reset();
+
 		actual.push_back(6);
 
 		value.set(2222);
+		value.wait_for_reset();
+
 		actual.push_back(9);
 	});
 	Join();
@@ -56,7 +60,7 @@ BOOST_AUTO_TEST_CASE(TestInvalidate) {
 
 	Exec([&]() {
 		try {
-			value.wait();
+			value.wait_for_set();
 		}
 		catch (const InvalidValueError& error) {
 			success = true;
@@ -75,13 +79,14 @@ BOOST_AUTO_TEST_CASE(TestInvalidate2) {
 	CoroValue<uint64_t> value;
 
 	Exec([&]() {
-		BOOST_REQUIRE_NO_THROW(value.wait());
+		BOOST_REQUIRE_NO_THROW(value.wait_for_set());
 		value.reset();
-		BOOST_REQUIRE_THROW(value.wait(), InvalidValueError);
+		BOOST_REQUIRE_THROW(value.wait_for_set(), InvalidValueError);
 		success = true;
 	});
 	Exec([&]() {
 		value.set(1111);
+		value.wait_for_reset();
 		value.invalidate();
 	});
 
