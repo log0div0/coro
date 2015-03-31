@@ -15,6 +15,16 @@ TcpSocket::TcpSocket(tcp::socket socket): IoHandle(std::move(socket)) {
 
 }
 
+
+TcpSocket::TcpSocket(TcpSocket&& other): IoHandle(std::move(other)) {
+
+}
+
+TcpSocket& TcpSocket::operator=(TcpSocket&& other) {
+	IoHandle::operator=(std::move(other));
+	return *this;
+}
+
 void TcpSocket::connect(const tcp::endpoint& endpoint) {
 	Coro& coro = *Coro::current();
 	error_code errorCode;

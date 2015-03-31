@@ -1,7 +1,6 @@
 
 #include "TcpServer.h"
-#include "ThreadPool.h"
-#include "Coro.h"
+#include "Task.h"
 
 using boost::system::error_code;
 using boost::system::system_error;
@@ -15,8 +14,6 @@ TcpServer::TcpServer(const tcp::endpoint& endpoint)
 }
 
 tcp::socket TcpServer::accept() {
-
-	ThreadPool& threadPool = *ThreadPool::current();
 	Coro& coro = *Coro::current();
 	error_code errorCode;
 
@@ -27,18 +24,15 @@ tcp::socket TcpServer::accept() {
 		coro.resume();
 	};
 
-	tcp::socket socket(threadPool.ioService());
+	tcp::socket socket(ThreadPool::current()->ioService());
 
 	coro.yield([&]() {
 		std::lock_guard<std::mutex> lock(_mutex);
 		if (!_shutdown) {
 			_acceptor.async_accept(socket, callback);
 		} else {
-			errorCode = error_code(boost::system::errc::operation_canceled,
-				boost::system::system_category());
-			threadPool.schedule([&]() {
-				coro.resume();
-			});
+			callback(error_code(boost::system::errc::operation_canceled,
+				boost::system::system_category()));
 		}
 	});
 
@@ -52,7 +46,7 @@ tcp::socket TcpServer::accept() {
 void TcpServer::run(std::function<void(tcp::socket)> callback) {
 	while (true) {
 		auto socket = std::make_shared<tcp::socket>(accept());
-		_coroPool.exec([callback, socket = std::move(socket)]() {
+		_coroPool.exec([callback, socket]() {
 			callback(std::move(*socket));
 		});
 	}

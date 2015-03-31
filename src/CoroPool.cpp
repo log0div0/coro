@@ -17,23 +17,21 @@ void CoroPool::exec(std::function<void()> routine) {
 	assert(result.second);
 
 	coro.replaceDoneCallback([&]() {
-		ThreadPool::current()->schedule([&]() {
-			std::unique_lock<std::mutex> lock(_mutex);
+		std::unique_lock<std::mutex> lock(_mutex);
 
-			_coros.erase(coro);
+		_coros.erase(coro);
 
-			std::queue<std::function<void()>> callOnJoin;
-			if (_coros.empty()) {
-				callOnJoin = std::move(_callOnJoin);
-			}
+		std::queue<Task> callOnJoin;
+		if (_coros.empty()) {
+			callOnJoin = std::move(_callOnJoin);
+		}
 
-			lock.unlock();
+		lock.unlock();
 
-			while (!callOnJoin.empty()) {
-				callOnJoin.front()();
-				callOnJoin.pop();
-			}
-		});
+		while (!callOnJoin.empty()) {
+			callOnJoin.front()();
+			callOnJoin.pop();
+		}
 	});
 
 	ThreadPool::current()->schedule([&]() {
@@ -48,13 +46,9 @@ void CoroPool::join() {
 		return;
 	}
 
-	_callOnJoin.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
-		threadPool->schedule([=]() {
-			coro->resume();
-		});
-	});
+	_callOnJoin.push(Task::current());
 
-	Coro::current()->yield([&]() {
+	CoroYield([&]() {
 		lock.unlock();
 	});
 }
@@ -62,7 +56,7 @@ void CoroPool::join() {
 static CoroPool pool;
 
 void Exec(std::function<void()> routine) {
-	pool.exec(routine);
+	pool.exec(std::move(routine));
 }
 
 void Join() {

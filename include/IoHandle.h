@@ -16,6 +16,7 @@ public:
 
 	IoHandle& operator=(IoHandle&& other) {
 		_handle = std::move(other._handle);
+		return *this;
 	}
 
 	Iterator iterator(Buffer& buffer) {

@@ -17,17 +17,21 @@ public:
 		return Task(ThreadPool::current(), Coro::current());
 	}
 
-	Task(Task&& other)
-		: _threadPool(other._threadPool),
-		  _coro(other._coro)
-	{
+	Task(const Task& other): Task(other._threadPool, other._coro) {}
+
+	Task& operator=(const Task& other) {
+		_threadPool = other._threadPool;
+		_coro = other._coro;
+		return *this;
+	}
+
+	Task(Task&& other): Task(other) {
 		other._threadPool = nullptr;
 		other._coro = nullptr;
 	}
 
 	Task& operator=(Task&& other) {
-		_threadPool = other._threadPool;
-		_coro = other._coro;
+		this->operator=(other);
 		other._threadPool = nullptr;
 		other._coro = nullptr;
 		return *this;
@@ -35,12 +39,9 @@ public:
 
 	void operator()() {
 		if (_threadPool && _coro) {
-			ThreadPool* threadPool = _threadPool;
-			Coro* coro = _coro;
-			_threadPool = nullptr;
-			_coro = nullptr;
-			threadPool->schedule([=]() {
-				coro->resume();
+			Task task = std::move(*this);
+			task._threadPool->schedule([=]() {
+				task._coro->resume();
 			});
 		}
 	}
@@ -48,12 +49,9 @@ public:
 	template <typename Exception>
 	void terminate(Exception exception) {
 		if (_threadPool && _coro) {
-			ThreadPool* threadPool = _threadPool;
-			Coro* coro = _coro;
-			_threadPool = nullptr;
-			_coro = nullptr;
-			threadPool->schedule([=]() {
-				coro->resume(exception);
+			Task task = std::move(*this);
+			task._threadPool->schedule([=]() {
+				task._coro->resume(exception);
 			});
 		}
 	}

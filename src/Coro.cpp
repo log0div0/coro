@@ -6,11 +6,11 @@
 
 THREAD_LOCAL Coro* t_coro = nullptr;
 
-void Yield() {
+void CoroYield() {
 	t_coro->yield();
 }
 
-void Yield(std::function<void()> callMeJustAfterYield) {
+void CoroYield(std::function<void()> callMeJustAfterYield) {
 	t_coro->yield(callMeJustAfterYield);
 }
 

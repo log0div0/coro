@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "Task.h"
 #include <mutex>
 #include <functional>
 #include <queue>
@@ -13,5 +14,5 @@ public:
 private:
 	bool _isLocked = false;
 	std::mutex _mutex;
-	std::queue<std::function<void()>> _coroQueue;
+	std::queue<Task> _taskQueue;
 };

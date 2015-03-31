@@ -20,7 +20,8 @@ BOOST_AUTO_TEST_CASE(TestBlockingBufferPool) {
 
 	actual.push_back(1);
 
-	Exec([&, copy = std::move(b)]() {
+	Exec([&]() {
+		b.reset();
 		actual.push_back(3);
 	});
 

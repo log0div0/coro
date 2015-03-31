@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(TestInvalidate) {
 		try {
 			value.wait_for_set();
 		}
-		catch (const InvalidValueError& error) {
+		catch (const InvalidValueError&) {
 			success = true;
 		}
 	});

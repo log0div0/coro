@@ -11,13 +11,9 @@ void CoroMutex::lock() {
 		return;
 	}
 
-	_coroQueue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
-		threadPool->schedule([=](){
-			coro->resume();
-		});
-	});
+	_taskQueue.push(Task::current());
 
-	Coro::current()->yield([&]() {
+	CoroYield([&]() {
 		lock.unlock();
 	});
 }
@@ -25,17 +21,15 @@ void CoroMutex::lock() {
 void CoroMutex::unlock() {
 	std::unique_lock<std::mutex> lock(_mutex);
 
-	std::function<void()> callback;
-	if (_coroQueue.size()) {
-		callback = std::move(_coroQueue.front());
-		_coroQueue.pop();
+	Task task;
+	if (_taskQueue.size()) {
+		task = std::move(_taskQueue.front());
+		_taskQueue.pop();
 	} else {
 		_isLocked = false;
 	}
 
 	lock.unlock();
 
-	if (callback) {
-		callback();
-	}
+	task();
 }

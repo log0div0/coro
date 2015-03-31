@@ -1,8 +1,7 @@
 
 #pragma once
 
-#include "ThreadPool.h"
-#include "Coro.h"
+#include "Task.h"
 #include <mutex>
 #include <queue>
 
@@ -20,13 +19,9 @@ public:
 				return t;
 			}
 
-			_coroQueue.push([threadPool = ThreadPool::current(), coro = Coro::current()] {
-				threadPool->schedule([=]() {
-					coro->resume();
-				});
-			});
+			_taskQueue.push(Task::current());
 
-			Coro::current()->yield([&]() {
+			CoroYield([&]() {
 				lock.unlock();
 			});
 		}
@@ -46,19 +41,17 @@ public:
 
 		_dataQueue.push(std::forward<U>(u));
 
-		std::function<void()> callback;
-		if (_coroQueue.size()) {
-			callback = std::move(_coroQueue.front());
-			_coroQueue.pop();
+		Task task;
+		if (_taskQueue.size()) {
+			task = std::move(_taskQueue.front());
+			_taskQueue.pop();
 		} else {
 			++_size;
 		}
 
 		lock.unlock();
 
-		if (callback) {
-			callback();
-		}
+		task();
 	}
 
 
@@ -66,5 +59,5 @@ private:
 	std::mutex _mutex;
 	size_t _size = 0; //< кол-во элементов, которые ещё никому не нужны
 	std::queue<T> _dataQueue;
-	std::queue<std::function<void()>> _coroQueue;
+	std::queue<Task> _taskQueue;
 };

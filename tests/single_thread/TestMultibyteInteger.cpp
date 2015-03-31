@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(TestReadMultibyteInteger) {
 BOOST_AUTO_TEST_CASE(TestWriteMultibyteInteger) {
 	Buffer buffer;
 	WriteMultibyteInteger(buffer, 43);
-	BOOST_REQUIRE(buffer == Buffer({0x2b}));
+	BOOST_REQUIRE(buffer == Buffer(std::vector<uint8_t>{0x2b})); //< VS2013 workaround
 	WriteMultibyteInteger(buffer, 0);
 	BOOST_REQUIRE(buffer == Buffer({0x00, 0x2b}));
 	WriteMultibyteInteger(buffer, 160);
