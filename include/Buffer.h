@@ -41,10 +41,16 @@ public:
 	}
 
 	reference operator*() const {
+		if (!_it) {
+			throw std::range_error("BufferIterator::operator*");
+		}
 		return *_it;
 	}
 
 	pointer operator->() const {
+		if (!_it) {
+			throw std::range_error("BufferIterator::operator->");
+		}
 		return _it;
 	}
 
@@ -87,20 +93,27 @@ public:
 		return _it == other._it;
 	}
 
-	difference_type operator-(const BufferIterator& other) const {
-		if (_it != nullptr) {
-			return _buffer->distance(other._it, _it);
-		} else {
-			if (other._it != nullptr) {
-				if (other._it != _buffer->_last) {
-					return _buffer->distance(other._it, _buffer->_last);
-				} else {
-					return _buffer->usefulDataSize();
-				}
-			} else {
-				return 0;
-			}
+	difference_type operator-(const BufferIterator& from) const {
+		const BufferIterator& to = *this;
+
+		if (from._it != nullptr && to._it != nullptr)
+		{
+			return _buffer->distance(from._it, to._it);
 		}
+		if (from._it == nullptr && to._it == nullptr) {
+			return 0;
+		}
+		if (from._it == _buffer->_first && from._it == _buffer->_last)
+		{
+			// буфер забит битком, ситуация end() - begin()
+			return _buffer->usefulDataSize();
+		}
+		if (to._it == nullptr)
+		{
+			return _buffer->distance(from._it, _buffer->_last);
+		}
+
+		throw std::logic_error("BufferIterator::operator-");
 	}
 
 public: //< Для конверсии Iterator -> ConstIterator
