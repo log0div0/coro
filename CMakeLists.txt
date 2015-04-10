@@ -10,7 +10,6 @@ file(GLOB SRC "src/*.cpp")
 add_library(coro STATIC ${SRC})
 set_target_properties(coro PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
 
-subdirs(tests/just_coro)
 subdirs(tests/single_thread)
 subdirs(tests/multi_thread)
 subdirs(examples/ws_echo_server)

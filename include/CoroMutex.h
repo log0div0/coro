@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Task.h"
+#include "Coro.h"
 #include <mutex>
 #include <functional>
 #include <queue>
@@ -14,5 +14,5 @@ public:
 private:
 	bool _isLocked = false;
 	std::mutex _mutex;
-	std::queue<Task> _taskQueue;
+	std::queue<Coro*> _coroQueue;
 };

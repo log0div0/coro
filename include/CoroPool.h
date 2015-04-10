@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Task.h"
+#include "Coro.h"
 #include <mutex>
 #include <set>
 #include <queue>
@@ -14,9 +14,10 @@ public:
 	void join();
 
 private:
+	void cleanup();
+
 	std::mutex _mutex;
-	std::set<Coro> _coros;
-	std::queue<Task> _callOnJoin;
+	std::set<Coro*> _running, _finished, _waiting;
 };
 
 void Exec(std::function<void()> routine);

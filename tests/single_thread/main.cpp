@@ -9,13 +9,14 @@ main( int argc, char* argv[] )
 {
 	int result;
 
+	ThreadPool threadPool(1);
+
 	Coro coro([&] {
 		result = ::boost::unit_test::unit_test_main(&init_unit_test, argc, argv);
-	});
-	ThreadPool threadPool(1);
-	threadPool.schedule([&]() {
-		coro.resume();
-	});
+	}, &threadPool);
+	coro.schedule();
+
+	threadPool.sync();
 
 	return result;
 }

@@ -10,47 +10,52 @@ CoroPool::~CoroPool() {
 }
 
 void CoroPool::exec(std::function<void()> routine) {
-	std::lock_guard<std::mutex> lock(_mutex);
+	auto coro = new Coro([&, routine = std::move(routine)]() {
+		routine();
 
-	auto result = _coros.emplace(std::move(routine));
-	Coro& coro = const_cast<Coro&>(*result.first);
-	assert(result.second);
-
-	coro.replaceDoneCallback([&]() {
 		std::unique_lock<std::mutex> lock(_mutex);
 
-		_coros.erase(coro);
+		_running.erase(Coro::current());
+		_finished.insert(Coro::current());
 
-		std::queue<Task> callOnJoin;
-		if (_coros.empty()) {
-			callOnJoin = std::move(_callOnJoin);
-		}
-
-		lock.unlock();
-
-		while (!callOnJoin.empty()) {
-			callOnJoin.front()();
-			callOnJoin.pop();
+		if (_running.empty()) {
+			for (auto i: _waiting) {
+				i->schedule();
+			}
+			_waiting.clear();
 		}
 	});
 
-	ThreadPool::current()->schedule([&]() {
-		coro.resume();
-	});
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		_running.insert(coro);
+	}
+
+	coro->schedule();
 }
 
 void CoroPool::join() {
-	std::unique_lock<std::mutex> lock(_mutex);
+	{
+		std::unique_lock<std::mutex> lock(_mutex);
 
-	if (_coros.empty()) {
-		return;
+		if (_running.empty()) {
+			return;
+		}
+
+		_waiting.insert(Coro::current());
 	}
+	Coro::current()->yield();
+	{
+		std::unique_lock<std::mutex> lock(_mutex);
+		cleanup();
+	}
+}
 
-	_callOnJoin.push(Task::current());
-
-	CoroYield([&]() {
-		lock.unlock();
-	});
+void CoroPool::cleanup() {
+	for (auto i: _finished) {
+		delete i;
+	}
+	_finished.clear();
 }
 
 static CoroPool pool;

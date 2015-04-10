@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Task.h"
+#include "Coro.h"
 #include <mutex>
 #include <queue>
 
@@ -19,12 +19,10 @@ public:
 				return t;
 			}
 
-			_taskQueue.push(Task::current());
-
-			CoroYield([&]() {
-				lock.unlock();
-			});
+			_coroQueue.push(Coro::current());
 		}
+
+		Coro::current()->yield();
 
 		{
 			std::lock_guard<std::mutex> lock(_mutex);
@@ -41,17 +39,12 @@ public:
 
 		_dataQueue.push(std::forward<U>(u));
 
-		Task task;
-		if (_taskQueue.size()) {
-			task = std::move(_taskQueue.front());
-			_taskQueue.pop();
+		if (_coroQueue.size()) {
+			_coroQueue.front()->schedule();
+			_coroQueue.pop();
 		} else {
 			++_size;
 		}
-
-		lock.unlock();
-
-		task();
 	}
 
 
@@ -59,5 +52,5 @@ private:
 	std::mutex _mutex;
 	size_t _size = 0; //< кол-во элементов, которые ещё никому не нужны
 	std::queue<T> _dataQueue;
-	std::queue<Task> _taskQueue;
+	std::queue<Coro*> _coroQueue;
 };

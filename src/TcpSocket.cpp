@@ -1,6 +1,5 @@
 
 #include "TcpSocket.h"
-#include "ThreadPool.h"
 
 using boost::system::error_code;
 using boost::system::system_error;
@@ -26,19 +25,19 @@ TcpSocket& TcpSocket::operator=(TcpSocket&& other) {
 }
 
 void TcpSocket::connect(const tcp::endpoint& endpoint) {
-	Coro& coro = *Coro::current();
+	auto coro = Coro::current();
 	error_code errorCode;
 
 	auto callback = [&](const error_code& errorCode_) {
 		if (errorCode_) {
 			errorCode = errorCode_;
 		}
-		coro.resume();
+		coro->schedule();
 	};
 
-	coro.yield([&]() {
-		_handle.async_connect(endpoint, callback);
-	});
+	_handle.async_connect(endpoint, callback);
+
+	coro->yield();
 
 	if (errorCode) {
 		throw system_error(errorCode);

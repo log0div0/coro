@@ -28,14 +28,10 @@ BOOST_AUTO_TEST_CASE(TestYieldResume) {
 		CoroPool pool;
 		for (auto j = 0; j < 1024; ++j) {
 			pool.exec([&]() {
-				ThreadPool* threadPool = ThreadPool::current();
 				Coro* coro = Coro::current();
 				for (auto i = 0; i < 10; ++i) {
-					coro->yield([=]() {
-						threadPool->schedule([=]() {
-							coro->resume();
-						});
-					});
+					coro->schedule();
+					coro->yield();
 				}
 			});
 		}

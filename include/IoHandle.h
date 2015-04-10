@@ -32,7 +32,7 @@ public:
 	  * @return Кол-во отправленных байт
 	  */
 	size_t write(const Buffer& buffer) {
-		Coro& coro = *Coro::current();
+		auto coro = Coro::current();
 		boost::system::error_code errorCode;
 		size_t bytesTranfered = 0;
 
@@ -42,12 +42,12 @@ public:
 			} else {
 				bytesTranfered = bytesTranfered_;
 			}
-			coro.resume();
+			coro->schedule();
 		};
 
-		coro.yield([&]() {
-			boost::asio::async_write(_handle, buffer.usefulData(), callback);
-		});
+		boost::asio::async_write(_handle, buffer.usefulData(), callback);
+
+		coro->yield();
 
 		if (errorCode) {
 			throw boost::system::system_error(errorCode);
@@ -60,7 +60,7 @@ public:
 	  * @brief Принять хоть сколько-нибудь байт (и записать их в конец буфера)
 	  */
 	void read(Buffer* buffer) {
-		Coro& coro = *Coro::current();
+		auto coro = Coro::current();
 		boost::system::error_code errorCode;
 
 		auto callback = [&](const boost::system::error_code& errorCode_, size_t bytesTranfered) {
@@ -69,12 +69,12 @@ public:
 			} else {
 				buffer->pushBack(bytesTranfered);
 			}
-			coro.resume();
+			coro->schedule();
 		};
 
-		coro.yield([&]() {
-			_handle.async_read_some(buffer->freeSpace(), callback);
-		});
+		_handle.async_read_some(buffer->freeSpace(), callback);
+
+		coro->yield();
 
 		if (errorCode) {
 			throw boost::system::system_error(errorCode);
