@@ -41,20 +41,29 @@ public:
 	}
 
 	reference operator*() const {
+#ifndef NDEBUG
 		if (!_it) {
 			throw std::range_error("BufferIterator::operator*");
 		}
+#endif
 		return *_it;
 	}
 
 	pointer operator->() const {
+#ifndef NDEBUG
 		if (!_it) {
 			throw std::range_error("BufferIterator::operator->");
 		}
+#endif
 		return _it;
 	}
 
 	BufferIterator& operator++() {
+#ifndef NDEBUG
+		if (!_it) {
+			throw std::range_error("BufferIterator::operator++");
+		}
+#endif
 		_it = _buffer->moveForward(_it, 1);
 		if (_it == _buffer->_last) {
 			_it = nullptr;
@@ -69,6 +78,20 @@ public:
 	}
 
 	BufferIterator& operator+=(difference_type distance) {
+#ifndef NDEBUG
+		if (!_it) {
+			throw std::range_error("BufferIterator::operator++");
+		}
+		if (_it == _buffer->_first && _it == _buffer->_last) {
+			if (distance > static_cast<difference_type>(_buffer->usefulDataSize())) {
+				throw std::range_error("BufferIterator::operator++");
+			}
+		} else {
+			if (distance > _buffer->distance(_it, _buffer->_last)) {
+				throw std::range_error("BufferIterator::operator++");
+			}
+		}
+#endif
 		_it = _buffer->moveForward(_it, distance);
 		if (_it == _buffer->_last) {
 			_it = nullptr;
@@ -106,7 +129,7 @@ public:
 		if (from._it == _buffer->_first && from._it == _buffer->_last)
 		{
 			// буфер забит битком, ситуация end() - begin()
-			return _buffer->usefulDataSize();
+			return static_cast<difference_type>(_buffer->usefulDataSize());
 		}
 		if (to._it == nullptr)
 		{
@@ -217,8 +240,8 @@ private:
 		return _begin + (it - _begin - distance + size()) % int64_t(size());
 	}
 
-	template <typename T>
-	size_t distance(T a, T b) const {
+	template <typename A, typename B>
+	ptrdiff_t distance(A a, B b) const {
 		if (a <= b) {
 			return b - a;
 		} else {

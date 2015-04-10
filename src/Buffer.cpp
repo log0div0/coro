@@ -173,6 +173,9 @@ bool Buffer::operator==(const Buffer& other) const {
 	if (usefulDataSize() != other.usefulDataSize()) {
 		return false;
 	}
+	if (!usefulDataSize()) {
+		return true;
+	}
 	return std::equal(begin(), end(), other.begin());
 }
 

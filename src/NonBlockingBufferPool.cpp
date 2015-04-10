@@ -57,3 +57,15 @@ BufferUniquePtr MallocUnique() {
 BufferSharedPtr MallocShared() {
 	return pool.mallocShared();
 }
+
+BufferUniquePtr MallocUnique(const std::initializer_list<uint8_t>& list) {
+	auto buffer = MallocUnique();
+	buffer->assign(list);
+	return buffer;
+}
+
+BufferSharedPtr MallocShared(const std::initializer_list<uint8_t>& list) {
+	auto buffer = MallocShared();
+	buffer->assign(list);
+	return buffer;
+}

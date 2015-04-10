@@ -33,3 +33,6 @@ private:
 
 BufferUniquePtr MallocUnique();
 BufferSharedPtr MallocShared();
+
+BufferUniquePtr MallocUnique(const std::initializer_list<uint8_t>& list);
+BufferSharedPtr MallocShared(const std::initializer_list<uint8_t>& list);
