@@ -2,7 +2,7 @@
 #pragma once
 
 #include <boost/asio/steady_timer.hpp>
-#include "Coro.h"
+#include "Task.h"
 
 class TimeoutError: public std::runtime_error {
 public:
@@ -12,27 +12,29 @@ public:
 class Timeout {
 public:
 	template <typename Duration>
-	Timeout(Duration duration): _timer(ThreadPool::current()->ioService())
+	Timeout(Duration duration): _timer(ThreadPool::current()->ioService()), _coro(Coro::current())
 	{
-		auto coro = Coro::current();
-
 		_timer.expires_from_now(duration);
 
-		auto callback = [=](const boost::system::error_code& errorCode) {
+		auto callback = [&](const boost::system::error_code& errorCode) {
 			if (errorCode == boost::asio::error::operation_aborted) {
 				return;
 			}
-			coro->setException(TimeoutError());
-			coro->resume();
+			if (_coro) {
+				_coro->setException(TimeoutError());
+				_coro->resume();
+			}
 		};
 
-		_timer.async_wait(coro->strand()->wrap(callback));
+		_timer.async_wait(_coro->strand()->wrap(callback));
 	}
 
 	~Timeout() {
+		_coro = nullptr;
 		_timer.cancel();
 	}
 
 private:
 	boost::asio::steady_timer _timer;
+	Coro* _coro;
 };

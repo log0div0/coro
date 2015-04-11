@@ -8,6 +8,10 @@ Task::Task(): _coro(Coro::current())
 	};
 }
 
+Task::Task(std::function<void()> routine): _coro(Coro::current()), _routine(std::move(routine))
+{
+}
+
 void Task::assign(std::function<void()> routine) {
 	_routine = std::move(routine);
 }

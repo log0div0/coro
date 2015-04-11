@@ -68,30 +68,32 @@ BOOST_AUTO_TEST_CASE(TestCancel) {
 }
 
 
-// BOOST_AUTO_TEST_CASE(TestCancel2) {
-// 	auto coro = Coro::current();
+BOOST_AUTO_TEST_CASE(TestCancel2) {
+	auto coro = Coro::current();
 
-// 	{
-// 		Timeout timeout(100ms);
+	{
+		Timeout timeout(100ms);
 
-// 		std::this_thread::sleep_for(200ms);
-// 	}
+		std::this_thread::sleep_for(200ms);
+	}
 
-// 	// Таймфут сработал, но он нам уже не нужен
+	// Таймфут сработал, но он нам уже не нужен
 
-// 	coro->schedule();
-// 	BOOST_REQUIRE_NO_THROW(coro->yield());
-// }
+	coro->strand()->post([&] {
+		coro->resume();
+	});
+	BOOST_REQUIRE_NO_THROW(coro->yield());
+}
 
 
-// BOOST_AUTO_TEST_CASE(TestTwoTimeouts) {
-// 	auto coro = Coro::current();
+BOOST_AUTO_TEST_CASE(TestTwoTimeouts) {
+	auto coro = Coro::current();
 
-// 	Timeout timeout(100ms);
-// 	Timeout timeout2(100ms);
-// 	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
-// 	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
-// }
+	Timeout timeout(100ms);
+	Timeout timeout2(100ms);
+	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
+	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()

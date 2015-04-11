@@ -6,6 +6,7 @@
 class Task: public std::enable_shared_from_this<Task> {
 public:
 	Task();
+	Task(std::function<void()> routine);
 
 	void assign(std::function<void()> routine);
 	void cancel() {
