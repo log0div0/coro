@@ -21,7 +21,7 @@ public:
 			}
 			coro->executeSerially([=]() {
 				coro->setException(TimeoutError());
-				coro->resume();
+				coro->schedule();
 			});
 		});
 	}

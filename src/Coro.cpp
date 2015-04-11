@@ -14,7 +14,8 @@ Coro::Coro(std::function<void()> routine, ThreadPool* threadPool)
 	: _routine(std::move(routine)),
 	  _threadPool(threadPool),
 	  _strand(_threadPool->ioService()),
-	  _stack(CORO_STACK_SIZE)
+	  _stack(CORO_STACK_SIZE),
+	  _isDone(false)
 {
 	_context = boost::context::make_fcontext(&_stack.back(), _stack.size(), &run);
 	_savedContext = nullptr;
@@ -27,7 +28,8 @@ Coro::Coro(Coro&& other)
 	  _stack(std::move(other._stack)),
 	  _context(std::move(other._context)),
 	  _savedContext(std::move(other._savedContext)),
-	  _exception(std::move(other._exception))
+	  _exception(std::move(other._exception)),
+	  _isDone(std::move(other._isDone))
 {
 	other._routine = nullptr;
 	other._threadPool = nullptr;
@@ -38,10 +40,13 @@ Coro::Coro(Coro&& other)
 }
 
 Coro::~Coro() {
+	assert(_isDone);
 }
 
 void Coro::resume()
 {
+	assert(!_isDone);
+
 	Coro* temp = this;
 
 	std::swap(temp, t_coro);
@@ -97,5 +102,6 @@ void Coro::doRun()
 #endif
 		_exception = std::current_exception();
 	}
+	_isDone = true;
 	yield();
 }

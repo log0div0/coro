@@ -15,10 +15,6 @@ public:
 	Coro(Coro&& other);
 	~Coro();
 
-	// если это первый вызов resume - то входим в routine
-	// иначе:
-	// вызвали resume -> сделали return из yield
-	void resume();
 	// вызвали yield -> сделали return из resume
 	void yield();
 	void schedule();
@@ -44,6 +40,10 @@ public:
 	}
 
 private:
+	// если это первый вызов resume - то входим в routine
+	// иначе:
+	// вызвали resume -> сделали return из yield
+	void resume();
 	static void run(intptr_t);
 	void doRun();
 
@@ -53,4 +53,5 @@ private:
 	std::vector<unsigned char> _stack;
 	boost::context::fcontext_t _context, _savedContext;
 	std::exception_ptr _exception;
+	bool _isDone;
 };
