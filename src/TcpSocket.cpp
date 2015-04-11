@@ -33,12 +33,21 @@ void TcpSocket::connect(const tcp::endpoint& endpoint) {
 		if (errorCode_) {
 			errorCode = errorCode_;
 		}
-		coro->schedule();
+		if (coro) {
+			coro->resume();
+		}
 	};
 
-	_handle.async_connect(endpoint, callback);
+	_handle.async_connect(endpoint, coro->strand()->wrap(callback));
 
-	coro->yield();
+	try {
+		coro->yield();
+	}
+	catch (...) {
+		coro = nullptr;
+		_handle.cancel();
+		throw;
+	}
 
 	if (errorCode) {
 		throw system_error(errorCode);

@@ -21,7 +21,9 @@ tcp::socket TcpServer::accept() {
 		if (errorCode_) {
 			errorCode = errorCode_;
 		}
-		coro->schedule();
+		if (coro) {
+			coro->resume();
+		}
 	};
 
 	tcp::socket socket(ThreadPool::current()->ioService());
@@ -29,14 +31,21 @@ tcp::socket TcpServer::accept() {
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		if (!_shutdown) {
-			_acceptor.async_accept(socket, callback);
+			_acceptor.async_accept(socket, coro->strand()->wrap(callback));
 		} else {
 			callback(error_code(boost::system::errc::operation_canceled,
 				boost::system::system_category()));
 		}
 	}
 
-	coro->yield();
+	try {
+		coro->yield();
+	}
+	catch (...) {
+		coro = nullptr;
+		_acceptor.cancel();
+		throw;
+	}
 
 	if (errorCode) {
 		throw system_error(errorCode);

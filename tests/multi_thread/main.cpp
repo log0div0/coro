@@ -15,7 +15,9 @@ main( int argc, char* argv[] )
 	Coro coro([&] {
 		result = ::boost::unit_test::unit_test_main(&init_unit_test, argc, argv);
 	}, &threadPool);
-	coro.schedule();
+	coro.strand()->post([&] {
+		coro.resume();
+	});
 
 	threadPool.sync();
 

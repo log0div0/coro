@@ -12,18 +12,21 @@ public:
 class Timeout {
 public:
 	template <typename Duration>
-	Timeout(Duration duration): _timer(ThreadPool::current()->ioService()) {
-		_timer.expires_from_now(duration);
+	Timeout(Duration duration): _timer(ThreadPool::current()->ioService())
+	{
 		auto coro = Coro::current();
-		_timer.async_wait([=](const boost::system::error_code& errorCode) {
+
+		_timer.expires_from_now(duration);
+
+		auto callback = [=](const boost::system::error_code& errorCode) {
 			if (errorCode == boost::asio::error::operation_aborted) {
 				return;
 			}
-			coro->executeSerially([=]() {
-				coro->setException(TimeoutError());
-				coro->schedule();
-			});
-		});
+			coro->setException(TimeoutError());
+			coro->resume();
+		};
+
+		_timer.async_wait(coro->strand()->wrap(callback));
 	}
 
 	~Timeout() {

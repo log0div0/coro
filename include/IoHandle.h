@@ -43,12 +43,21 @@ public:
 			} else {
 				bytesTranfered = bytesTranfered_;
 			}
-			coro->schedule();
+			if (coro) {
+				coro->resume();
+			}
 		};
 
-		boost::asio::async_write(_handle, buffer.usefulData(), callback);
+		boost::asio::async_write(_handle, buffer.usefulData(), coro->strand()->wrap(callback));
 
-		coro->yield();
+		try {
+			coro->yield();
+		}
+		catch (...) {
+			coro = nullptr;
+			_handle.cancel();
+			throw;
+		}
 
 		if (errorCode) {
 			throw boost::system::system_error(errorCode);
@@ -72,12 +81,21 @@ public:
 			} else {
 				bytesTranfered = bytesTranfered_;
 			}
-			coro->schedule();
+			if (coro) {
+				coro->resume();
+			}
 		};
 
-		_handle.async_read_some(buffer->freeSpace(), callback);
+		_handle.async_read_some(buffer->freeSpace(), coro->strand()->wrap(callback));
 
-		coro->yield();
+		try {
+			coro->yield();
+		}
+		catch (...) {
+			coro = nullptr;
+			_handle.cancel();
+			throw;
+		}
 
 		if (errorCode) {
 			throw boost::system::system_error(errorCode);

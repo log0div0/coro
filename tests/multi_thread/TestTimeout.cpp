@@ -1,6 +1,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "Timeout.h"
+#include "CoroPool.h"
 #include <chrono>
 
 
@@ -31,14 +32,23 @@ BOOST_AUTO_TEST_CASE(TestCoroIsActive) {
 
 
 BOOST_AUTO_TEST_CASE(TestCoroIsScheduled) {
-	auto coro = Coro::current();
+	Exec([] {
+		auto coro = Coro::current();
 
-	Timeout timeout(100ms);
+		Timeout timeout(100ms);
 
-	std::this_thread::sleep_for(200ms);
+		std::this_thread::sleep_for(200ms);
 
-	coro->schedule();
-	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
+		auto task = std::make_shared<Task>();
+		(*task)();
+		try {
+			coro->yield();
+		}
+		catch (const TimeoutError&) {
+			task->cancel();
+		}
+	});
+	Join();
 }
 
 
@@ -51,7 +61,9 @@ BOOST_AUTO_TEST_CASE(TestCancel) {
 
 	std::this_thread::sleep_for(200ms);
 
-	coro->schedule();
+	coro->strand()->post([&] {
+		coro->resume();
+	});
 	BOOST_REQUIRE_NO_THROW(coro->yield());
 }
 

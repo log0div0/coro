@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Coro.h"
+#include "Task.h"
 #include <mutex>
 #include <queue>
 
@@ -10,6 +10,7 @@ class CoroQueue {
 public:
 	T pop() {
 		while (true) {
+			auto task = std::make_shared<Task>();
 			{
 				std::unique_lock<std::mutex> lock(_mutex);
 
@@ -19,9 +20,24 @@ public:
 					return t;
 				}
 
-				_coroQueue.push(Coro::current());
+				_taskQueue.push(task);
 			}
-			Coro::current()->yield();
+			try {
+				Coro::current()->yield();
+			}
+			catch (...) {
+				task->assign([&] {
+					// следующий ...
+
+					std::unique_lock<std::mutex> lock(_mutex);
+
+					if (_taskQueue.size()) {
+						(*_taskQueue.front())();
+						_taskQueue.pop();
+					}
+				});
+				throw;
+			}
 		}
 	}
 
@@ -31,9 +47,9 @@ public:
 
 		_dataQueue.push(std::forward<U>(u));
 
-		if (_coroQueue.size()) {
-			_coroQueue.front()->schedule();
-			_coroQueue.pop();
+		if (_taskQueue.size()) {
+			(*_taskQueue.front())();
+			_taskQueue.pop();
 		}
 	}
 
@@ -41,5 +57,5 @@ public:
 private:
 	std::mutex _mutex;
 	std::queue<T> _dataQueue;
-	std::queue<Coro*> _coroQueue;
+	std::queue<std::shared_ptr<Task>> _taskQueue;
 };

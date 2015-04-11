@@ -3,6 +3,7 @@
 #include "Coro.h"
 
 void CoroMutex::lock() {
+	auto task = std::make_shared<Task>();
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 
@@ -11,18 +12,27 @@ void CoroMutex::lock() {
 			return;
 		}
 
-		_coroQueue.push(Coro::current());
+		_taskQueue.push(task);
 	}
 
-	Coro::current()->yield();
+	try {
+		Coro::current()->yield();
+	}
+	catch (...) {
+		task->assign([&] {
+			// следующий ...
+			unlock();
+		});
+		throw;
+	}
 }
 
 void CoroMutex::unlock() {
 	std::unique_lock<std::mutex> lock(_mutex);
 
-	if (_coroQueue.size()) {
-		_coroQueue.front()->schedule();
-		_coroQueue.pop();
+	if (_taskQueue.size()) {
+		(*_taskQueue.front())();
+		_taskQueue.pop();
 	} else {
 		_isLocked = false;
 	}

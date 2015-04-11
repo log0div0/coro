@@ -30,7 +30,9 @@ BOOST_AUTO_TEST_CASE(TestYieldResume) {
 			pool.exec([&]() {
 				Coro* coro = Coro::current();
 				for (auto i = 0; i < 10; ++i) {
-					coro->schedule();
+					coro->strand()->post([=] {
+						coro->resume();
+					});
 					coro->yield();
 				}
 			});

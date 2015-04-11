@@ -10,46 +10,59 @@ CoroPool::~CoroPool() {
 }
 
 void CoroPool::exec(std::function<void()> routine) {
-	auto coro = new Coro([&, routine = std::move(routine)]() {
+	auto coro = new Coro([=] {
 		routine();
 
-		Coro::current()->executeSerially([&, coro = Coro::current()]() {
-			std::set<Coro*> joinCoros;
+		auto coro = Coro::current();
+
+		coro->strand()->post([=]() {
+			std::set<std::shared_ptr<Task>> tasks;
 			{
 				std::unique_lock<std::mutex> lock(_mutex);
-				_execCoros.erase(coro);
-				if (_execCoros.empty()) {
+
+				_coros.erase(coro);
+
+				if (_coros.empty()) {
 					// переместим список корутин в стек, на случай, если одна из этих корутин
 					// уничтожит CoroPool
-					joinCoros = std::move(_joinCoros);
+					tasks = std::move(_tasks);
 				}
 			}
 			delete coro;
-			for (auto coro: joinCoros) {
-				coro->schedule();
+			for (auto& task: tasks) {
+				(*task)();
 			}
 		});
 	});
 
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		_execCoros.insert(coro);
+		_coros.insert(coro);
 	}
 
-	coro->schedule();
+	coro->strand()->post([=] {
+		coro->resume();
+	});
 }
 
 void CoroPool::join() {
+	auto task = std::make_shared<Task>();
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 
-		if (_execCoros.empty()) {
+		if (_coros.empty()) {
 			return;
 		}
 
-		_joinCoros.insert(Coro::current());
+		_tasks.insert(task);
 	}
-	Coro::current()->yield();
+	try {
+		Coro::current()->yield();
+	}
+	catch (...) {
+		task->cancel();
+		throw;
+	}
 }
 
 static CoroPool pool;

@@ -94,7 +94,9 @@ int main() {
 	ThreadPool threadPool(thread::hardware_concurrency());
 
 	Coro coro(StartAccept, &threadPool);
-	coro.schedule();
+	coro.strand()->post([&] {
+		coro.resume();
+	});
 
 	threadPool.sync();
 	return 0;

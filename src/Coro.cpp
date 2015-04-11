@@ -12,8 +12,7 @@ Coro* Coro::current() {
 
 Coro::Coro(std::function<void()> routine, ThreadPool* threadPool)
 	: _routine(std::move(routine)),
-	  _threadPool(threadPool),
-	  _strand(_threadPool->ioService()),
+	  _strand(threadPool->ioService()),
 	  _stack(CORO_STACK_SIZE),
 	  _isDone(false)
 {
@@ -23,7 +22,6 @@ Coro::Coro(std::function<void()> routine, ThreadPool* threadPool)
 
 Coro::Coro(Coro&& other)
 	: _routine(std::move(other._routine)),
-	  _threadPool(std::move(other._threadPool)),
 	  _strand(std::move(other._strand)),
 	  _stack(std::move(other._stack)),
 	  _context(std::move(other._context)),
@@ -32,7 +30,6 @@ Coro::Coro(Coro&& other)
 	  _isDone(std::move(other._isDone))
 {
 	other._routine = nullptr;
-	other._threadPool = nullptr;
 	other._stack.clear();
 	other._context = nullptr;
 	other._savedContext = nullptr;
@@ -66,16 +63,6 @@ void Coro::yield()
 		_exception = nullptr;
 		std::rethrow_exception(exception);
 	}
-}
-
-void Coro::schedule() {
-	executeSerially([&]() {
-		resume();
-	});
-}
-
-void Coro::executeSerially(std::function<void()> routine) {
-	_threadPool->schedule(_strand.wrap(routine));
 }
 
 void Coro::run(intptr_t)
