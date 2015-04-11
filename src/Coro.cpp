@@ -54,11 +54,6 @@ void Coro::resume()
 
 void Coro::yield()
 {
-	if (_exception) {
-		std::exception_ptr exception = _exception;
-		_exception = nullptr;
-		std::rethrow_exception(exception);
-	}
 	// выпрыгиваем из jump_fcontext, который выше
 	boost::context::jump_fcontext(&_context, _savedContext, 0);
 	if (_exception) {
@@ -69,7 +64,13 @@ void Coro::yield()
 }
 
 void Coro::schedule() {
-	_threadPool->schedule(_strand.wrap(std::bind(&Coro::resume, this)));
+	executeSerially([&]() {
+		resume();
+	});
+}
+
+void Coro::executeSerially(std::function<void()> routine) {
+	_threadPool->schedule(_strand.wrap(routine));
 }
 
 void Coro::run(intptr_t)

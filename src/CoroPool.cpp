@@ -13,22 +13,27 @@ void CoroPool::exec(std::function<void()> routine) {
 	auto coro = new Coro([&, routine = std::move(routine)]() {
 		routine();
 
-		std::unique_lock<std::mutex> lock(_mutex);
-
-		_running.erase(Coro::current());
-		_finished.insert(Coro::current());
-
-		if (_running.empty()) {
-			for (auto i: _waiting) {
-				i->schedule();
+		Coro::current()->executeSerially([&, coro = Coro::current()]() {
+			std::set<Coro*> joinCoros;
+			{
+				std::unique_lock<std::mutex> lock(_mutex);
+				_execCoros.erase(coro);
+				if (_execCoros.empty()) {
+					// переместим список корутин в стек, на случай, если одна из этих корутин
+					// уничтожит CoroPool
+					joinCoros = std::move(_joinCoros);
+				}
 			}
-			_waiting.clear();
-		}
+			delete coro;
+			for (auto coro: joinCoros) {
+				coro->schedule();
+			}
+		});
 	});
 
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		_running.insert(coro);
+		_execCoros.insert(coro);
 	}
 
 	coro->schedule();
@@ -38,24 +43,13 @@ void CoroPool::join() {
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 
-		if (_running.empty()) {
+		if (_execCoros.empty()) {
 			return;
 		}
 
-		_waiting.insert(Coro::current());
+		_joinCoros.insert(Coro::current());
 	}
 	Coro::current()->yield();
-	{
-		std::unique_lock<std::mutex> lock(_mutex);
-		cleanup();
-	}
-}
-
-void CoroPool::cleanup() {
-	for (auto i: _finished) {
-		delete i;
-	}
-	_finished.clear();
 }
 
 static CoroPool pool;

@@ -13,12 +13,13 @@ TcpServer::TcpServer(const tcp::endpoint& endpoint)
 }
 
 tcp::socket TcpServer::accept() {
-	auto coro = Coro::current();
 	error_code errorCode;
 
-	auto callback = [&](const error_code& ec) {
-		if (ec) {
-			errorCode = ec;
+	auto coro = Coro::current();
+
+	auto callback = [&](const error_code& errorCode_) {
+		if (errorCode_) {
+			errorCode = errorCode_;
 		}
 		coro->schedule();
 	};

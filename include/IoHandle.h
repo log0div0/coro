@@ -32,9 +32,10 @@ public:
 	  * @return Кол-во отправленных байт
 	  */
 	size_t write(const Buffer& buffer) {
-		auto coro = Coro::current();
 		boost::system::error_code errorCode;
 		size_t bytesTranfered = 0;
+
+		auto coro = Coro::current();
 
 		auto callback = [&](const boost::system::error_code& errorCode_, size_t bytesTranfered_) {
 			if (errorCode_) {
@@ -60,14 +61,16 @@ public:
 	  * @brief Принять хоть сколько-нибудь байт (и записать их в конец буфера)
 	  */
 	void read(Buffer* buffer) {
-		auto coro = Coro::current();
 		boost::system::error_code errorCode;
+		size_t bytesTranfered = 0;
 
-		auto callback = [&](const boost::system::error_code& errorCode_, size_t bytesTranfered) {
+		auto coro = Coro::current();
+
+		auto callback = [&](const boost::system::error_code& errorCode_, size_t bytesTranfered_) {
 			if (errorCode_) {
 				errorCode = errorCode_;
 			} else {
-				buffer->pushBack(bytesTranfered);
+				bytesTranfered = bytesTranfered_;
 			}
 			coro->schedule();
 		};
@@ -79,6 +82,8 @@ public:
 		if (errorCode) {
 			throw boost::system::system_error(errorCode);
 		}
+
+		buffer->pushBack(bytesTranfered);
 	}
 
 protected:

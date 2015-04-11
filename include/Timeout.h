@@ -14,12 +14,15 @@ public:
 	template <typename Duration>
 	Timeout(Duration duration): _timer(ThreadPool::current()->ioService()) {
 		_timer.expires_from_now(duration);
-		_timer.async_wait([coro = Coro::current()](const boost::system::error_code& errorCode) {
+		auto coro = Coro::current();
+		_timer.async_wait([=](const boost::system::error_code& errorCode) {
 			if (errorCode == boost::asio::error::operation_aborted) {
 				return;
 			}
-			coro->setException(TimeoutError());
-			coro->schedule();
+			coro->executeSerially([=]() {
+				coro->setException(TimeoutError());
+				coro->resume();
+			});
 		});
 	}
 

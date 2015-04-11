@@ -14,10 +14,8 @@ public:
 	void join();
 
 private:
-	void cleanup();
-
 	std::mutex _mutex;
-	std::set<Coro*> _running, _finished, _waiting;
+	std::set<Coro*> _execCoros, _joinCoros;
 };
 
 void Exec(std::function<void()> routine);

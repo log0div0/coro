@@ -25,8 +25,9 @@ TcpSocket& TcpSocket::operator=(TcpSocket&& other) {
 }
 
 void TcpSocket::connect(const tcp::endpoint& endpoint) {
-	auto coro = Coro::current();
 	error_code errorCode;
+
+	auto coro = Coro::current();
 
 	auto callback = [&](const error_code& errorCode_) {
 		if (errorCode_) {

@@ -15,9 +15,14 @@ public:
 	Coro(Coro&& other);
 	~Coro();
 
+	// если это первый вызов resume - то входим в routine
+	// иначе:
+	// вызвали resume -> сделали return из yield
+	void resume();
 	// вызвали yield -> сделали return из resume
 	void yield();
 	void schedule();
+	void executeSerially(std::function<void()> routine);
 
 	template <typename Exception>
 	Exception getException() {
@@ -39,10 +44,6 @@ public:
 	}
 
 private:
-	// если это первый вызов resume - то входим в routine
-	// иначе:
-	// вызвали resume -> сделали return из yield
-	void resume();
 	static void run(intptr_t);
 	void doRun();
 
