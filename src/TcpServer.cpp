@@ -18,6 +18,7 @@ tcp::socket TcpServer::accept() {
 	auto coro = Coro::current();
 
 	auto callback = [&](const error_code& errorCode_) {
+		printf("10101010\n");
 		if (errorCode_) {
 			errorCode = errorCode_;
 		}
@@ -33,9 +34,7 @@ tcp::socket TcpServer::accept() {
 		if (!_shutdown) {
 			_acceptor.async_accept(socket, coro->strand()->wrap(callback));
 		} else {
-			coro->strand()->post([&] {
-				callback(make_error_code(boost::system::errc::operation_canceled));
-			});
+			throw system_error(make_error_code(boost::system::errc::operation_canceled));
 		}
 	}
 

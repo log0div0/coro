@@ -4,10 +4,16 @@
 #include "CoroPool.h"
 #include "CoroQueue.h"
 #include "CoroMutex.h"
+#include "TcpServer.h"
+#include "TcpSocket.h"
 #include <chrono>
 
 
 using namespace std::chrono_literals;
+using namespace boost::asio::ip;
+
+static auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
+static Buffer test_data { 0x01, 0x02, 0x03, 0x04 };
 
 
 BOOST_AUTO_TEST_SUITE(SuiteTimeout)
@@ -98,7 +104,7 @@ BOOST_AUTO_TEST_CASE(TestTwoTimeouts) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestQueue) {
+BOOST_AUTO_TEST_CASE(TestCoroQueue) {
 	Timeout timeout(100ms);
 	CoroQueue<uint64_t> queue;
 	BOOST_REQUIRE_THROW(queue.pop(), TimeoutError);
@@ -106,11 +112,33 @@ BOOST_AUTO_TEST_CASE(TestQueue) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestMutex) {
+BOOST_AUTO_TEST_CASE(TestCoroMutex) {
 	Timeout timeout(100ms);
 	CoroMutex mutex;
 	std::lock_guard<CoroMutex> lock(mutex);
 	BOOST_REQUIRE_THROW(mutex.lock(), TimeoutError);
+}
+
+
+BOOST_AUTO_TEST_CASE(TestCoroPool) {
+	CoroPool pool;
+	uint64_t i = 0;
+	pool.exec([&] {
+		std::this_thread::sleep_for(200ms);
+		i = 10;
+	});
+	Timeout timeout(100ms);
+	BOOST_REQUIRE_THROW(pool.join(), TimeoutError);
+	BOOST_REQUIRE(i == 0);
+	BOOST_REQUIRE_NO_THROW(pool.join());
+	BOOST_REQUIRE(i == 10);
+}
+
+
+BOOST_AUTO_TEST_CASE(TestTcpServerAccept) {
+	Timeout timeout(100ms);
+	TcpServer server(endpoint);
+	BOOST_REQUIRE_THROW(server.accept(), TimeoutError);
 }
 
 
