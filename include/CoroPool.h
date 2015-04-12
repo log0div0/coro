@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Task.h"
+#include "Coro.h"
 #include <mutex>
 #include <set>
 #include <queue>
@@ -15,8 +15,8 @@ public:
 
 private:
 	std::mutex _mutex;
-	std::set<Coro*> _coros;
-	std::set<std::shared_ptr<Task>> _tasks;
+	std::set<Coro*> _execCoros;
+	std::set<std::shared_ptr<Coro*>> _joinCoros;
 };
 
 void Exec(std::function<void()> routine);

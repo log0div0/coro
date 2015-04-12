@@ -4,9 +4,16 @@
 #include "IoHandleIterator.h"
 #include "Coro.h"
 
+
 template <typename Handle>
 class IoHandle {
 public:
+	struct Task {
+		Coro* coro;
+		boost::system::error_code errorCode;
+		size_t bytesTranfered = 0;
+	};
+
 	typedef IoHandleIterator<IoHandle> Iterator;
 
 	IoHandle(Handle handle): _handle(std::move(handle)) {}
@@ -28,82 +35,83 @@ public:
 	}
 
 	/**
-	  * @brief Отправить buffer.usefulData()
+	  * @brief Отправить buffer.usefulData() целиком
 	  * @return Кол-во отправленных байт
 	  */
 	size_t write(const Buffer& buffer) {
-		boost::system::error_code errorCode;
-		size_t bytesTranfered = 0;
-
 		auto coro = Coro::current();
 
-		auto callback = [&](const boost::system::error_code& errorCode_, size_t bytesTranfered_) {
-			if (errorCode_) {
-				errorCode = errorCode_;
+		auto task = std::make_shared<Task>();
+		task->coro = coro;
+
+		auto callback = [task](const boost::system::error_code& errorCode, size_t bytesTranfered) {
+			if (!task->coro) {
+				return;
+			}
+			if (errorCode) {
+				task->errorCode = errorCode;
 			} else {
-				bytesTranfered = bytesTranfered_;
+				task->bytesTranfered = bytesTranfered;
 			}
-			if (coro) {
-				coro->resume();
-			}
+			task->coro->resume();
 		};
 
 		boost::asio::async_write(_handle, buffer.usefulData(), coro->strand()->wrap(callback));
 
 		try {
-			coro->yield();
+			task->coro->yield();
 		}
 		catch (...) {
-			coro = nullptr;
+			task->coro = nullptr;
 			_handle.cancel();
 			throw;
 		}
 
-		if (errorCode) {
-			throw boost::system::system_error(errorCode);
+		if (task->errorCode) {
+			throw boost::system::system_error(task->errorCode);
 		}
 
-		return bytesTranfered;
+		return task->bytesTranfered;
 	}
 
 	/**
-	  * @brief Принять хоть сколько-нибудь байт (и записать их в конец буфера)
+	  * @brief Принять хоть сколько-нибудь байт в buffer->freeSpace()
+	  * @return Кол-во принятых байт
 	  */
 	size_t read(Buffer* buffer) {
-		boost::system::error_code errorCode;
-		size_t bytesTranfered = 0;
-
 		auto coro = Coro::current();
 
-		auto callback = [&](const boost::system::error_code& errorCode_, size_t bytesTranfered_) {
-			if (errorCode_) {
-				errorCode = errorCode_;
+		auto task = std::make_shared<Task>();
+		task->coro = coro;
+
+		auto callback = [task](const boost::system::error_code& errorCode, size_t bytesTranfered) {
+			if (!task->coro) {
+				return;
+			}
+			if (errorCode) {
+				task->errorCode = errorCode;
 			} else {
-				bytesTranfered = bytesTranfered_;
+				task->bytesTranfered = bytesTranfered;
 			}
-			if (coro) {
-				coro->resume();
-			}
+			task->coro->resume();
 		};
 
 		_handle.async_read_some(buffer->freeSpace(), coro->strand()->wrap(callback));
 
 		try {
-			coro->yield();
+			task->coro->yield();
 		}
 		catch (...) {
-			coro = nullptr;
+			task->coro = nullptr;
 			_handle.cancel();
 			throw;
 		}
 
-		if (errorCode) {
-			throw boost::system::system_error(errorCode);
+		if (task->errorCode) {
+			throw boost::system::system_error(task->errorCode);
 		}
 
-		buffer->pushBack(bytesTranfered);
-
-		return bytesTranfered;
+		return task->bytesTranfered;
 	}
 
 protected:

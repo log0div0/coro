@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		TcpServer server(endpoint);
 		TcpSocket socket = server.accept();
 		Buffer data;
-		socket.read(&data);
+		data.pushBack(socket.read(&data));
 		BOOST_REQUIRE(data == test_data);
 		socket.write(data);
 		serverDone = true;
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		socket.connect(endpoint);
 		socket.write(test_data);
 		Buffer data;
-		socket.read(&data);
+		data.pushBack(socket.read(&data));
 		BOOST_REQUIRE(data == test_data);
 		clientDone = true;
 	});

@@ -25,31 +25,38 @@ TcpSocket& TcpSocket::operator=(TcpSocket&& other) {
 }
 
 void TcpSocket::connect(const tcp::endpoint& endpoint) {
-	error_code errorCode;
-
 	auto coro = Coro::current();
 
-	auto callback = [&](const error_code& errorCode_) {
-		if (errorCode_) {
-			errorCode = errorCode_;
+	struct Task {
+		Coro* coro;
+		error_code errorCode;
+	};
+
+	auto task = std::make_shared<Task>();
+	task->coro = coro;
+
+	auto callback = [task](const error_code& errorCode) {
+		if (!task->coro) {
+			return;
 		}
-		if (coro) {
-			coro->resume();
+		if (errorCode) {
+			task->errorCode = errorCode;
 		}
+		task->coro->resume();
 	};
 
 	_handle.async_connect(endpoint, coro->strand()->wrap(callback));
 
 	try {
-		coro->yield();
+		task->coro->yield();
 	}
 	catch (...) {
-		coro = nullptr;
+		task->coro = nullptr;
 		_handle.cancel();
 		throw;
 	}
 
-	if (errorCode) {
-		throw system_error(errorCode);
+	if (task->errorCode) {
+		throw system_error(task->errorCode);
 	}
 }

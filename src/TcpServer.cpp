@@ -12,19 +12,26 @@ TcpServer::TcpServer(const tcp::endpoint& endpoint)
 	_acceptor.set_option(option);
 }
 
-tcp::socket TcpServer::accept() {
-	error_code errorCode;
 
+tcp::socket TcpServer::accept() {
 	auto coro = Coro::current();
 
-	auto callback = [&](const error_code& errorCode_) {
-		printf("10101010\n");
-		if (errorCode_) {
-			errorCode = errorCode_;
+	struct Task {
+		Coro* coro;
+		error_code errorCode;
+	};
+
+	auto task = std::make_shared<Task>();
+	task->coro = coro;
+
+	auto callback = [task](const error_code& errorCode) {
+		if (!task->coro) {
+			return;
 		}
-		if (coro) {
-			coro->resume();
+		if (errorCode) {
+			task->errorCode = errorCode;
 		}
+		task->coro->resume();
 	};
 
 	tcp::socket socket(ThreadPool::current()->ioService());
@@ -39,16 +46,16 @@ tcp::socket TcpServer::accept() {
 	}
 
 	try {
-		coro->yield();
+		task->coro->yield();
 	}
 	catch (...) {
-		coro = nullptr;
+		task->coro = nullptr;
 		_acceptor.cancel();
 		throw;
 	}
 
-	if (errorCode) {
-		throw system_error(errorCode);
+	if (task->errorCode) {
+		throw system_error(task->errorCode);
 	}
 
 	return socket;

@@ -39,27 +39,6 @@ BOOST_AUTO_TEST_CASE(TestCoroIsActive) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestCoroIsScheduled) {
-	Exec([] {
-		auto coro = Coro::current();
-
-		Timeout timeout(100ms);
-
-		std::this_thread::sleep_for(200ms);
-
-		auto task = std::make_shared<Task>();
-		(*task)();
-		try {
-			coro->yield();
-		}
-		catch (const TimeoutError&) {
-			task->cancel();
-		}
-	});
-	Join();
-}
-
-
 BOOST_AUTO_TEST_CASE(TestCancel) {
 	auto coro = Coro::current();
 

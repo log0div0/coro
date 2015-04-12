@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Task.h"
+#include "Coro.h"
 #include <mutex>
 #include <queue>
 
@@ -10,7 +10,7 @@ class CoroQueue {
 public:
 	T pop() {
 		while (true) {
-			auto task = std::make_shared<Task>();
+			auto coro = std::make_shared<Coro*>(Coro::current());
 			{
 				std::unique_lock<std::mutex> lock(_mutex);
 
@@ -20,23 +20,15 @@ public:
 					return t;
 				}
 
-				_taskQueue.push(task);
+				_coroQueue.push(coro);
 			}
 			try {
 				Coro::current()->yield();
 			}
 			catch (...) {
-				task->cancel();
-
-				// следующий ...
-
 				std::unique_lock<std::mutex> lock(_mutex);
-
-				if (_taskQueue.size()) {
-					(*_taskQueue.front())();
-					_taskQueue.pop();
-				}
-
+				*coro = nullptr;
+				next();
 				throw;
 			}
 		}
@@ -45,18 +37,27 @@ public:
 	template <typename U>
 	void push(U&& u) {
 		std::unique_lock<std::mutex> lock(_mutex);
-
 		_dataQueue.push(std::forward<U>(u));
-
-		if (_taskQueue.size()) {
-			(*_taskQueue.front())();
-			_taskQueue.pop();
-		}
+		next();
 	}
 
+private:
+	void next() {
+		if (_coroQueue.size()) {
+			auto coro = std::move(_coroQueue.front());
+			if (*coro) {
+				(*coro)->strand()->post([coro] {
+					if (*coro) {
+						(*coro)->resume();
+					}
+				});
+			}
+			_coroQueue.pop();
+		}
+	}
 
 private:
 	std::mutex _mutex;
 	std::queue<T> _dataQueue;
-	std::queue<std::shared_ptr<Task>> _taskQueue;
+	std::queue<std::shared_ptr<Coro*>> _coroQueue;
 };

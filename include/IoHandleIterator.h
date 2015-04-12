@@ -88,7 +88,7 @@ public:
 private:
 	void read() {
 		while (static_cast<size_t>(_offset) >= _buffer->usefulDataSize()) {
-			_handle->read(_buffer);
+			_buffer->pushBack(_handle->read(_buffer));
 		}
 	}
 
