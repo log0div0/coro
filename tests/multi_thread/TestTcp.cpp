@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 
 
 BOOST_AUTO_TEST_CASE(TestAcceptConnect) {
-	const auto iterations = 100000;
+	const auto iterations = 1000;
 	Exec([&] {
 		TcpServer server(endpoint);
 		for (auto i = 0; i < iterations; i++) {
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(TestAcceptConnect) {
 
 
 BOOST_AUTO_TEST_CASE(TestWriteRead) {
-	const auto iterations = 100000;
+	const auto iterations = 1000;
 	Exec([&] {
 		TcpServer server(endpoint);
 		TcpSocket socket = server.accept();
