@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(TestWriteRead) {
 			try {
 				Buffer buffer;
 				while (true) {
-					buffer.popFront(socket.read(&buffer));
+					socket.read(&buffer);
 				}
 			}
 			catch (...) {}
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(TestComplex) {
 					try {
 						Buffer buffer;
 						while (true) {
-							buffer.popFront(socket.read(&buffer));
+							socket.read(&buffer);
 						}
 					}
 					catch (const boost::system::system_error& error) {
