@@ -13,7 +13,6 @@ using namespace std::chrono_literals;
 using namespace boost::asio::ip;
 
 static auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
-static Buffer test_data { 0x01, 0x02, 0x03, 0x04 };
 
 
 BOOST_AUTO_TEST_SUITE(SuiteTimeout)
@@ -103,7 +102,7 @@ BOOST_AUTO_TEST_CASE(TestCoroPool) {
 	CoroPool pool;
 	uint64_t i = 0;
 	pool.exec([&] {
-		std::this_thread::sleep_for(200ms);
+		std::this_thread::sleep_for(1s);
 		i = 10;
 	});
 	Timeout timeout(100ms);
@@ -121,12 +120,34 @@ BOOST_AUTO_TEST_CASE(TestTcpServerAccept) {
 }
 
 
-// BOOST_AUTO_TEST_CASE(TestTcpSocketConnect) {
-// 	Timeout timeout(100ms);
-// 	TcpServer server(endpoint);
-// 	TcpSocket socket;
-// 	BOOST_REQUIRE_THROW(socket.connect(endpoint), TimeoutError); // эта зараза коннектится
-// }
+BOOST_AUTO_TEST_CASE(TestTcpSocketConnect) {
+	Timeout timeout(100ms);
+	TcpServer server(endpoint);
+	TcpSocket socket;
+	std::this_thread::sleep_for(200ms);
+	BOOST_REQUIRE_THROW(socket.connect(endpoint), TimeoutError);
+}
+
+
+BOOST_AUTO_TEST_CASE(TestTcpRead) {
+	Timeout timeout(100ms);
+	TcpServer server(endpoint);
+	TcpSocket socket;
+	socket.connect(endpoint);
+	Buffer buffer;
+	BOOST_REQUIRE_THROW(socket.read(&buffer), TimeoutError);
+}
+
+
+BOOST_AUTO_TEST_CASE(TestTcpWrite) {
+	Timeout timeout(100ms);
+	TcpServer server(endpoint);
+	TcpSocket socket;
+	socket.connect(endpoint);
+	Buffer buffer("abcd");
+	std::this_thread::sleep_for(200ms);
+	BOOST_REQUIRE_THROW(socket.write(buffer), TimeoutError);
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()
