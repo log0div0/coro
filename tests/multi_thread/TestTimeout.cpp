@@ -2,6 +2,8 @@
 #include <boost/test/unit_test.hpp>
 #include "Timeout.h"
 #include "CoroPool.h"
+#include "CoroQueue.h"
+#include "CoroMutex.h"
 #include <chrono>
 
 
@@ -16,7 +18,7 @@ BOOST_AUTO_TEST_CASE(TestCoroIsInactive) {
 
 	Timeout timeout(100ms);
 
-	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
+	BOOST_REQUIRE_THROW(coro->yield(), TimeoutError);
 }
 
 
@@ -27,7 +29,7 @@ BOOST_AUTO_TEST_CASE(TestCoroIsActive) {
 
 	std::this_thread::sleep_for(200ms);
 
-	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
+	BOOST_REQUIRE_THROW(coro->yield(), TimeoutError);
 }
 
 
@@ -91,8 +93,24 @@ BOOST_AUTO_TEST_CASE(TestTwoTimeouts) {
 
 	Timeout timeout(100ms);
 	Timeout timeout2(100ms);
-	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
-	BOOST_REQUIRE_THROW(coro->yield(), std::exception);
+	BOOST_REQUIRE_THROW(coro->yield(), TimeoutError);
+	BOOST_REQUIRE_THROW(coro->yield(), TimeoutError);
+}
+
+
+BOOST_AUTO_TEST_CASE(TestQueue) {
+	Timeout timeout(100ms);
+	CoroQueue<uint64_t> queue;
+	BOOST_REQUIRE_THROW(queue.pop(), TimeoutError);
+	queue.push(0);
+}
+
+
+BOOST_AUTO_TEST_CASE(TestMutex) {
+	Timeout timeout(100ms);
+	CoroMutex mutex;
+	std::lock_guard<CoroMutex> lock(mutex);
+	BOOST_REQUIRE_THROW(mutex.lock(), TimeoutError);
 }
 
 

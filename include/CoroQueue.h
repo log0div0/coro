@@ -26,16 +26,17 @@ public:
 				Coro::current()->yield();
 			}
 			catch (...) {
-				task->assign([&] {
-					// следующий ...
+				task->cancel();
 
-					std::unique_lock<std::mutex> lock(_mutex);
+				// следующий ...
 
-					if (_taskQueue.size()) {
-						(*_taskQueue.front())();
-						_taskQueue.pop();
-					}
-				});
+				std::unique_lock<std::mutex> lock(_mutex);
+
+				if (_taskQueue.size()) {
+					(*_taskQueue.front())();
+					_taskQueue.pop();
+				}
+
 				throw;
 			}
 		}

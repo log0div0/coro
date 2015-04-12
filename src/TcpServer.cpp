@@ -34,8 +34,7 @@ tcp::socket TcpServer::accept() {
 			_acceptor.async_accept(socket, coro->strand()->wrap(callback));
 		} else {
 			coro->strand()->post([&] {
-				callback(error_code(boost::system::errc::operation_canceled,
-					boost::system::system_category()));
+				callback(make_error_code(boost::system::errc::operation_canceled));
 			});
 		}
 	}

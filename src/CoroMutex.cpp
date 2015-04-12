@@ -19,10 +19,8 @@ void CoroMutex::lock() {
 		Coro::current()->yield();
 	}
 	catch (...) {
-		task->assign([&] {
-			// следующий ...
-			unlock();
-		});
+		task->cancel();
+		unlock(); // следующий ...
 		throw;
 	}
 }
