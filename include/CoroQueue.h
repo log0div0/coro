@@ -43,16 +43,18 @@ public:
 
 private:
 	void next() {
-		if (_coroQueue.size()) {
+		while (_coroQueue.size()) {
 			auto coro = std::move(_coroQueue.front());
-			if (*coro) {
-				(*coro)->strand()->post([coro] {
-					if (*coro) {
-						(*coro)->resume();
-					}
-				});
+			if (*coro == nullptr) {
+				continue;
 			}
+			(*coro)->strand()->post([coro] {
+				if (*coro) {
+					(*coro)->resume();
+				}
+			});
 			_coroQueue.pop();
+			return;
 		}
 	}
 

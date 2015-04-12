@@ -121,4 +121,12 @@ BOOST_AUTO_TEST_CASE(TestTcpServerAccept) {
 }
 
 
+BOOST_AUTO_TEST_CASE(TestTcpSocketConnect) {
+	Timeout timeout(100ms);
+	TcpServer server(endpoint);
+	TcpSocket socket;
+	BOOST_REQUIRE_THROW(socket.connect(endpoint), TimeoutError);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
