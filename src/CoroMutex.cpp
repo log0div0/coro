@@ -34,6 +34,7 @@ void CoroMutex::unlock() {
 void CoroMutex::next() {
 	while (_coroQueue.size()) {
 		auto coro = std::move(_coroQueue.front());
+		_coroQueue.pop();
 		if (*coro == nullptr) {
 			continue;
 		}
@@ -42,7 +43,6 @@ void CoroMutex::next() {
 				(*coro)->resume();
 			}
 		});
-		_coroQueue.pop();
 		return;
 	}
 	_isLocked = false;

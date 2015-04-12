@@ -45,6 +45,7 @@ private:
 	void next() {
 		while (_coroQueue.size()) {
 			auto coro = std::move(_coroQueue.front());
+			_coroQueue.pop();
 			if (*coro == nullptr) {
 				continue;
 			}
@@ -53,7 +54,6 @@ private:
 					(*coro)->resume();
 				}
 			});
-			_coroQueue.pop();
 			return;
 		}
 	}
