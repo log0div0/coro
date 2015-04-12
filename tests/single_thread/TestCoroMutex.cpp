@@ -8,7 +8,9 @@ BOOST_AUTO_TEST_SUITE(SuiteCoroMutex)
 
 
 BOOST_AUTO_TEST_CASE(Test) {
-	std::vector<uint8_t> actual, expected = {1, 2, 3, 4, 5, 6, 7, 8};
+	std::vector<uint8_t> actual,
+		expected1 = {1, 2, 3, 4, 5, 6, 7, 8},
+		expected2 = {1, 2, 4, 5, 3, 6, 7, 8};
 
 	CoroMutex mutex;
 	mutex.lock();
@@ -32,7 +34,7 @@ BOOST_AUTO_TEST_CASE(Test) {
 	Join();
 	actual.push_back(8);
 
-	BOOST_REQUIRE(actual == expected);
+	BOOST_REQUIRE(actual == expected1 || actual == expected2);
 }
 
 
