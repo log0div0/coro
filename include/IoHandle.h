@@ -69,7 +69,7 @@ public:
 	/**
 	  * @brief Принять хоть сколько-нибудь байт (и записать их в конец буфера)
 	  */
-	void read(Buffer* buffer) {
+	size_t read(Buffer* buffer) {
 		boost::system::error_code errorCode;
 		size_t bytesTranfered = 0;
 
@@ -102,6 +102,8 @@ public:
 		}
 
 		buffer->pushBack(bytesTranfered);
+
+		return bytesTranfered;
 	}
 
 protected:

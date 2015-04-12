@@ -1,7 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
 #include "CoroPool.h"
-#include "ThreadPool.h"
 #include <iostream>
 
 using namespace std;
@@ -9,34 +8,20 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(SuiteCoroPool)
 
 
-BOOST_AUTO_TEST_CASE(TestEmptyCoro) {
-	const auto iterations = 10000;
+BOOST_AUTO_TEST_CASE(TestExec) {
+	const auto iterations = 100000;
+	CoroPool pool;
 	for (auto i = 0; i < iterations; i++) {
-		cout << "SuiteCoroPool/TestEmptyCoro " << i << " of " << iterations << endl;
-		CoroPool pool;
-		for (auto j = 0; j < 1024; ++j) {
-			pool.exec([&]() { });
-		}
+		pool.exec([&]() { });
 	}
 }
 
 
-BOOST_AUTO_TEST_CASE(TestYieldResume) {
-	const auto iterations = 10000;
+BOOST_AUTO_TEST_CASE(TestJoin) {
+	const auto iterations = 100000;
 	for (auto i = 0; i < iterations; i++) {
-		cout << "SuiteCoroPool/TestYieldResume " << i << " of " << iterations << endl;
 		CoroPool pool;
-		for (auto j = 0; j < 1024; ++j) {
-			pool.exec([&]() {
-				Coro* coro = Coro::current();
-				for (auto i = 0; i < 10; ++i) {
-					coro->strand()->post([=] {
-						coro->resume();
-					});
-					coro->yield();
-				}
-			});
-		}
+		pool.exec([&]() { });
 	}
 }
 

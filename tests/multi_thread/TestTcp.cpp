@@ -16,11 +16,55 @@ static Buffer test_data { 0x01, 0x02, 0x03, 0x04 };
 BOOST_AUTO_TEST_SUITE(SuiteTcp)
 
 
-BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
+BOOST_AUTO_TEST_CASE(TestAcceptConnect) {
+	const auto iterations = 100000;
+	Exec([&] {
+		TcpServer server(endpoint);
+		for (auto i = 0; i < iterations; i++) {
+			server.accept();
+		}
+	});
+	Exec([&] {
+		for (auto i = 0; i < iterations; i++) {
+			TcpSocket socket;
+			socket.connect(endpoint);
+		}
+	});
+	Join();
+}
+
+
+BOOST_AUTO_TEST_CASE(TestWriteRead) {
+	const auto iterations = 100000;
+	Exec([&] {
+		TcpServer server(endpoint);
+		TcpSocket socket = server.accept();
+		for (auto i = 0; i < iterations; i++) {
+			try {
+				Buffer buffer;
+				while (true) {
+					buffer.popFront(socket.read(&buffer));
+				}
+			}
+			catch (...) {}
+		}
+	});
+	Exec([&] {
+		TcpSocket socket;
+		socket.connect(endpoint);
+		for (auto i = 0; i < iterations; i++) {
+			socket.write(test_data);
+		}
+	});
+	Join();
+}
+
+
+BOOST_AUTO_TEST_CASE(TestComplex) {
 	const auto iterations = 1000;
 	bool success = true;
 	for (auto i = 0; i < iterations; i++) {
-		cout << "SuiteTcp/TestTcpSocketAndServer " << i << " of " << iterations << endl;
+		cout << "SuiteTcp/TestComplex " << i << " of " << iterations << endl;
 		TcpServer server(endpoint);
 		CoroPool serverPool;
 		serverPool.exec([&]() {
@@ -29,8 +73,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 					try {
 						Buffer buffer;
 						while (true) {
-							socket.read(&buffer);
-							buffer.clear();
+							buffer.popFront(socket.read(&buffer));
 						}
 					}
 					catch (const boost::system::system_error& error) {
@@ -51,14 +94,12 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		});
 		{
 			CoroPool clientPool;
-			for (auto i = 0; i < 1024; ++i) {
+			for (auto i = 0; i < 1000; ++i) {
 				clientPool.exec([&]() {
 					try {
 						TcpSocket socket;
 						socket.connect(endpoint);
-						for (auto i = 0; i < 10; i++) {
-							socket.write(test_data);
-						}
+						socket.write(test_data);
 					}
 					catch (...) {
 						success = false;

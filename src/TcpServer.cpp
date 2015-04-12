@@ -33,8 +33,10 @@ tcp::socket TcpServer::accept() {
 		if (!_shutdown) {
 			_acceptor.async_accept(socket, coro->strand()->wrap(callback));
 		} else {
-			callback(error_code(boost::system::errc::operation_canceled,
-				boost::system::system_category()));
+			coro->strand()->post([&] {
+				callback(error_code(boost::system::errc::operation_canceled,
+					boost::system::system_category()));
+			});
 		}
 	}
 
@@ -65,6 +67,6 @@ void TcpServer::run(std::function<void(tcp::socket)> callback) {
 
 void TcpServer::shutdown() {
 	std::lock_guard<std::mutex> lock(_mutex);
-	_acceptor.cancel();
 	_shutdown = true;
+	_acceptor.cancel();
 }
