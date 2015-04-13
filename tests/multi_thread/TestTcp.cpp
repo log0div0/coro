@@ -18,8 +18,8 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 
 BOOST_AUTO_TEST_CASE(TestAcceptConnect) {
 	const auto iterations = 1000;
+	TcpServer server(endpoint);
 	Exec([&] {
-		TcpServer server(endpoint);
 		for (auto i = 0; i < iterations; i++) {
 			server.accept();
 		}
@@ -36,8 +36,8 @@ BOOST_AUTO_TEST_CASE(TestAcceptConnect) {
 
 BOOST_AUTO_TEST_CASE(TestWriteRead) {
 	const auto iterations = 1000;
+	TcpServer server(endpoint);
 	Exec([&] {
-		TcpServer server(endpoint);
 		TcpSocket socket = server.accept();
 		for (auto i = 0; i < iterations; i++) {
 			try {
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(TestWriteRead) {
 
 
 BOOST_AUTO_TEST_CASE(TestComplex) {
-	const auto iterations = 1000;
+	const auto iterations = 10;
 	bool success = true;
 	for (auto i = 0; i < iterations; i++) {
 		cout << "SuiteTcp/TestComplex " << i << " of " << iterations << endl;
