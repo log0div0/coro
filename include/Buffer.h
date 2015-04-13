@@ -32,8 +32,8 @@ public:
 
 	}
 
-	template <typename U>
-	BufferIterator(const BufferIterator<Buffer, U>& other)
+	template <typename Buffer2, typename T2>
+	BufferIterator(const BufferIterator<Buffer2, T2>& other)
 		: _buffer(other._buffer),
 		  _it(other._it)
 	{

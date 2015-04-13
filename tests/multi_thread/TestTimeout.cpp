@@ -27,6 +27,20 @@ BOOST_AUTO_TEST_CASE(TestCoroIsInactive) {
 }
 
 
+BOOST_AUTO_TEST_CASE(TestTimeoutId) {
+	auto coro = Coro::current();
+
+	Timeout timeout(100ms);
+
+	try {
+		coro->yield();
+	}
+	catch (const TimeoutError& error) {
+		BOOST_REQUIRE(error.timeoutId() == timeout.id());
+	}
+}
+
+
 BOOST_AUTO_TEST_CASE(TestCoroIsActive) {
 	auto coro = Coro::current();
 
