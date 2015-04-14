@@ -256,3 +256,35 @@ private:
 	size_t _usefulDataSize;
 	uint8_t *_first, *_last;
 };
+
+
+class BufferIteratorRange {
+public:
+	BufferIteratorRange() {}
+	BufferIteratorRange(const Buffer::ConstIterator& begin, const Buffer::ConstIterator& end)
+		: _begin(begin), _end(end) {}
+
+	Buffer::ConstIterator begin() const {
+		return _begin;
+	}
+
+	Buffer::ConstIterator end() const {
+		return _end;
+	}
+
+	operator std::vector<uint8_t>() const {
+		return { _begin, _end };
+	}
+	bool operator==(const std::vector<uint8_t>& other) const {
+		if (static_cast<ptrdiff_t>(other.size()) != _end - _begin) {
+			return false;
+		}
+		if (!other.size()) {
+			return true;
+		}
+		return std::equal(_begin, _end, other.begin());
+	}
+
+private:
+	Buffer::ConstIterator _begin, _end;
+};
