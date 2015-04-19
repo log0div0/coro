@@ -15,8 +15,8 @@ public:
 
 private:
 	std::mutex _mutex;
-	std::set<Coro*> _execCoros;
-	std::set<std::shared_ptr<Coro*>> _joinCoros;
+	std::set<Coro*> _coros;
+	std::set<std::shared_ptr<CoroTask>> _tasks;
 };
 
 void Exec(std::function<void()> routine);

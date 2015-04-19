@@ -56,3 +56,31 @@ private:
 	std::exception_ptr _exception;
 	bool _isDone;
 };
+
+class CoroTask: public std::enable_shared_from_this<CoroTask> {
+public:
+	bool schedule() {
+		if (_coro) {
+			_coro->strand()->post([task = shared_from_this()] {
+				task->execute();
+			});
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	void execute() {
+		if (_coro) {
+			_coro->resume();
+		}
+	}
+
+	void preventExecution() {
+		_coro = nullptr;
+	}
+
+private:
+	Coro* _coro = Coro::current();
+};
+

@@ -24,28 +24,30 @@ private:
 
 class Timeout {
 public:
-	static std::atomic<uint64_t> idCounter;
+	class Task {
+	public:
+		Task(uint64_t id): _coro(Coro::current()), _id(id) {}
 
-	struct Task {
-		Coro* coro;
-		uint64_t id;
-
-		void cancel() {
-			coro = nullptr;
-		}
 		void execute() {
-			if (coro) {
-				coro->setException(TimeoutError(id));
-				coro->resume();
+			if (_coro) {
+				_coro->setException(TimeoutError(_id));
+				_coro->resume();
 			}
 		}
+		void preventExecution() {
+			_coro = nullptr;
+		}
+
+	private:
+		Coro* _coro;
+		uint64_t _id;
 	};
 
 	template <typename Duration>
 	Timeout(Duration duration)
 		: _timer(ThreadPool::current()->ioService()),
 		  _id(++idCounter),
-		  _task(new Task{Coro::current(), _id})
+		  _task(new Task(_id))
 	{
 		_timer.expires_from_now(duration);
 
@@ -60,7 +62,7 @@ public:
 	}
 
 	~Timeout() {
-		_task->cancel();
+		_task->preventExecution();
 		_timer.cancel();
 	}
 
@@ -70,6 +72,7 @@ public:
 
 private:
 	boost::asio::steady_timer _timer;
+	static std::atomic<uint64_t> idCounter;
 	uint64_t _id;
 	std::shared_ptr<Task> _task;
 };

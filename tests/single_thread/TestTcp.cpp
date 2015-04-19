@@ -17,8 +17,8 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 	bool serverDone = false, clientDone = false;
 
+	TcpServer server(endpoint);
 	Exec([&]() {
-		TcpServer server(endpoint);
 		TcpSocket socket = server.accept();
 		Buffer data;
 		data.pushBack(socket.read(&data));

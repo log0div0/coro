@@ -27,27 +27,4 @@ BOOST_AUTO_TEST_CASE(TestOneConsumer) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestTwoConsumers) {
-	std::vector<uint8_t> actual,
-		expected1 = {1, 2},
-		expected2 = {2, 1};
-
-	CoroQueue<uint8_t> queue;
-
-	Exec([&]() {
-		actual.push_back(queue.pop());
-	});
-	Exec([&]() {
-		actual.push_back(queue.pop());
-	});
-	Exec([&]() {
-		queue.push(1);
-		queue.push(2);
-	});
-	Join();
-
-	BOOST_REQUIRE(actual == expected1 || actual == expected2);
-}
-
-
 BOOST_AUTO_TEST_SUITE_END()

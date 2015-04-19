@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(TestWriteRead) {
 
 
 BOOST_AUTO_TEST_CASE(TestComplex) {
-	const auto iterations = 10;
+	const auto iterations = 1000;
 	bool success = true;
 	for (auto i = 0; i < iterations; i++) {
 		cout << "SuiteTcp/TestComplex " << i << " of " << iterations << endl;
@@ -88,13 +88,10 @@ BOOST_AUTO_TEST_CASE(TestComplex) {
 					success = false;
 				}
 			}
-			catch (...) {
-				success = false;
-			}
 		});
 		{
 			CoroPool clientPool;
-			for (auto i = 0; i < 1000; ++i) {
+			for (auto i = 0; i < 10; ++i) {
 				clientPool.exec([&]() {
 					try {
 						TcpSocket socket;

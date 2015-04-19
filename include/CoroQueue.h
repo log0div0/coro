@@ -10,7 +10,7 @@ class CoroQueue {
 public:
 	T pop() {
 		while (true) {
-			auto coro = std::make_shared<Coro*>(Coro::current());
+			auto task = std::make_shared<CoroTask>();
 			{
 				std::unique_lock<std::mutex> lock(_mutex);
 
@@ -20,14 +20,14 @@ public:
 					return t;
 				}
 
-				_coroQueue.push(coro);
+				_taskQueue.push(task);
 			}
 			try {
 				Coro::current()->yield();
 			}
 			catch (...) {
 				std::unique_lock<std::mutex> lock(_mutex);
-				*coro = nullptr;
+				task->preventExecution();
 				next();
 				throw;
 			}
@@ -43,23 +43,17 @@ public:
 
 private:
 	void next() {
-		while (_coroQueue.size()) {
-			auto coro = std::move(_coroQueue.front());
-			_coroQueue.pop();
-			if (*coro == nullptr) {
-				continue;
+		while (_taskQueue.size()) {
+			auto task = std::move(_taskQueue.front());
+			_taskQueue.pop();
+			if (task->schedule()) {
+				return;
 			}
-			(*coro)->strand()->post([coro] {
-				if (*coro) {
-					(*coro)->resume();
-				}
-			});
-			return;
 		}
 	}
 
 private:
 	std::mutex _mutex;
 	std::queue<T> _dataQueue;
-	std::queue<std::shared_ptr<Coro*>> _coroQueue;
+	std::queue<std::shared_ptr<CoroTask>> _taskQueue;
 };

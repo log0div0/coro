@@ -17,5 +17,5 @@ private:
 private:
 	bool _isLocked = false;
 	std::mutex _mutex;
-	std::queue<std::shared_ptr<Coro*>> _coroQueue;
+	std::queue<std::shared_ptr<CoroTask>> _taskQueue;
 };
