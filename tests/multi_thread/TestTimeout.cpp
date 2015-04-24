@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(TestTcpRead) {
 	TcpSocket socket;
 	socket.connect(endpoint);
 	Buffer buffer;
-	BOOST_REQUIRE_THROW(socket.read(&buffer), TimeoutError);
+	BOOST_REQUIRE_THROW(socket.readSome(&buffer), TimeoutError);
 }
 
 
