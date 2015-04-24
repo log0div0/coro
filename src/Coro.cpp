@@ -76,18 +76,19 @@ void Coro::doRun()
 	{
 		_routine();
 	}
+	catch (const CancelError& error) {
+		// do nothing
+	}
 	catch (const std::exception& error) {
 #ifndef NDEBUG
 		std::cout << "Uncatched exception: " << error.what() << std::endl;
 #endif
-		_exception = std::current_exception();
 	}
 	catch (...)
 	{
 #ifndef NDEBUG
 		std::cout << "Uncatched exception!!!!" << std::endl;
 #endif
-		_exception = std::current_exception();
 	}
 	_isDone = true;
 	yield();

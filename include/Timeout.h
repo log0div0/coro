@@ -30,8 +30,7 @@ public:
 
 		void execute() {
 			if (_coro) {
-				_coro->setException(TimeoutError(_id));
-				_coro->resume();
+				_coro->resume(TimeoutError(_id));
 			}
 		}
 		void preventExecution() {

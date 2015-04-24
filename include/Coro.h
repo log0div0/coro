@@ -32,28 +32,14 @@ public:
 	}
 
 	template <typename Exception>
-	Exception getException() {
-		try {
-			std::rethrow_exception(_exception);
-		}
-		catch (Exception& exception) {
-			return exception;
-		}
-	}
-	template <typename Exception>
-	void setException(Exception exception) {
-		try {
-			throw exception;
-		}
-		catch (...) {
-			_exception = std::current_exception();
-		}
+	void resume(Exception exception) {
+		_exception = std::make_exception_ptr(exception);
+		resume();
 	}
 
 	void cancel() {
 		this->strand()->post([=] {
-			setException(CancelError());
-			resume();
+			resume(CancelError());
 		});
 	}
 

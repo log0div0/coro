@@ -8,27 +8,21 @@ CoroPool::~CoroPool() {
 	join();
 }
 
+class GC {
+public:
+	GC(std::function<void()> fn): _fn(std::move(fn)) {}
+	~GC() {
+		Coro::current()->strand()->post(_fn);
+	}
+
+private:
+	std::function<void()> _fn;
+};
+
 Coro* CoroPool::exec(std::function<void()> routine) {
 	auto coro = new Coro([=] {
+		GC gc(std::bind(&CoroPool::onCoroDone, this, Coro::current()));
 		routine();
-
-		auto coro = Coro::current();
-
-		coro->strand()->post([=]() {
-			{
-				std::unique_lock<std::mutex> lock(_mutex);
-
-				_coros.erase(coro);
-
-				if (_coros.empty()) {
-					for (auto& task: _tasks) {
-						task->schedule();
-					}
-					_tasks.clear();
-				}
-			}
-			delete coro;
-		});
 	});
 
 	{
@@ -65,6 +59,29 @@ void CoroPool::join() {
 	{
 		std::unique_lock<std::mutex> lock(_mutex);
 	}
+}
+
+void CoroPool::cancelAll() {
+	auto task = std::make_shared<CoroTask>();
+	for (auto coro: _coros) {
+		coro->cancel();
+	}
+}
+
+void CoroPool::onCoroDone(Coro* coro) {
+	{
+		std::unique_lock<std::mutex> lock(_mutex);
+
+		_coros.erase(coro);
+
+		if (_coros.empty()) {
+			for (auto& task: _tasks) {
+				task->schedule();
+			}
+			_tasks.clear();
+		}
+	}
+	delete coro;
 }
 
 static CoroPool pool;
