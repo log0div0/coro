@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(TestComplex) {
 		cout << "SuiteTcp/TestComplex " << i << " of " << iterations << endl;
 		TcpServer server(endpoint);
 		CoroPool serverPool;
-		serverPool.exec([&]() {
+		auto coro = serverPool.exec([&]() {
 			try {
 				server.run([&](TcpSocket socket) {
 					try {
@@ -83,10 +83,7 @@ BOOST_AUTO_TEST_CASE(TestComplex) {
 					}
 				});
 			}
-			catch (const boost::system::system_error& error) {
-				if (error.code() != boost::system::errc::operation_canceled) {
-					success = false;
-				}
+			catch (const CancelError& error) {
 			}
 		});
 		{
@@ -104,7 +101,7 @@ BOOST_AUTO_TEST_CASE(TestComplex) {
 				});
 			}
 		}
-		server.shutdown();
+		coro->cancel();
 	}
 	BOOST_REQUIRE(success);
 }

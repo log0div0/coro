@@ -8,7 +8,7 @@ CoroPool::~CoroPool() {
 	join();
 }
 
-void CoroPool::exec(std::function<void()> routine) {
+Coro* CoroPool::exec(std::function<void()> routine) {
 	auto coro = new Coro([=] {
 		routine();
 
@@ -39,6 +39,8 @@ void CoroPool::exec(std::function<void()> routine) {
 	coro->strand()->post([=] {
 		coro->resume();
 	});
+
+	return coro;
 }
 
 void CoroPool::join() {

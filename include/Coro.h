@@ -6,6 +6,11 @@
 
 #define CORO_STACK_SIZE 1024*32
 
+class CancelError: public std::runtime_error {
+public:
+	CancelError(): std::runtime_error("CancelError") {}
+};
+
 class Coro {
 public:
 	static Coro* current();
@@ -43,6 +48,13 @@ public:
 		catch (...) {
 			_exception = std::current_exception();
 		}
+	}
+
+	void cancel() {
+		this->strand()->post([=] {
+			setException(CancelError());
+			resume();
+		});
 	}
 
 private:

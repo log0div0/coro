@@ -6,7 +6,45 @@
 #include "Coro.h"
 
 
-class IoTask: public std::enable_shared_from_this<IoTask> {
+class AsioTask1: public std::enable_shared_from_this<AsioTask1> {
+public:
+	std::function<void(const boost::system::error_code&)> callback() {
+		return coro->strand()->wrap(
+			[task = shared_from_this()](const boost::system::error_code& errorCode) {
+				if (!task->coro) {
+					return;
+				}
+				if (errorCode) {
+					task->errorCode = errorCode;
+				}
+				task->coro->resume();
+			}
+		);
+	}
+
+	template <typename Handle>
+	void wait(Handle& handle) {
+		try {
+			coro->yield();
+		}
+		catch (...) {
+			coro = nullptr;
+			handle.cancel();
+			throw;
+		}
+
+		if (errorCode) {
+			throw boost::system::system_error(errorCode);
+		}
+	}
+
+private:
+	Coro* coro = Coro::current();
+	boost::system::error_code errorCode;
+};
+
+
+class AsioTask2: public std::enable_shared_from_this<AsioTask2> {
 public:
 	std::function<void(const boost::system::error_code&, size_t)> callback() {
 		return coro->strand()->wrap(
@@ -77,7 +115,7 @@ public:
 	  * @return Кол-во отправленных байт
 	  */
 	size_t write(const Buffer& buffer) {
-		auto task = std::make_shared<IoTask>();
+		auto task = std::make_shared<AsioTask2>();
 		boost::asio::async_write(_handle, buffer.usefulData(), task->callback());
 		return task->wait(_handle);
 	}
@@ -87,7 +125,7 @@ public:
 	  * @return Кол-во принятых байт
 	  */
 	size_t readSome(Buffer* buffer) {
-		auto task = std::make_shared<IoTask>();
+		auto task = std::make_shared<AsioTask2>();
 		_handle.async_read_some(buffer->freeSpace(), task->callback());
 		return task->wait(_handle);
 	}
