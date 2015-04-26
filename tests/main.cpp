@@ -1,5 +1,5 @@
 
-#define BOOST_TEST_MODULE test_single_thread
+#define BOOST_TEST_MODULE test_coro
 #include <boost/test/unit_test.hpp>
 #include "Coro.h"
 #include "IoService.h"
