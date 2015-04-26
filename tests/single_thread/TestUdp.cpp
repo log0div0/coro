@@ -1,7 +1,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "UdpSocket.h"
-#include <iostream>
+#include "CoroPool.h"
 
 
 using namespace boost::asio::ip;
@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(TestSendReceive) {
 	udp::endpoint endpoint;
 	data.pushBack(server.receive(&data, &endpoint));
 	BOOST_REQUIRE(data == test_data);
-	BOOST_REQUIRE(endpoint == client.endpoint());
+	BOOST_REQUIRE(endpoint == udp::endpoint(address_v4::from_string("127.0.0.1"), 44443));
 }
 
 

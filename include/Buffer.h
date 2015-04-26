@@ -5,11 +5,6 @@
 #include <boost/asio.hpp>
 
 
-class Buffer;
-typedef std::shared_ptr<Buffer> BufferSharedPtr;
-typedef std::unique_ptr<Buffer, std::function<void(Buffer*)>&> BufferUniquePtr;
-
-
 template <typename Buffer, typename T>
 class BufferIterator {
 public:
@@ -156,9 +151,9 @@ public:
 
 	Buffer(size_t size = DefaultSize);
 
-	Buffer(const std::string& string);
-	Buffer(const std::initializer_list<uint8_t>& list);
-	Buffer(const std::vector<uint8_t>& vector);
+	Buffer(const std::initializer_list<uint8_t>& data);
+	Buffer(const std::vector<uint8_t>& data);
+	Buffer(const std::string& data);
 
 	template <typename T>
 	Buffer(T first, T last): Buffer(last - first) {
@@ -172,7 +167,9 @@ public:
 
 	~Buffer();
 
-	void assign(const std::initializer_list<uint8_t>& list);
+	void assign(const std::initializer_list<uint8_t>& data);
+	void assign(const std::vector<uint8_t>& data);
+	void assign(const std::string& data);
 
 	template <typename T>
 	void assign(T first, T last) {
@@ -288,3 +285,8 @@ public:
 private:
 	Buffer::ConstIterator _begin, _end;
 };
+
+
+typedef std::unique_ptr<Buffer, std::function<void(Buffer*)>&> BufferUniquePtr;
+
+BufferUniquePtr MallocBuffer();

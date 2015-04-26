@@ -18,14 +18,15 @@ BOOST_AUTO_TEST_SUITE(SuiteTcpIterator)
 BOOST_AUTO_TEST_CASE(TestSTL) {
 	bool serverDone = false, clientDone = false;
 
-	Exec([&]() {
+	CoroPool pool;
+	pool.exec([&] {
 		TcpServer server(endpoint);
 		TcpSocket socket = server.accept();
 		socket.write(test_data);
 		socket.write(test_data2);
 		serverDone = true;
 	});
-	Exec([&]() {
+	pool.exec([&] {
 		TcpSocket socket;
 		socket.connect(endpoint);
 
@@ -47,7 +48,7 @@ BOOST_AUTO_TEST_CASE(TestSTL) {
 
 		clientDone = true;
 	});
-	Join();
+	pool.join();
 
 	BOOST_REQUIRE(serverDone && clientDone);
 }

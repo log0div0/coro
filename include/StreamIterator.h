@@ -3,8 +3,8 @@
 
 #include "Buffer.h"
 
-template <typename Handle>
-class IoHandleIterator {
+template <typename Stream>
+class StreamIterator {
 public:
 	typedef ptrdiff_t difference_type;
 	typedef uint8_t value_type;
@@ -12,16 +12,16 @@ public:
 	typedef uint8_t& reference;
 	typedef std::forward_iterator_tag iterator_category;
 
-	IoHandleIterator()
-		: _handle(nullptr),
+	StreamIterator()
+		: _stream(nullptr),
 		  _buffer(nullptr),
 		  _offset(-1)
 	{
 
 	}
 
-	IoHandleIterator(Handle& handle, Buffer& buffer)
-		: _handle(&handle),
+	StreamIterator(Stream& handle, Buffer& buffer)
+		: _stream(&handle),
 		  _buffer(&buffer),
 		  _offset(0)
 	{
@@ -37,47 +37,47 @@ public:
 		return _buffer->getPointer(_offset);
 	}
 
-	IoHandleIterator& operator++() {
+	StreamIterator& operator++() {
 		if (static_cast<size_t>(_offset + 1) > _buffer->size()) {
-			throw std::range_error("IoHandleIterator::operator++");
+			throw std::range_error("StreamIterator::operator++");
 		}
 		++_offset;
 		return *this;
 	}
 
-	IoHandleIterator operator++(int) {
-		IoHandleIterator copy(*this);
+	StreamIterator operator++(int) {
+		StreamIterator copy(*this);
 		++*this;
 		return copy;
 	}
 
-	IoHandleIterator& operator+=(difference_type distance) {
+	StreamIterator& operator+=(difference_type distance) {
 		if (static_cast<size_t>(_offset + distance) > _buffer->size()) {
-			throw std::range_error("IoHandleIterator::operator+=");
+			throw std::range_error("StreamIterator::operator+=");
 		}
 		_offset += distance;
 		return *this;
 	}
 
-	IoHandleIterator operator+(difference_type distance) const {
-		return IoHandleIterator(*this) += distance;
+	StreamIterator operator+(difference_type distance) const {
+		return StreamIterator(*this) += distance;
 	}
 
-	void operator=(const IoHandleIterator& other) {
-		_handle = other._handle;
+	void operator=(const StreamIterator& other) {
+		_stream = other._stream;
 		_buffer = other._buffer;
 		_offset = other._offset;
 	}
 
-	bool operator!=(const IoHandleIterator& other) const {
+	bool operator!=(const StreamIterator& other) const {
 		return _offset != other._offset;
 	}
 
-	bool operator==(const IoHandleIterator& other) const {
+	bool operator==(const StreamIterator& other) const {
 		return _offset == other._offset;
 	}
 
-	difference_type operator-(const IoHandleIterator& other) const {
+	difference_type operator-(const StreamIterator& other) const {
 		return other._offset - _offset;
 	}
 
@@ -88,11 +88,11 @@ public:
 private:
 	void read() {
 		while (static_cast<size_t>(_offset) >= _buffer->usefulDataSize()) {
-			_buffer->pushBack(_handle->readSome(_buffer));
+			_buffer->pushBack(_stream->readSome(_buffer));
 		}
 	}
 
-	Handle* _handle;
+	Stream* _stream;
 	Buffer* _buffer;
 	difference_type _offset;
 };

@@ -1,84 +1,38 @@
 
 #pragma once
 
+#include <functional>
+#include <vector>
 #include <boost/context/all.hpp>
-#include "ThreadPool.h"
 
-#define CORO_STACK_SIZE 1024*32
+#define CORO_STACK_SIZE 1024 * 32
 
-class CancelError: public std::runtime_error {
-public:
-	CancelError(): std::runtime_error("CancelError") {}
-};
+struct CancelError {};
 
 class Coro {
 public:
 	static Coro* current();
 
-	Coro(std::function<void()> routine, ThreadPool* threadPool = ThreadPool::current());
-	Coro(const Coro& other) = delete;
-	Coro(Coro&& other);
+	Coro(std::function<void()> routine);
 	~Coro();
 
-	// если это первый вызов resume - то входим в routine
-	// иначе:
-	// вызвали resume -> сделали return из yield
 	void resume();
-	// вызвали yield -> сделали return из resume
-	void yield();
-
-	boost::asio::io_service::strand* strand() {
-		return &_strand;
-	}
-
+	void resume(std::exception_ptr exception);
 	template <typename Exception>
 	void resume(Exception exception) {
-		_exception = std::make_exception_ptr(exception);
-		resume();
+		resume(std::make_exception_ptr(exception));
 	}
+	void yield();
 
-	void cancel() {
-		this->strand()->post([=] {
-			resume(CancelError());
-		});
-	}
+	void cancel();
 
 private:
-	static void run(intptr_t);
-	void doRun();
-
 	std::function<void()> _routine;
-	boost::asio::io_service::strand _strand;
-	std::vector<unsigned char> _stack;
+	std::vector<uint8_t> _stack;
 	boost::context::fcontext_t _context, _savedContext;
 	std::exception_ptr _exception;
 	bool _isDone;
-};
 
-class CoroTask: public std::enable_shared_from_this<CoroTask> {
 public:
-	bool schedule() {
-		if (_coro) {
-			_coro->strand()->post([task = shared_from_this()] {
-				task->execute();
-			});
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	void execute() {
-		if (_coro) {
-			_coro->resume();
-		}
-	}
-
-	void preventExecution() {
-		_coro = nullptr;
-	}
-
-private:
-	Coro* _coro = Coro::current();
+	void run();
 };
-

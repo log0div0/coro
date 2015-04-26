@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "IoHandle.h"
+#include "Stream.h"
 
-class TcpSocket: public IoHandle<boost::asio::ip::tcp::socket> {
+class TcpSocket: public Stream<boost::asio::ip::tcp::socket> {
 public:
 	TcpSocket();
 	TcpSocket(boost::asio::ip::tcp::socket socket);

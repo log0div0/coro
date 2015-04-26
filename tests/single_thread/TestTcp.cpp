@@ -4,7 +4,6 @@
 #include "TcpSocket.h"
 #include "CoroPool.h"
 
-
 using namespace boost::asio::ip;
 
 static auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
@@ -17,8 +16,9 @@ BOOST_AUTO_TEST_SUITE(SuiteTcp)
 BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 	bool serverDone = false, clientDone = false;
 
-	TcpServer server(endpoint);
-	Exec([&]() {
+	CoroPool pool;
+	pool.exec([&] {
+		TcpServer server(endpoint);
 		TcpSocket socket = server.accept();
 		Buffer data;
 		data.pushBack(socket.readSome(&data));
@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		socket.write(data);
 		serverDone = true;
 	});
-	Exec([&]() {
+	pool.exec([&] {
 		TcpSocket socket;
 		socket.connect(endpoint);
 		socket.write(test_data);
@@ -35,9 +35,28 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		BOOST_REQUIRE(data == test_data);
 		clientDone = true;
 	});
-	Join();
+	pool.join();
 
 	BOOST_REQUIRE(serverDone && clientDone);
+}
+
+
+BOOST_AUTO_TEST_CASE(TestCancelAccept) {
+	bool success = false;
+
+	CoroPool pool;
+	pool.exec([&] {
+		TcpServer server(endpoint);
+		try {
+			server.accept();
+		}
+		catch (const CancelError& error) {
+			success = true;
+		}
+	})->cancel();
+	pool.join();
+
+	BOOST_REQUIRE(success);
 }
 
 

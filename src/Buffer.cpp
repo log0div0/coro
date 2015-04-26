@@ -1,5 +1,6 @@
 
 #include "Buffer.h"
+#include "Malloc.h"
 
 Buffer::Buffer(size_t size)
 	: _begin(new uint8_t[size]),
@@ -11,14 +12,15 @@ Buffer::Buffer(size_t size)
 
 }
 
-Buffer::Buffer(const std::string& string): Buffer(string.begin(), string.end()) {
+Buffer::Buffer(const std::initializer_list<uint8_t>& data): Buffer(data.begin(), data.end()) {
 
 }
 
-Buffer::Buffer(const std::initializer_list<uint8_t>& list): Buffer(list.begin(), list.end()) {
+Buffer::Buffer(const std::vector<uint8_t>& data): Buffer(data.begin(), data.end()) {
+
 }
 
-Buffer::Buffer(const std::vector<uint8_t>& vector): Buffer(vector.begin(), vector.end()) {
+Buffer::Buffer(const std::string& data): Buffer(data.begin(), data.end()) {
 
 }
 
@@ -50,8 +52,16 @@ Buffer::~Buffer()
 	delete[] _begin;
 }
 
-void Buffer::assign(const std::initializer_list<uint8_t>& list) {
-	assign(list.begin(), list.end());
+void Buffer::assign(const std::initializer_list<uint8_t>& data) {
+	assign(data.begin(), data.end());
+}
+
+void Buffer::assign(const std::vector<uint8_t>& data) {
+	assign(data.begin(), data.end());
+}
+
+void Buffer::assign(const std::string& data) {
+	assign(data.begin(), data.end());
 }
 
 void Buffer::clear() {
@@ -200,4 +210,10 @@ void Buffer::realloc(size_t minimum) {
 	_end = data + size;
 	_first = _begin;
 	_last = _begin + _usefulDataSize;
+}
+
+BufferUniquePtr MallocBuffer() {
+	auto buffer = Malloc<Buffer>();
+	buffer->clear();
+	return buffer;
 }

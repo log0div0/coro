@@ -1,10 +1,9 @@
 
-#include "ThreadPool.h"
+#include "IoService.h"
 #include "CoroPool.h"
 #include "TcpServer.h"
 #include "TcpSocket.h"
 #include "WsProtocol.h"
-#include "NonBlockingBufferPool.h"
 #include <iostream>
 
 using namespace std;
@@ -21,7 +20,7 @@ public:
 	}
 
 	void doHandshake() {
-		auto outputBuffer = MallocUnique();
+		auto outputBuffer = MallocBuffer();
 		_inputBuffer->popFront(
 			_wsProtocol.doHandshake(
 				_socket.iterator(*_inputBuffer),
@@ -51,7 +50,7 @@ public:
 				);
 
 				if (message.opCode() == WsMessage::OpCode::Close) {
-					auto outputBuffer = MallocUnique();
+					auto outputBuffer = MallocBuffer();
 					_wsProtocol.writeMessage(WsMessage::OpCode::Close, *outputBuffer);
 					_socket.write(*outputBuffer);
 					return;
@@ -59,7 +58,7 @@ public:
 
 				printMessage(message);
 
-				auto outputBuffer = MallocUnique();
+				auto outputBuffer = MallocBuffer();
 				// копируем payload
 				outputBuffer->assign(message.payloadBegin(), message.payloadEnd());
 				// запаковываем в websockets
@@ -78,7 +77,7 @@ public:
 private:
 	TcpSocket _socket;
 	WsServerProtocol _wsProtocol;
-	BufferUniquePtr _inputBuffer = MallocUnique();
+	BufferUniquePtr _inputBuffer = MallocBuffer();
 };
 
 void StartAccept() {
@@ -91,13 +90,13 @@ void StartAccept() {
 }
 
 int main() {
-	ThreadPool threadPool(thread::hardware_concurrency());
+	Coro coro(StartAccept);
 
-	Coro coro(StartAccept, &threadPool);
-	coro.strand()->post([&] {
+	IoService ioService;
+	ioService.post([&] {
 		coro.resume();
 	});
+	ioService.run();
 
-	threadPool.sync();
 	return 0;
 }
