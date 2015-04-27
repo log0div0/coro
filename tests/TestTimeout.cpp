@@ -66,24 +66,6 @@ BOOST_AUTO_TEST_CASE(TestCancel) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestCancel2) {
-	auto coro = Coro::current();
-
-	{
-		Timeout timeout(100ms);
-
-		std::this_thread::sleep_for(200ms);
-	}
-
-	// Таймфут сработал, но он нам уже не нужен
-
-	IoService::current()->post([&] {
-		coro->resume();
-	});
-	BOOST_REQUIRE_NO_THROW(coro->yield());
-}
-
-
 BOOST_AUTO_TEST_CASE(TestTwoTimeouts) {
 	auto coro = Coro::current();
 

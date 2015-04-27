@@ -1,8 +1,10 @@
 
 #include "WsProtocol.h"
 #include "Format.h"
+#ifndef _MSC_VER
 #include <openssl/sha.h>
 #include "base64.h"
+#endif
 
 
 WsMessage::OpCode WsMessage::opCode() const {
@@ -71,6 +73,7 @@ const HttpHeaders& WsServerProtocol::handshakeHeaders() const {
 }
 
 std::string WsServerProtocol::generateResponse() {
+#ifndef _MSC_VER
 	if (_headers.count("Sec-WebSocket-Key")) {
 		std::string acceptKey;
 		acceptKey += _headers["Sec-WebSocket-Key"];
@@ -80,7 +83,12 @@ std::string WsServerProtocol::generateResponse() {
 			acceptKeyHash.data());
 		std::string acceptKeyBase64 = base64::encode(acceptKeyHash);
 		return Format(handshakeResponse, acceptKeyBase64);
-	} else {
+	}
+	else
+	{
 		return Format(handshakeResponse, "-");
 	}
+#else
+	return Format(handshakeResponse, "-");
+#endif
 }

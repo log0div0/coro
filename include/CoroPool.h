@@ -10,6 +10,14 @@ public:
 	~CoroPool();
 	Coro* exec(std::function<void()> routine);
 	void join();
+	template <typename Exception>
+	void join(const Exception& exception) {
+		for (auto coro: _execCoros) {
+			coro->resume(exception);
+		}
+		join();
+	}
+
 
 private:
 	void onCoroDone(Coro* coro);

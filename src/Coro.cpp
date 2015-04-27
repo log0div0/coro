@@ -20,7 +20,6 @@ Coro::Coro(std::function<void()> routine)
 {
 	_context = boost::context::make_fcontext(&_stack.back(), _stack.size(), Run);
 	_savedContext = nullptr;
-	_exception = nullptr;
 }
 
 Coro::~Coro() {
@@ -37,25 +36,32 @@ void Coro::resume() {
 	t_coro = coro;
 }
 
-void Coro::resume(std::exception_ptr exception) {
-	_exception = exception;
-	resume();
-}
-
 void Coro::yield() {
+	if (!_isDone) {
+		throwException();
+	}
+
 	assert(!_context && _savedContext);
 	boost::context::jump_fcontext(&_context, _savedContext, 0);
 	_context = nullptr;
 
-	if (_exception) {
-		auto exception = _exception;
-		_exception = nullptr;
-		std::rethrow_exception(exception);
-	}
+	throwException();
+}
+
+void Coro::throwOnResumeOrYield(std::exception_ptr exception) {
+	_exceptions.push(exception);
 }
 
 void Coro::cancel() {
 	resume(CancelError());
+}
+
+void Coro::throwException() {
+	if (_exceptions.size()) {
+		auto exception = _exceptions.front();
+		_exceptions.pop();
+		std::rethrow_exception(exception);
+	}
 }
 
 void Coro::run() {

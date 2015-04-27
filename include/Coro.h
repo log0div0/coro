@@ -4,6 +4,7 @@
 #include <functional>
 #include <vector>
 #include <boost/context/all.hpp>
+#include <queue>
 
 #define CORO_STACK_SIZE 1024 * 32
 
@@ -17,20 +18,23 @@ public:
 	~Coro();
 
 	void resume();
-	void resume(std::exception_ptr exception);
 	template <typename Exception>
 	void resume(Exception exception) {
-		resume(std::make_exception_ptr(exception));
+		throwOnResumeOrYield(std::make_exception_ptr(exception));
+		resume();
 	}
 	void yield();
 
+	void throwOnResumeOrYield(std::exception_ptr exception);
 	void cancel();
 
 private:
+	void throwException();
+
 	std::function<void()> _routine;
 	std::vector<uint8_t> _stack;
 	boost::context::fcontext_t _context, _savedContext;
-	std::exception_ptr _exception;
+	std::queue<std::exception_ptr> _exceptions;
 	bool _isDone;
 
 public:

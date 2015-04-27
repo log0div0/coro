@@ -23,40 +23,26 @@ private:
 	uint64_t _timeoutId;
 };
 
-class TimeoutTask: public std::enable_shared_from_this<TimeoutTask> {
-public:
-	TimeoutTask(uint64_t id): _coro(Coro::current()), _id(id) {}
-
-	void preventExecution() {
-		_coro = nullptr;
-	}
-
-	std::function<void(const boost::system::error_code&)> callback() {
-		return [self = shared_from_this(), this](const boost::system::error_code&) {
-			if (_coro) {
-				_coro->resume(TimeoutError(_id));
-			}
-		};
-	}
-private:
-	Coro* _coro;
-	uint64_t _id;
-};
-
 class Timeout {
 public:
 	template <typename Duration>
-	Timeout(Duration duration)
-		: _timer(*IoService::current()),
-		  _id(++idCounter),
-		  _task(new TimeoutTask(_id))
-	{
+	Timeout(Duration duration): _timer(*IoService::current()) {
 		_timer.expires_from_now(duration);
-		_timer.async_wait(_task->callback());
+		_timer.async_wait([=](const boost::system::error_code& errorCode) {
+			_callbackExecuted = true;
+			if (errorCode == boost::asio::error::operation_aborted) {
+				return _coro->resume();
+			}
+			if (errorCode) {
+				return _coro->resume(boost::system::system_error(errorCode));
+			}
+			_coro->resume(TimeoutError(_id));
+		});
 	}
 
 	~Timeout() {
-		_task->preventExecution();
+		_timer.cancel();
+		waitCallbackExecution();
 	}
 
 	uint64_t id() const {
@@ -64,8 +50,24 @@ public:
 	}
 
 private:
+	void waitCallbackExecution() {
+		std::vector<std::exception_ptr> exceptions;
+		while (!_callbackExecuted) {
+			try {
+				_coro->yield();
+			}
+			catch (...) {
+				exceptions.push_back(std::current_exception());
+			}
+		}
+		for (auto exception: exceptions) {
+			_coro->throwOnResumeOrYield(exception);
+		}
+	}
+
 	boost::asio::steady_timer _timer;
 	static std::atomic<uint64_t> idCounter;
-	uint64_t _id;
-	std::shared_ptr<TimeoutTask> _task;
+	uint64_t _id = ++idCounter;
+	bool _callbackExecuted = false;
+	Coro* _coro = Coro::current();
 };
