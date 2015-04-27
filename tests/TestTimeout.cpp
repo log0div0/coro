@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(TestTwoTimeouts) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestCoroQueue) {
+BOOST_AUTO_TEST_CASE(TestQueue) {
 	Timeout timeout(100ms);
 	Queue<uint64_t> queue;
 	BOOST_REQUIRE_THROW(queue.pop(), TimeoutError);
@@ -109,16 +109,7 @@ BOOST_AUTO_TEST_CASE(TestTcpServerAccept) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestTcpSocketConnect) {
-	Timeout timeout(100ms);
-	TcpServer server(endpoint);
-	TcpSocket socket;
-	std::this_thread::sleep_for(200ms);
-	BOOST_REQUIRE_THROW(socket.connect(endpoint), TimeoutError);
-}
-
-
-BOOST_AUTO_TEST_CASE(TestTcpRead) {
+BOOST_AUTO_TEST_CASE(TestTcpSocketRead) {
 	Timeout timeout(100ms);
 	TcpServer server(endpoint);
 	TcpSocket socket;

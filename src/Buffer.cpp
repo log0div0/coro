@@ -217,3 +217,9 @@ BufferUniquePtr MallocBuffer() {
 	buffer->clear();
 	return buffer;
 }
+
+BufferUniquePtr MallocBuffer(const std::initializer_list<uint8_t>& data) {
+	auto buffer = Malloc<Buffer>();
+	buffer->assign(data);
+	return buffer;
+}

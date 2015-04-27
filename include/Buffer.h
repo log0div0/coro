@@ -272,6 +272,7 @@ public:
 	operator std::vector<uint8_t>() const {
 		return { _begin, _end };
 	}
+
 	bool operator==(const std::vector<uint8_t>& other) const {
 		if (static_cast<ptrdiff_t>(other.size()) != _end - _begin) {
 			return false;
@@ -282,6 +283,10 @@ public:
 		return std::equal(_begin, _end, other.begin());
 	}
 
+	bool operator!=(const std::vector<uint8_t>& other) const {
+		return !(*this == other);
+	}
+
 private:
 	Buffer::ConstIterator _begin, _end;
 };
@@ -290,3 +295,4 @@ private:
 typedef std::unique_ptr<Buffer, std::function<void(Buffer*)>&> BufferUniquePtr;
 
 BufferUniquePtr MallocBuffer();
+BufferUniquePtr MallocBuffer(const std::initializer_list<uint8_t>& data);
