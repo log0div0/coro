@@ -295,4 +295,5 @@ private:
 typedef std::unique_ptr<Buffer, std::function<void(Buffer*)>&> BufferUniquePtr;
 
 BufferUniquePtr MallocBuffer();
+BufferUniquePtr MallocBuffer(size_t size);
 BufferUniquePtr MallocBuffer(const std::initializer_list<uint8_t>& data);

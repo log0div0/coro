@@ -2,7 +2,7 @@
 #include "CoroPool.h"
 #include "IoService.h"
 
-CoroPool::CoroPool() {
+CoroPool::CoroPool(bool killOnJoin): _killOnJoin(killOnJoin) {
 }
 
 CoroPool::~CoroPool() {
@@ -35,6 +35,12 @@ Coro* CoroPool::exec(std::function<void()> routine) {
 void CoroPool::join() {
 	if (_execCoros.empty()) {
 		return;
+	}
+
+	if (_killOnJoin) {
+		for (auto coro: _execCoros) {
+			coro->resume(CancelError());
+		}
 	}
 
 	_joinCoros.insert(Coro::current());
