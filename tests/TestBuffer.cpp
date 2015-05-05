@@ -62,6 +62,54 @@ BOOST_AUTO_TEST_CASE(TestPushFrontBack) {
 	BOOST_REQUIRE(buffer == Buffer("1234abcd5678"));
 }
 
+BOOST_AUTO_TEST_CASE(TestIsUsefulDataContinuousAndFreeSpaceSizeAt) {
+	Buffer buffer(5);
+	// |OOOOO|
+	BOOST_REQUIRE(buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 5);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 5);
+	buffer.pushBack(4);
+	// |XXXX|O
+	BOOST_REQUIRE(buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 0);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 1);
+	buffer.popFront(4);
+	// OOOO|O
+	BOOST_REQUIRE(buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 4);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 1);
+	buffer.pushBack(4);
+	// XXX|O|X
+	BOOST_REQUIRE(!buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 0);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 0);
+	buffer.popFront(1);
+	// |XXX|OO
+	BOOST_REQUIRE(buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 0);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 2);
+	buffer.pushBack(2);
+	// |XXXXX|
+	BOOST_REQUIRE(buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 0);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 0);
+	buffer.popFront(4);
+	// OOOO|X|
+	BOOST_REQUIRE(buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 4);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 0);
+	buffer.clear(1);
+	// O|OOOO
+	BOOST_REQUIRE(buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 1);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 4);
+	buffer.clear(-1);
+	// OOOO|O
+	BOOST_REQUIRE(buffer.isUsefulDataContinuous());
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheBegining() == 4);
+	BOOST_REQUIRE(buffer.freeSpaceSizeAtTheEnd() == 1);
+}
+
 BOOST_AUTO_TEST_CASE(TestString) {
 	Buffer buffer("abcd");
 	std::string str(buffer.begin(), buffer.end());

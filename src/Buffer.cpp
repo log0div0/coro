@@ -64,8 +64,8 @@ void Buffer::assign(const std::string& data) {
 	assign(data.begin(), data.end());
 }
 
-void Buffer::clear() {
-	_first = _last = _begin;
+void Buffer::clear(size_t startIndex) {
+	_first = _last = move(_begin, startIndex);
 	_usefulDataSize = 0;
 }
 
@@ -92,7 +92,7 @@ uint8_t& Buffer::front() {
 
 uint8_t& Buffer::back() {
 	assert(_usefulDataSize);
-	return *moveForward(_first, _usefulDataSize - 1);
+	return *move(_first, _usefulDataSize - 1);
 }
 
 std::vector<boost::asio::const_buffer> Buffer::usefulData() const {
@@ -112,6 +112,10 @@ size_t Buffer::usefulDataSize() const {
 	return _usefulDataSize;
 }
 
+bool Buffer::isUsefulDataContinuous() const {
+	return (_first == _begin) || (_last == _begin) || (_first <= _last);
+}
+
 std::vector<boost::asio::mutable_buffer> Buffer::freeSpace() {
 	if ( (_first <= _last) && (usefulDataSize() != size()) ) {
 		return {
@@ -129,12 +133,35 @@ size_t Buffer::freeSpaceSize() const {
 	return size() - _usefulDataSize;
 }
 
+size_t Buffer::freeSpaceSizeAtTheBegining() const {
+	if (!isUsefulDataContinuous()) {
+		return 0;
+	}
+	if (_first == _begin && _last == _begin) {
+		return size() - usefulDataSize();
+	}
+	return _first - _begin;
+}
+
+size_t Buffer::freeSpaceSizeAtTheEnd() const {
+	if (!isUsefulDataContinuous()) {
+		return 0;
+	}
+	if (_first == _begin && _last == _begin) {
+		return size() - usefulDataSize();
+	}
+	if (_last == _begin) {
+		return 0;
+	}
+	return _end - _last;
+}
+
 void Buffer::popFront(size_t size) {
 	if (usefulDataSize() < size) {
 		throw std::range_error("Buffer::popFront");
 	}
 	_usefulDataSize -= size;
-	_first = moveForward(_first, size);
+	_first = move(_first, size);
 }
 
 void Buffer::popBack(size_t size) {
@@ -142,7 +169,7 @@ void Buffer::popBack(size_t size) {
 		throw std::range_error("Buffer::popBack");
 	}
 	_usefulDataSize -= size;
-	_last = moveBackward(_last, size);
+	_last = move(_last, -size);
 }
 
 void Buffer::pushFront(size_t size) {
@@ -150,7 +177,7 @@ void Buffer::pushFront(size_t size) {
 		realloc(usefulDataSize() + size);
 	}
 	_usefulDataSize += size;
-	_first = moveBackward(_first, size);
+	_first = move(_first, -size);
 }
 
 void Buffer::pushBack(size_t size) {
@@ -158,7 +185,7 @@ void Buffer::pushBack(size_t size) {
 		realloc(usefulDataSize() + size);
 	}
 	_usefulDataSize += size;
-	_last = moveForward(_last, size);
+	_last = move(_last, size);
 }
 
 
@@ -192,6 +219,22 @@ bool Buffer::operator==(const Buffer& other) const {
 void Buffer::reserve(size_t minimum) {
 	if (size() < minimum) {
 		realloc(minimum);
+	}
+}
+
+uint8_t* Buffer::move(const uint8_t* it, ptrdiff_t distance) const {
+	ptrdiff_t position = ((it - _begin) + distance) % ptrdiff_t(size());
+	if (position < 0) {
+		position += size();
+	}
+	return _begin + position;
+}
+
+ptrdiff_t Buffer::distance(const uint8_t* a, const uint8_t* b) const {
+	if (a <= b) {
+		return b - a;
+	} else {
+		return (_end - a) + (b - _begin);
 	}
 }
 

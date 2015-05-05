@@ -59,7 +59,7 @@ public:
 			throw std::range_error("BufferIterator::operator++");
 		}
 #endif
-		_it = _buffer->moveForward(_it, 1);
+		_it = _buffer->move(_it, 1);
 		if (_it == _buffer->_last) {
 			_it = nullptr;
 		}
@@ -87,7 +87,7 @@ public:
 			}
 		}
 #endif
-		_it = _buffer->moveForward(_it, distance);
+		_it = _buffer->move(_it, distance);
 		if (_it == _buffer->_last) {
 			_it = nullptr;
 		}
@@ -177,7 +177,7 @@ public:
 		pushBack(first, last);
 	}
 
-	void clear();
+	void clear(size_t startIndex = 0);
 
 	// Итераторы для usefulData
 	Iterator begin();
@@ -190,8 +190,12 @@ public:
 
 	std::vector<boost::asio::const_buffer> usefulData() const;
 	size_t usefulDataSize() const;
+	bool isUsefulDataContinuous() const;
+
 	std::vector<boost::asio::mutable_buffer> freeSpace();
 	size_t freeSpaceSize() const;
+	size_t freeSpaceSizeAtTheBegining() const;
+	size_t freeSpaceSizeAtTheEnd() const;
 
 	void popFront(size_t size);
 	void popBack(size_t size);
@@ -212,7 +216,7 @@ public:
 	void pushBack(T first, T last) {
 		auto size = last - first;
 		pushBack(size);
-		Iterator pos(this, moveBackward(_last, size));
+		Iterator pos(this, move(_last, -size));
 		std::copy(first, last, pos);
 	}
 
@@ -221,31 +225,14 @@ public:
 	bool operator==(const Buffer& other) const;
 
 	uint8_t* getPointer(ptrdiff_t offset) {
-		return moveForward(_first, offset);
+		return move(_first, offset);
 	}
 
 	void reserve(size_t minimum);
 
 private:
-	template <typename T>
-	T moveForward(T it, size_t distance) const {
-		return _begin + (it - _begin + distance) % int64_t(size());
-	}
-
-	template <typename T>
-	T moveBackward(T it, size_t distance) const {
-		return _begin + (it - _begin - distance + size()) % int64_t(size());
-	}
-
-	template <typename A, typename B>
-	ptrdiff_t distance(A a, B b) const {
-		if (a <= b) {
-			return b - a;
-		} else {
-			return (_end - a) + (b - _begin);
-		}
-	}
-
+	uint8_t* move(const uint8_t* it, ptrdiff_t distance) const;
+	ptrdiff_t distance(const uint8_t* a, const uint8_t* b) const;
 	void realloc(size_t minimum);
 
 private:
@@ -267,6 +254,10 @@ public:
 
 	Buffer::ConstIterator end() const {
 		return _end;
+	}
+
+	size_t length() const {
+		return _end - _begin;
 	}
 
 	operator std::vector<uint8_t>() const {
