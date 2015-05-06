@@ -29,15 +29,14 @@ public:
 		_queue.push(t);
 	}
 
+	static std::unique_ptr<T, std::function<void(T*)>&> take() {
+		static ObjectPool<T> pool;
+		static std::function<void(T*)> pushObjectBack = [&](T* t) {
+			pool.push(t);
+		};
+		return { pool.pop(), pushObjectBack };
+	}
+
 private:
 	boost::lockfree::queue<T*, boost::lockfree::fixed_sized<false>> _queue;
 };
-
-template <typename T>
-std::unique_ptr<T, std::function<void(T*)>&> Malloc() {
-	static ObjectPool<T> pool;
-	static std::function<void(T*)> pushObjectBack = [&](T* t) {
-		pool.push(t);
-	};
-	return { pool.pop(), pushObjectBack };
-}

@@ -1,6 +1,6 @@
 
 #include "Buffer.h"
-#include "Malloc.h"
+#include "ObjectPool.h"
 
 Buffer::Buffer(size_t size)
 	: _begin(new uint8_t[size]),
@@ -161,7 +161,7 @@ void Buffer::popFront(size_t size) {
 		throw std::range_error("Buffer::popFront");
 	}
 	_usefulDataSize -= size;
-	_first = move(_first, size);
+	_first = move(_first, static_cast<ptrdiff_t>(size));
 }
 
 void Buffer::popBack(size_t size) {
@@ -169,7 +169,7 @@ void Buffer::popBack(size_t size) {
 		throw std::range_error("Buffer::popBack");
 	}
 	_usefulDataSize -= size;
-	_last = move(_last, -size);
+	_last = move(_last, -static_cast<ptrdiff_t>(size));
 }
 
 void Buffer::pushFront(size_t size) {
@@ -177,7 +177,7 @@ void Buffer::pushFront(size_t size) {
 		realloc(usefulDataSize() + size);
 	}
 	_usefulDataSize += size;
-	_first = move(_first, -size);
+	_first = move(_first, -static_cast<ptrdiff_t>(size));
 }
 
 void Buffer::pushBack(size_t size) {
@@ -185,7 +185,7 @@ void Buffer::pushBack(size_t size) {
 		realloc(usefulDataSize() + size);
 	}
 	_usefulDataSize += size;
-	_last = move(_last, size);
+	_last = move(_last, static_cast<ptrdiff_t>(size));
 }
 
 
@@ -256,7 +256,7 @@ void Buffer::realloc(size_t minimum) {
 }
 
 BufferUniquePtr MallocBuffer() {
-	auto buffer = Malloc<Buffer>();
+	auto buffer = ObjectPool<Buffer>::take();
 	buffer->clear();
 	return buffer;
 }
@@ -268,7 +268,7 @@ BufferUniquePtr MallocBuffer(size_t size) {
 }
 
 BufferUniquePtr MallocBuffer(const std::initializer_list<uint8_t>& data) {
-	auto buffer = Malloc<Buffer>();
+	auto buffer = ObjectPool<Buffer>::take();
 	buffer->assign(data);
 	return buffer;
 }
