@@ -62,6 +62,74 @@ BOOST_AUTO_TEST_CASE(TestPushFrontBack) {
 	BOOST_REQUIRE(buffer == Buffer("1234abcd5678"));
 }
 
+BOOST_AUTO_TEST_CASE(TestUsefulData) {
+	Buffer buffer(5);
+	// |OOOOO|
+	auto usefulData = buffer.usefulData();
+	BOOST_REQUIRE(usefulData.size() == 0);
+
+	buffer.pushBack(5);
+	// |XXXXX|
+	usefulData = buffer.usefulData();
+	BOOST_REQUIRE(usefulData.size() == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(usefulData[0]) == 5);
+
+	buffer.popFront(4);
+	buffer.pushBack(2);
+	// XX|OO|X
+	usefulData = buffer.usefulData();
+	BOOST_REQUIRE(usefulData.size() == 2);
+	BOOST_REQUIRE(boost::asio::buffer_size(usefulData[0]) == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(usefulData[1]) == 2);
+
+	buffer.popFront(1);
+	// |XX|OOO
+	usefulData = buffer.usefulData();
+	BOOST_REQUIRE(usefulData.size() == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(usefulData[0]) == 2);
+
+	buffer.pushBack(3);
+	buffer.popFront(2);
+	// OO|XXX|
+	usefulData = buffer.usefulData();
+	BOOST_REQUIRE(usefulData.size() == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(usefulData[0]) == 3);
+}
+
+BOOST_AUTO_TEST_CASE(TestFreeSpace) {
+	Buffer buffer(5);
+	// |OOOOO|
+	auto freeSpace = buffer.freeSpace();
+	BOOST_REQUIRE(freeSpace.size() == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(freeSpace[0]) == 5);
+
+	buffer.pushBack(5);
+	// |XXXXX|
+	freeSpace = buffer.freeSpace();
+	BOOST_REQUIRE(freeSpace.size() == 0);
+
+	buffer.popFront(2);
+	buffer.popBack(1);
+	// OO|XX|O
+	freeSpace = buffer.freeSpace();
+	BOOST_REQUIRE(freeSpace.size() == 2);
+	BOOST_REQUIRE(boost::asio::buffer_size(freeSpace[0]) == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(freeSpace[1]) == 2);
+
+	buffer.pushBack(1);
+	// OO|XXX|
+	freeSpace = buffer.freeSpace();
+	BOOST_REQUIRE(freeSpace.size() == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(freeSpace[0]) == 2);
+
+	buffer.popBack(2);
+	buffer.pushFront(2);
+	// |XXX|OO
+	freeSpace = buffer.freeSpace();
+	BOOST_REQUIRE(freeSpace.size() == 1);
+	BOOST_REQUIRE(boost::asio::buffer_size(freeSpace[0]) == 2);
+}
+
 BOOST_AUTO_TEST_CASE(TestIsUsefulDataContinuousAndFreeSpaceSizeAt) {
 	Buffer buffer(5);
 	// |OOOOO|

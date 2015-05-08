@@ -96,15 +96,23 @@ uint8_t& Buffer::back() {
 }
 
 std::vector<boost::asio::const_buffer> Buffer::usefulData() const {
-	if ( (_first <= _last) && (usefulDataSize() != size()) ) {
+	if (!_usefulDataSize) {
+		return {};
+	}
+	if (_first < _last) {
 		return {
 			{ _first, static_cast<size_t>(_last - _first) }
 		};
 	} else {
-		return {
-			{ _first, static_cast<size_t>(_end - _first) },
-			{ _begin, static_cast<size_t>(_last - _begin) }
+		std::vector<boost::asio::const_buffer> result = {
+			{ _first, static_cast<size_t>(_end - _first) }
 		};
+		if (_last != _begin) {
+			result.push_back(
+				{ _begin, static_cast<size_t>(_last - _begin) }
+			);
+		}
+		return result;
 	}
 }
 
@@ -117,11 +125,19 @@ bool Buffer::isUsefulDataContinuous() const {
 }
 
 std::vector<boost::asio::mutable_buffer> Buffer::freeSpace() {
-	if ( (_first <= _last) && (usefulDataSize() != size()) ) {
-		return {
-			{ _last, static_cast<size_t>(_end - _last) },
-			{ _begin, static_cast<size_t>(_first - _begin) }
+	if (_usefulDataSize == size()) {
+		return {};
+	}
+	if (_first <= _last) {
+		std::vector<boost::asio::mutable_buffer> result = {
+			{ _last, static_cast<size_t>(_end - _last) }
 		};
+		if (_first != _begin) {
+			result.push_back(
+				{ _begin, static_cast<size_t>(_first - _begin) }
+			);
+		}
+		return result;
 	} else {
 		return {
 			{ _last, static_cast<size_t>(_first - _last) }
@@ -254,6 +270,45 @@ void Buffer::realloc(size_t minimum) {
 	_first = _begin;
 	_last = _begin + _usefulDataSize;
 }
+
+
+
+BufferIteratorRange::BufferIteratorRange() {}
+
+BufferIteratorRange::BufferIteratorRange(const Buffer::ConstIterator& begin, const Buffer::ConstIterator& end)
+	: _begin(begin), _end(end) {}
+
+Buffer::ConstIterator BufferIteratorRange::begin() const {
+	return _begin;
+}
+
+Buffer::ConstIterator BufferIteratorRange::end() const {
+	return _end;
+}
+
+size_t BufferIteratorRange::length() const {
+	return _end - _begin;
+}
+
+BufferIteratorRange::operator std::vector<uint8_t>() const {
+	return { _begin, _end };
+}
+
+bool BufferIteratorRange::operator==(const std::vector<uint8_t>& other) const {
+	if (static_cast<ptrdiff_t>(other.size()) != _end - _begin) {
+		return false;
+	}
+	if (!other.size()) {
+		return true;
+	}
+	return std::equal(_begin, _end, other.begin());
+}
+
+bool BufferIteratorRange::operator!=(const std::vector<uint8_t>& other) const {
+	return !(*this == other);
+}
+
+
 
 BufferUniquePtr MallocBuffer() {
 	auto buffer = ObjectPool<Buffer>::take();

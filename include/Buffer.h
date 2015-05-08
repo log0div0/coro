@@ -36,29 +36,23 @@ public:
 	}
 
 	reference operator*() const {
-#ifndef NDEBUG
 		if (!_it) {
 			throw std::range_error("BufferIterator::operator*");
 		}
-#endif
 		return *_it;
 	}
 
 	pointer operator->() const {
-#ifndef NDEBUG
 		if (!_it) {
 			throw std::range_error("BufferIterator::operator->");
 		}
-#endif
 		return _it;
 	}
 
 	BufferIterator& operator++() {
-#ifndef NDEBUG
 		if (!_it) {
 			throw std::range_error("BufferIterator::operator++");
 		}
-#endif
 		_it = _buffer->move(_it, 1);
 		if (_it == _buffer->_last) {
 			_it = nullptr;
@@ -73,7 +67,6 @@ public:
 	}
 
 	BufferIterator& operator+=(difference_type distance) {
-#ifndef NDEBUG
 		if (!_it) {
 			throw std::range_error("BufferIterator::operator++");
 		}
@@ -86,7 +79,6 @@ public:
 				throw std::range_error("BufferIterator::operator++");
 			}
 		}
-#endif
 		_it = _buffer->move(_it, distance);
 		if (_it == _buffer->_last) {
 			_it = nullptr;
@@ -244,39 +236,17 @@ private:
 
 class BufferIteratorRange {
 public:
-	BufferIteratorRange() {}
-	BufferIteratorRange(const Buffer::ConstIterator& begin, const Buffer::ConstIterator& end)
-		: _begin(begin), _end(end) {}
+	BufferIteratorRange();
+	BufferIteratorRange(const Buffer::ConstIterator& begin, const Buffer::ConstIterator& end);
 
-	Buffer::ConstIterator begin() const {
-		return _begin;
-	}
+	Buffer::ConstIterator begin() const;
+	Buffer::ConstIterator end() const;
+	size_t length() const;
 
-	Buffer::ConstIterator end() const {
-		return _end;
-	}
+	operator std::vector<uint8_t>() const;
 
-	size_t length() const {
-		return _end - _begin;
-	}
-
-	operator std::vector<uint8_t>() const {
-		return { _begin, _end };
-	}
-
-	bool operator==(const std::vector<uint8_t>& other) const {
-		if (static_cast<ptrdiff_t>(other.size()) != _end - _begin) {
-			return false;
-		}
-		if (!other.size()) {
-			return true;
-		}
-		return std::equal(_begin, _end, other.begin());
-	}
-
-	bool operator!=(const std::vector<uint8_t>& other) const {
-		return !(*this == other);
-	}
+	bool operator==(const std::vector<uint8_t>& other) const;
+	bool operator!=(const std::vector<uint8_t>& other) const;
 
 private:
 	Buffer::ConstIterator _begin, _end;

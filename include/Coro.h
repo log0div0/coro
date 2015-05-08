@@ -6,7 +6,11 @@
 #include <boost/context/all.hpp>
 #include <queue>
 
+#ifdef _DEBUG
+#define CORO_STACK_SIZE 1024 * 1024 * 2
+#else
 #define CORO_STACK_SIZE 1024 * 32
+#endif
 
 struct CancelError {};
 
