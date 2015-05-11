@@ -1,6 +1,6 @@
 # Coro
 
-## What's a problem?
+## What's the problem?
 
 Asynchronous IO is a general approach to create high load servers and process hundreds of thousands sessions simultaneously. It gives us a huge performance, but makes our code ugly. For example, let's view the code that reads some data from a socket:
 
@@ -44,13 +44,13 @@ socket.readSome(&buffer);
 
 Where method `readSome` should throw an exception if an error occur.
 
-## What's a solution?
+## What's the solution?
 
 The solution is well known, it's coroutines. The question is how usable the realization can be. The main goal of this realization is the most clear code.
 
 ## Example
 
-This is the code of single thread and **asynchronous** tcp echo server (it's mean it can process multiple sessions simultaneously):
+This is the code of **asynchronous** tcp echo server (it's mean it can process multiple sessions simultaneously):
 
 ```
 TcpServer server(endpoint);
@@ -67,7 +67,7 @@ A few words about `Buffer` class. It's a binary circular buffer. It's split into
 
 ## Example 2
 
-You can apply stl algorithms to socket's iterator **asynchronously**:
+You can use STL algorithms **asynchronously**:
 
 ```
 auto newline = std::find(socket.iterator(buffer), socket.iterator(), '\n');
