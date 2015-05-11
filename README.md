@@ -19,7 +19,7 @@ void MyClass::readHandler1(const boost::system::error_code& error, size_t bytesT
 
 I see a lot of problems in this code:
 
-- Tons of code! Tons of code do the simpliest thing possible. Moreover this code is separated into 2 parts, which can be located far from each other.
+- Tons of code! Tons of code do the simpliest thing possible. Moreover this code is split into 2 parts, which can be located far from each other.
 - We have to create a single handle for practically each operation. It will be `readHandler1`, `readHandler2` .... `readHanderN` or something equivalent in our code. Of cource we can use lambdas from C++11, but it's not a good idea. Because in this case we will have nested lambdas:
 
 ```
@@ -39,7 +39,7 @@ socket.async_read_some(boost::asio::buffer(data, size), [=](const boost::system:
 I like this code:
 
 ```
-socket.readSome(buffer);
+socket.readSome(&buffer);
 ```
 
 Where method `readSome` should throw an exception if an error occur.
@@ -48,3 +48,27 @@ Where method `readSome` should throw an exception if an error occur.
 
 The solution is well known, it's coroutines. The question is how usable the realization can be. The main goal of this realization is the most clear code.
 
+## Example
+
+This is the code of single thread and **asynchronous** tcp echo server (it's mean it can process multiple sessions simultaneously):
+
+```
+TcpServer server(endpoint);
+server.run([](TcpSocket socket) {
+	Buffer buffer;
+	while (true) {
+		buffer.pushBack(socket.readSome(&buffer));
+		buffer.popFront(socket.write(buffer));
+	}
+});
+```
+
+A few words about `Buffer` class. It's a binary circular buffer. It's split into 2 parts: 'useful data' and 'free space'. You can move boundaries of the parts with `pushFront/Back` and `popFront/Back` methods.
+
+## Example 2
+
+You can apply stl algorithms to socket's iterator **asynchronously**:
+
+```
+auto newline = std::find(socket.iterator(buffer), socket.iterator(), '\n');
+```
