@@ -2,7 +2,7 @@
 
 ## What's the problem?
 
-Asynchronous IO is a general approach to create high load servers and process hundreds of thousands sessions simultaneously. It gives us a huge performance, but makes our code ugly. For example, let's view the code that reads some data from a socket:
+Asynchronous IO is a general approach to create high load servers and process hundreds of thousands of sessions simultaneously. It gives us a huge performance, but makes our code ugly. For example, let's take a look at the code that reads some data from a socket:
 
 ```
 socket.async_read_some(boost::asio::buffer(data, size),
@@ -19,8 +19,8 @@ void MyClass::readHandler1(const boost::system::error_code& error, size_t bytesT
 
 I see a lot of problems in this code:
 
-- Tons of code! Tons of code do the simpliest thing possible. Moreover this code is split into 2 parts, which can be located far from each other.
-- We have to create a single handle for practically each operation. It will be `readHandler1`, `readHandler2` .... `readHanderN` or something equivalent in our code. Of cource we can use lambdas from C++11, but it's not a good idea. Because in this case we will have nested lambdas:
+- Tons of code! Such a simple thing has such a difficult realization. Moreover this code is split into 2 parts, which might be located far from each other.
+- We have to create a single handle for each operation. It will be `readHandler1`, `readHandler2` .... `readHanderN` or something equivalent in our code. Of cource we can use lambdas from C++11, but it's not a good idea. Because in this case we have nested lambdas:
 
 ```
 socket.async_read_some(boost::asio::buffer(data, size), [=](const boost::system::error_code& error, size_t bytesTransferred) {
@@ -31,10 +31,10 @@ socket.async_read_some(boost::asio::buffer(data, size), [=](const boost::system:
 });
 ```
 
-- Go on - error codes. Yes, it's a problem, because we can not using exception mechanism. With exceptions we can use RAII idiom to manage resources easily. With error codes you can forget about this feature. Moreover error codes are just numbers while in exceptions we can hold any kind of information: text description, backtrace, number of line of code, timestamp, etc.
-- When a handler is called, there is no stack at all (I mean it will not be the same as before asynchronous operation is initialized). If there is no stack - we need to hold our variables somewhere else. Moreover we will have no idea from where handler was called while debugging the program.
+- Error codes. Yes, it's a problem, because we can't use an exception mechanism. With exceptions we can use RAII idiom to manage resources easily. With error codes you can forget about this feature. Moreover error codes are just numbers while in exceptions we can store any kind of information: text descriptions, backtraces, numbers of lines of code, timestamps, etc.
+- When a handler is called, there is no stack at all (it will be changed after an asynchronous operation is initialized). If there is no stack - we need to hold our variables somewhere else. Moreover we have no idea from where handler has been called while debugging the program.
 
-## How it should look like?
+## How should it look like?
 
 I like this code:
 
@@ -42,15 +42,15 @@ I like this code:
 socket.readSome(&buffer);
 ```
 
-Where method `readSome` should throw an exception if an error occur.
+Where method `readSome` should throw an exception if an error occurs.
 
 ## What's the solution?
 
-The solution is well known, it's coroutines. The question is how usable the realization can be. The main goal of this realization is the most clear code.
+The solution is well known, it's coroutines. The question is how much handy the realization could be. The main goal of this realization is the most clear code.
 
 ## Example
 
-This is the code of **asynchronous** tcp echo server (it's mean it can process multiple sessions simultaneously):
+This is the code of an **asynchronous** tcp echo server (e.g. it can process multiple sessions simultaneously):
 
 ```
 TcpServer server(endpoint);
@@ -63,7 +63,7 @@ server.run([](TcpSocket socket) {
 });
 ```
 
-A few words about `Buffer` class. It's a binary circular buffer. It's split into 2 parts: 'useful data' and 'free space'. You can move boundaries of the parts with `pushFront/Back` and `popFront/Back` methods.
+A few words about `Buffer` class. It's a binary circular buffer. It has two parts: 'useful data' and 'free space'. You can move boundaries of the parts with `pushFront/Back` and `popFront/Back` methods.
 
 ## Example 2
 
