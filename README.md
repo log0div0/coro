@@ -1,10 +1,8 @@
-Coro
-====
+# Coro
 
-What's a problem?
------------------
+## What's a problem?
 
-Asynchronous IO is a general approach to create high load servers and handle hundreds of thousands sessions simultaneously. It gives us a huge performance, but makes our code ugly. For example, let's consider the code that reads some data from a socket:
+Asynchronous IO is a general approach to create high load servers and process hundreds of thousands sessions simultaneously. It gives us a huge performance, but makes our code ugly. For example, let's view the code that reads some data from a socket:
 
 ```
 socket.async_read_some(boost::asio::buffer(data, size),
@@ -36,8 +34,7 @@ socket.async_read_some(boost::asio::buffer(data, size), [=](const boost::system:
 - Go on - error codes. Yes, it's a problem, because we can not using exception mechanism. With exceptions we can use RAII idiom to manage resources easily. With error codes you can forget about this feature. Moreover error codes are just numbers while in exceptions we can hold any kind of information: text description, backtrace, number of line of code, timestamp, etc.
 - When a handler is called, there is no stack at all (I mean it will not be the same as before asynchronous operation is initialized). If there is no stack - we need to hold our variables somewhere else. Moreover we will have no idea from where handler was called while debugging the program.
 
-How it should look like?
-------------------------
+## How it should look like?
 
 I like this code:
 
@@ -45,9 +42,9 @@ I like this code:
 socket.readSome(buffer);
 ```
 
-Where method `readSome` should throw an exception if error occur.
+Where method `readSome` should throw an exception if an error occur.
 
-What's a solution?
-------------------
+## What's a solution?
 
+The solution is well known, it's coroutines. The question is how usable the realization can be. The main goal of this realization is the most clear code.
 
