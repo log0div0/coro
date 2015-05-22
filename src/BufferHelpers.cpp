@@ -1,5 +1,5 @@
 
-#include "MultibyteInteger.h"
+#include "BufferHelpers.h"
 
 
 void WriteMultibyteInteger(Buffer& buffer, uint64_t integer) {

@@ -18,13 +18,13 @@ UdpSocket::UdpSocket(const udp::endpoint& endpoint): _handle(*IoService::current
 }
 
 size_t UdpSocket::send(const Buffer& buffer, const udp::endpoint& endpoint) {
-	AsioTask2 task;
+	AsioTask2<size_t> task;
 	_handle.async_send_to(buffer.usefulData(), endpoint, task.callback());
 	return task.wait(_handle);
 }
 
 size_t UdpSocket::receive(Buffer* buffer, udp::endpoint* endpoint) {
-	AsioTask2 task;
+	AsioTask2<size_t> task;
 	_handle.async_receive_from(buffer->freeSpace(), *endpoint, task.callback());
 	return task.wait(_handle);
 }

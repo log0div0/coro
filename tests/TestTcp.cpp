@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(TestCancelAccept) {
 		try {
 			server.accept();
 		}
-		catch (const CancelError& error) {
+		catch (const CancelError&) {
 			success = true;
 		}
 	})->cancel();

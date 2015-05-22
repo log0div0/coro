@@ -103,7 +103,8 @@ public:
 		return _it == other._it;
 	}
 
-	difference_type operator-(const BufferIterator& from) const {
+	template <typename From>
+	difference_type operator-(const From& from) const {
 		const BufferIterator& to = *this;
 
 		if (from._it != nullptr && to._it != nullptr)
@@ -196,6 +197,8 @@ public:
 
 	void popFront(const Iterator& it);
 	void popBack(const Iterator& it);
+	void popFront(const ConstIterator& it);
+	void popBack(const ConstIterator& it);
 
 	template <typename T>
 	void pushFront(T first, T last) {

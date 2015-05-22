@@ -2,7 +2,7 @@
 #include "CoroPool.h"
 #include "IoService.h"
 
-CoroPool::CoroPool(bool killOnJoin): _killOnJoin(killOnJoin) {
+CoroPool::CoroPool(bool killOnJoin): _killOnJoin(killOnJoin), _joinCalled(false) {
 }
 
 CoroPool::~CoroPool() {
@@ -43,25 +43,39 @@ void CoroPool::join() {
 		}
 	}
 
-	_joinCoros.insert(Coro::current());
+	_joinCalled = true;
 
+	std::exception_ptr exception;
 	try {
-		Coro::current()->yield();
+		_rootCoro->yield();
 	}
 	catch (...) {
-		_joinCoros.erase(Coro::current());
-		throw;
+		exception = std::current_exception();
+	}
+	// не вызывайте yield/resume внутри catch
+	// ограничение boost::context
+	if (exception) {
+		_rootCoro->yieldNoThrow();
+	}
+
+	_joinCalled = false;
+
+	assert(_execCoros.empty());
+
+	if (exception) {
+		std::rethrow_exception(exception);
 	}
 }
 
 void CoroPool::onCoroDone(Coro* coro) {
 	_execCoros.erase(coro);
+	for (auto exception: coro->exceptions()) {
+		assert(exception);
+		_rootCoro->resume(exception);
+	}
 	delete coro;
 
-	if (_execCoros.empty()) {
-		auto joinCoros = std::move(_joinCoros);
-		for (auto coro: joinCoros) {
-			coro->resume();
-		}
+	if (_execCoros.empty() && _joinCalled) {
+		_rootCoro->resume();
 	}
 }

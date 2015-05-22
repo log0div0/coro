@@ -35,6 +35,10 @@ public:
 		}
 	}
 
+	size_t size() const {
+		return _data.size();
+	}
+
 private:
 	std::queue<T> _data;
 	std::list<Coro*> _consumers;

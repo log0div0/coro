@@ -16,10 +16,12 @@ Coro* Coro::current() {
 Coro::Coro(std::function<void()> routine)
 	: _routine(std::move(routine)),
 	  _stack(CORO_STACK_SIZE),
-	  _isDone(false)
+	  _isDone(false), _yieldNoThrow(false)
 {
 	_context = boost::context::make_fcontext(&_stack.back(), _stack.size(), Run);
+#if BOOST_VERSION >= 105600
 	_savedContext = nullptr;
+#endif
 }
 
 Coro::~Coro() {
@@ -27,13 +29,31 @@ Coro::~Coro() {
 }
 
 void Coro::resume() {
-	assert(!_isDone);
-	assert(_context && !_savedContext);
+	if (_isDone) {
+#ifdef _DEBUG
+		printf("Coro::resume: Coro is done already\n");
+#endif
+		return;
+	}
 	auto coro = t_coro;
 	t_coro = this;
+#if BOOST_VERSION >= 105600
+	assert(_context && !_savedContext);
 	boost::context::jump_fcontext(&_savedContext, _context, reinterpret_cast<intptr_t>(this));
 	_savedContext = nullptr;
+#else
+	boost::context::jump_fcontext(&_savedContext, _context, reinterpret_cast<intptr_t>(this));
+#endif
 	t_coro = coro;
+}
+
+void Coro::resume(std::exception_ptr exception) {
+	assert(exception);
+	_exceptions.push_back(exception);
+	if (_yieldNoThrow) {
+		return;
+	}
+	resume();
 }
 
 void Coro::yield() {
@@ -41,15 +61,21 @@ void Coro::yield() {
 		throwException();
 	}
 
+#if BOOST_VERSION >= 105600
 	assert(!_context && _savedContext);
 	boost::context::jump_fcontext(&_context, _savedContext, 0);
 	_context = nullptr;
+#else
+	boost::context::jump_fcontext(_context, &_savedContext, 0);
+#endif
 
 	throwException();
 }
 
-void Coro::throwOnResumeOrYield(std::exception_ptr exception) {
-	_exceptions.push(exception);
+void Coro::yieldNoThrow() {
+	_yieldNoThrow = true;
+	yield();
+	_yieldNoThrow = false;
 }
 
 void Coro::cancel() {
@@ -57,9 +83,13 @@ void Coro::cancel() {
 }
 
 void Coro::throwException() {
+	if (_yieldNoThrow) {
+		return;
+	}
 	if (_exceptions.size()) {
 		auto exception = _exceptions.front();
-		_exceptions.pop();
+		_exceptions.pop_front();
+		assert(exception);
 		std::rethrow_exception(exception);
 	}
 }
@@ -70,19 +100,14 @@ void Coro::run() {
 	{
 		_routine();
 	}
-	catch (const CancelError& error) {
+	catch (const CancelError&) {
 		// do nothing
-	}
-	catch (const std::exception& error) {
-		#ifndef NDEBUG
-			printf("Uncatched exception: %s\n", error.what());
-		#endif
 	}
 	catch (...)
 	{
-		#ifndef NDEBUG
-			printf("Uncatched exception!!!!\n");
-		#endif
+		auto exception = std::current_exception();
+		assert(exception);
+		_exceptions.push_front(exception);
 	}
 	_isDone = true;
 	yield();

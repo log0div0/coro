@@ -2,6 +2,7 @@
 #pragma once
 
 #include <boost/asio/steady_timer.hpp>
+#include <atomic>
 #include "Coro.h"
 #include "IoService.h"
 
@@ -30,9 +31,13 @@ public:
 		_timer.expires_from_now(duration);
 		_timer.async_wait([=](const boost::system::error_code& errorCode) {
 			_callbackExecuted = true;
-			if (errorCode == boost::asio::error::operation_aborted) {
+			if (_timerCanceled) {
 				return _coro->resume();
 			}
+			// здесь никогда не окажемся, т.к. есть _timerCanceled
+			// if (errorCode == boost::asio::error::operation_aborted) {
+			// 	return _coro->resume();
+			// }
 			if (errorCode) {
 				return _coro->resume(boost::system::system_error(errorCode));
 			}
@@ -41,8 +46,11 @@ public:
 	}
 
 	~Timeout() {
-		_timer.cancel();
-		waitCallbackExecution();
+		if (!_callbackExecuted) {
+			_timerCanceled = true;
+			_timer.cancel();
+			waitCallbackExecution();
+		}
 	}
 
 	uint64_t id() const {
@@ -51,23 +59,14 @@ public:
 
 private:
 	void waitCallbackExecution() {
-		std::vector<std::exception_ptr> exceptions;
-		while (!_callbackExecuted) {
-			try {
-				_coro->yield();
-			}
-			catch (...) {
-				exceptions.push_back(std::current_exception());
-			}
-		}
-		for (auto exception: exceptions) {
-			_coro->throwOnResumeOrYield(exception);
-		}
+		_coro->yieldNoThrow();
 	}
 
 	boost::asio::steady_timer _timer;
+
 	static std::atomic<uint64_t> idCounter;
 	uint64_t _id = ++idCounter;
-	bool _callbackExecuted = false;
+
 	Coro* _coro = Coro::current();
+	bool _timerCanceled = false, _callbackExecuted = false;
 };

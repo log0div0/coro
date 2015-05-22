@@ -37,42 +37,30 @@ size_t WsMessage::payloadLength() const {
 }
 
 
-void WsProtocol::writeMessage(WsMessage::OpCode opCode, Buffer& buffer) const {
-	WriteWsPayloadLength(buffer, buffer.usefulDataSize());
-	buffer.pushFront(1);
-	buffer.front() = 0x80 | static_cast<uint8_t>(opCode);
-}
-
-
-WsClientProtocol::WsClientProtocol(const std::string& url): _url(url) {
-
-}
-
-
-const std::string WsClientProtocol::handshakeRequest = "GET %1% HTTP/1.1\r\n\
+const std::string WsProtocol::handshakeRequest = "GET %1% HTTP/1.1\r\n\
 Connection: Upgrade\r\n\
 Upgrade: websocket\r\n\
 \r\n";
 
 
-void WsClientProtocol::writeHandshakeRequest(Buffer& buffer) const {
-	std::string request = Format(handshakeRequest, _url);
+void WsProtocol::writeHandshakeRequest(const std::string& path, Buffer& buffer) const {
+	std::string request = Format(handshakeRequest, path);
 	buffer.pushBack(request.begin(), request.end());
 }
 
 
-const std::string WsServerProtocol::handshakeResponse = "HTTP/1.1 101 Switching Protocols\r\n\
+const std::string WsProtocol::handshakeResponse = "HTTP/1.1 101 Switching Protocols\r\n\
 Connection: Upgrade\r\n\
 Upgrade: websocket\r\n\
 Sec-WebSocket-Accept: %1%\r\n\
 \r\n";
 
 
-const HttpHeaders& WsServerProtocol::handshakeHeaders() const {
+const HttpHeaders& WsProtocol::handshakeHeaders() const {
 	return _headers;
 }
 
-std::string WsServerProtocol::generateResponse() {
+std::string WsProtocol::generateResponse() {
 #ifndef _MSC_VER
 	if (_headers.count("Sec-WebSocket-Key")) {
 		std::string acceptKey;
@@ -91,4 +79,11 @@ std::string WsServerProtocol::generateResponse() {
 #else
 	return Format(handshakeResponse, "-");
 #endif
+}
+
+
+void WsProtocol::writeMessage(WsMessage::OpCode opCode, Buffer& buffer) const {
+	WriteWsPayloadLength(buffer, buffer.usefulDataSize());
+	buffer.pushFront(1);
+	buffer.front() = 0x80 | static_cast<uint8_t>(opCode);
 }

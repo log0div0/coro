@@ -76,7 +76,7 @@ public:
 
 private:
 	TcpSocket _socket;
-	WsServerProtocol _wsProtocol;
+	WsProtocol _wsProtocol;
 	BufferUniquePtr _inputBuffer = MallocBuffer();
 };
 

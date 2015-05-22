@@ -39,6 +39,45 @@ private:
 
 class WsProtocol {
 public:
+	void writeHandshakeRequest(const std::string& path, Buffer& buffer) const;
+
+	/**
+	  * @param [begin, end) - client HTTP request
+	  * @throw std::runtime_error если [begin, end) содержит некорректный запрос
+	  */
+	template <typename Iterator>
+	Buffer::Iterator doHandshake(const Iterator& begin, const Iterator& end, Buffer& output) {
+		Iterator it = begin;
+		HttpRequestParser<Iterator> parser;
+		HttpRequest request;
+		if (!boost::spirit::qi::parse(it, end, parser, request)) {
+			throw std::runtime_error("Invalid HTTP request");
+		};
+		_headers = std::move(request.headers);
+
+		std::string response = generateResponse();
+		output.pushBack(response.begin(), response.end());
+
+		return it;
+	}
+
+	/**
+	  * @throw std::runtime_error если [begin, end) содержит некорректный ответ
+	  */
+	template <typename Iterator>
+	Buffer::Iterator readHandshakeResponse(const Iterator& begin, const Iterator& end) {
+		Iterator it = begin;
+		HttpResponseParser<Iterator> parser;
+		HttpResponse response;
+		if (!boost::spirit::qi::parse(it, end, parser, response)) {
+			throw std::runtime_error("Invalid HTTP response");
+		};
+		_headers = std::move(response.headers);
+		return it;
+	}
+
+	const HttpHeaders& handshakeHeaders() const;
+
 	/**
 	  * @throw std::runtime_error eсли [begin, end) содержит некорректное сообщение
 	  */
@@ -76,62 +115,12 @@ public:
 
 	// Обрамляют данные в буфере так, чтобы получилось ws сообщение
 	void writeMessage(WsMessage::OpCode opCode, Buffer& buffer) const;
-};
-
-
-class WsClientProtocol: public WsProtocol {
-public:
-	WsClientProtocol(const std::string& url = "/");
-
-	void writeHandshakeRequest(Buffer& buffer) const;
-	/**
-	  * @throw std::runtime_error если [begin, end) содержит некорректный ответ
-	  */
-	template <typename Iterator>
-	Buffer::Iterator readHandshakeResponse(const Iterator& begin, const Iterator& end) const {
-		Iterator it = begin;
-		HttpResponseParser<Iterator> parser;
-		HttpResponse response;
-		if (!boost::spirit::qi::parse(it, end, parser, response)) {
-			throw std::runtime_error("Invalid HTTP response");
-		};
-		return it;
-	}
 
 private:
 	static const std::string handshakeRequest;
-	std::string _url;
-};
-
-
-class WsServerProtocol: public WsProtocol {
-public:
-	/**
-	  * @param [begin, end) - client HTTP request
-	  * @throw std::runtime_error если [begin, end) содержит некорректный запрос
-	  */
-	template <typename Iterator>
-	Buffer::Iterator doHandshake(const Iterator& begin, const Iterator& end, Buffer& output) {
-		Iterator it = begin;
-		HttpRequestParser<Iterator> parser;
-		HttpRequest request;
-		if (!boost::spirit::qi::parse(it, end, parser, request)) {
-			throw std::runtime_error("Invalid HTTP request");
-		};
-		_headers = std::move(request.headers);
-
-		std::string response = generateResponse();
-		output.pushBack(response.begin(), response.end());
-
-		return it;
-	}
-
-	const HttpHeaders& handshakeHeaders() const;
-
-private:
+	static const std::string handshakeResponse;
 
 	std::string generateResponse();
 
-	static const std::string handshakeResponse;
 	HttpHeaders _headers;
 };

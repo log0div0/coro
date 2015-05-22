@@ -14,6 +14,7 @@ public:
 private:
 	void onCoroDone(Coro* coro);
 
-	std::set<Coro*> _execCoros, _joinCoros;
-	bool _killOnJoin;
+	std::set<Coro*> _execCoros;
+	Coro* _rootCoro = Coro::current();
+	bool _killOnJoin, _joinCalled;
 };

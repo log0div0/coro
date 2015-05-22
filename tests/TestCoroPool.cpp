@@ -24,4 +24,15 @@ BOOST_AUTO_TEST_CASE(Test) {
 }
 
 
+BOOST_AUTO_TEST_CASE(TestKillOnJoin) {
+	CoroPool pool(true);
+
+	pool.exec([] {
+		Coro::current()->yield();
+	});
+
+	pool.join();
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()

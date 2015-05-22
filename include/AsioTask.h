@@ -10,33 +10,25 @@ class AsioTask {
 protected:
 	template <typename Handle>
 	void doWait(Handle& handle) {
+		std::exception_ptr exception;
 		try {
 			_coro->yield();
 		}
 		catch (...) {
-			handle.cancel();
-			waitCallbackExecution();
-			throw;
+			exception = std::current_exception();
 		}
-	}
-
-	void waitCallbackExecution() {
-		std::vector<std::exception_ptr> exceptions;
-		while (true) {
-			try {
-				_coro->yield();
-				break;
-			}
-			catch (...) {
-				exceptions.push_back(std::current_exception());
-			}
-		};
-		for (auto exception: exceptions) {
-			_coro->throwOnResumeOrYield(exception);
+		// не вызывайте yield/resume внутри catch
+		// ограничение boost::context
+		if (exception) {
+			handle.cancel();
+			_coro->yieldNoThrow();
+			assert(_isCallbackExecuted);
+			std::rethrow_exception(exception);
 		}
 	}
 
 	Coro* _coro = Coro::current();
+	bool _isCallbackExecuted = false;
 };
 
 
@@ -44,6 +36,7 @@ class AsioTask1: public AsioTask {
 public:
 	std::function<void(const boost::system::error_code&)> callback() {
 		return [=](const boost::system::error_code& errorCode) {
+			_isCallbackExecuted = true;
 			_errorCode = errorCode;
 			_coro->resume();
 		};
@@ -63,28 +56,30 @@ private:
 };
 
 
+template <typename Result>
 class AsioTask2: public AsioTask {
 public:
-	std::function<void(const boost::system::error_code&, size_t)> callback() {
-		return [=](const boost::system::error_code& errorCode, size_t bytesTranfered) {
+	std::function<void(const boost::system::error_code&, Result)> callback() {
+		return [=](const boost::system::error_code& errorCode, Result result) {
+			_isCallbackExecuted = true;
 			_errorCode = errorCode;
-			_bytesTranfered = bytesTranfered;
+			_result = result;
 			_coro->resume();
 		};
 	}
 
 	template <typename Handle>
-	size_t wait(Handle& handle) {
+	Result wait(Handle& handle) {
 		doWait(handle);
 
 		if (_errorCode) {
 			throw boost::system::system_error(_errorCode);
 		}
 
-		return _bytesTranfered;
+		return _result;
 	}
 
 private:
 	boost::system::error_code _errorCode;
-	size_t _bytesTranfered = 0;
+	Result _result;
 };

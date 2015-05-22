@@ -36,12 +36,28 @@ BOOST_AUTO_TEST_CASE(TestCancel) {
 		try {
 			Coro::current()->yield();
 		}
-		catch (const CancelError& error) {
+		catch (const CancelError&) {
 			success = true;
 		}
 	});
 	coro.resume();
 	coro.cancel();
+	BOOST_REQUIRE(success);
+}
+
+
+BOOST_AUTO_TEST_CASE(TestThrow) {
+	bool success = false;
+	Coro coro([&] {
+		try {
+			Coro::current()->yield();
+		}
+		catch (...) {
+			success = true;
+		}
+	});
+	coro.resume();
+	coro.resume(0);
 	BOOST_REQUIRE(success);
 }
 

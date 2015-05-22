@@ -1,9 +1,9 @@
 
 #include <boost/test/unit_test.hpp>
-#include "MultibyteInteger.h"
+#include "BufferHelpers.h"
 
 
-BOOST_AUTO_TEST_SUITE(SuiteMultibyteInteger)
+BOOST_AUTO_TEST_SUITE(SuiteBufferHelpers)
 
 
 BOOST_AUTO_TEST_CASE(TestReadMultibyteInteger) {

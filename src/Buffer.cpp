@@ -215,6 +215,16 @@ void Buffer::popBack(const Iterator& it) {
 }
 
 
+void Buffer::popFront(const ConstIterator& it) {
+	popFront(it - begin());
+}
+
+
+void Buffer::popBack(const ConstIterator& it) {
+	popBack(end() - it);
+}
+
+
 size_t Buffer::size() const {
 	return _end - _begin;
 }

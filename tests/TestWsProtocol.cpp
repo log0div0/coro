@@ -150,8 +150,9 @@ BOOST_AUTO_TEST_CASE(TestReadMaskedMessage) {
 }
 
 
+#ifndef _MSC_VER
 BOOST_AUTO_TEST_CASE(TestServerSuccessfulConnection) {
-	WsServerProtocol protocol;
+	WsProtocol protocol;
 
 	Buffer inputBuffer, outputBuffer;
 	inputBuffer.pushBack(clientHandshake.begin(), clientHandshake.end());
@@ -190,14 +191,15 @@ BOOST_AUTO_TEST_CASE(TestServerSuccessfulConnection) {
 	inputBuffer.popFront(message.end());
 	BOOST_REQUIRE(inputBuffer.usefulDataSize() == 0);
 }
+#endif
 
 
 BOOST_AUTO_TEST_CASE(TestClientSuccessfulConnection) {
-	WsClientProtocol protocol("/some/path");
+	WsProtocol protocol;
 
 	Buffer inputBuffer, outputBuffer;
 
-	protocol.writeHandshakeRequest(outputBuffer);
+	protocol.writeHandshakeRequest("/some/path", outputBuffer);
 
 	BOOST_REQUIRE(outputBuffer.usefulDataSize() == basicClientHandshake.size());
 	BOOST_REQUIRE(std::equal(outputBuffer.begin(), outputBuffer.end(),
@@ -212,7 +214,7 @@ BOOST_AUTO_TEST_CASE(TestClientSuccessfulConnection) {
 
 
 BOOST_AUTO_TEST_CASE(TestServerInvalidHTTPRequest) {
-	WsServerProtocol protocol;
+	WsProtocol protocol;
 	Buffer inputBuffer("aaaa"), outputBuffer;
 	BOOST_REQUIRE_THROW(protocol.doHandshake(inputBuffer.begin(), inputBuffer.end(), outputBuffer),
 		std::runtime_error);
