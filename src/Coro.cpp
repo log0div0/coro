@@ -2,6 +2,7 @@
 #include "Coro.h"
 #include "ThreadLocal.h"
 #include <cassert>
+#include <boost/log/trivial.hpp>
 
 THREAD_LOCAL Coro* t_coro = nullptr;
 
@@ -30,9 +31,7 @@ Coro::~Coro() {
 
 void Coro::resume() {
 	if (_isDone) {
-#ifdef _DEBUG
-		printf("Coro::resume: Coro is done already\n");
-#endif
+		BOOST_LOG_TRIVIAL(debug) << "Coro::resume: Coro is done already";
 		return;
 	}
 	auto coro = t_coro;

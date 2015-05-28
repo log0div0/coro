@@ -12,9 +12,12 @@ UdpSocket::UdpSocket(): _handle(*IoService::current(), udp::v4())
 
 }
 
-UdpSocket::UdpSocket(const udp::endpoint& endpoint): _handle(*IoService::current(), endpoint)
+UdpSocket::UdpSocket(const udp::endpoint& endpoint): _handle(*IoService::current())
 {
-
+	_handle.open(endpoint.protocol());
+	boost::asio::socket_base::reuse_address option(true);
+	_handle.set_option(option);
+	_handle.bind(endpoint);
 }
 
 size_t UdpSocket::send(const Buffer& buffer, const udp::endpoint& endpoint) {

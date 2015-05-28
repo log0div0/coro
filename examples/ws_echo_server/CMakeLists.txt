@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 cmake_policy(SET CMP0017 OLD)
 
 include(FindBoost)
-find_package(Boost COMPONENTS REQUIRED system context)
+find_package(Boost COMPONENTS REQUIRED system context log thread)
+
+add_definitions(-DBOOST_LOG_DYN_LINK)
 
 file(GLOB SRC "*.cpp")
 

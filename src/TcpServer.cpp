@@ -8,10 +8,13 @@ using boost::system::error_code;
 using boost::system::system_error;
 using namespace boost::asio::ip;
 
-TcpServer::TcpServer(const tcp::endpoint& endpoint): _handle(*IoService::current(), endpoint)
+TcpServer::TcpServer(const tcp::endpoint& endpoint): _handle(*IoService::current())
 {
+	_handle.open(endpoint.protocol());
 	boost::asio::socket_base::reuse_address option(true);
 	_handle.set_option(option);
+	_handle.bind(endpoint);
+	_handle.listen();
 }
 
 tcp::socket TcpServer::accept() {

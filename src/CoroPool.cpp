@@ -44,27 +44,10 @@ void CoroPool::join() {
 	}
 
 	_joinCalled = true;
-
-	std::exception_ptr exception;
-	try {
-		_rootCoro->yield();
-	}
-	catch (...) {
-		exception = std::current_exception();
-	}
-	// не вызывайте yield/resume внутри catch
-	// ограничение boost::context
-	if (exception) {
-		_rootCoro->yieldNoThrow();
-	}
-
+	_rootCoro->yieldNoThrow();
 	_joinCalled = false;
 
 	assert(_execCoros.empty());
-
-	if (exception) {
-		std::rethrow_exception(exception);
-	}
 }
 
 void CoroPool::onCoroDone(Coro* coro) {

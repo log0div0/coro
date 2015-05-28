@@ -73,6 +73,14 @@ public:
 		return doReadSome(buffer->freeSpace());
 	}
 
+	Handle& handle() {
+		return _handle;
+	}
+
+	const Handle& handle() const {
+		return _handle;
+	}
+
 protected:
 	Handle _handle;
 };

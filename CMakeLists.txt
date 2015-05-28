@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 cmake_policy(SET CMP0017 OLD)
 
-add_definitions(-std=c++1y -Wall)
+add_definitions(-std=c++1y -Wall -DBOOST_LOG_DYN_LINK)
 
 if(BUILD_DEBUG)
 	add_definitions(-O0 -g)
