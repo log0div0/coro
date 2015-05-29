@@ -94,7 +94,9 @@ void Coro::throwException() {
 }
 
 void Coro::run() {
+#if BOOST_VERSION >= 105600
 	_context = nullptr;
+#endif
 	try
 	{
 		_routine();

@@ -20,6 +20,15 @@ UdpSocket::UdpSocket(const udp::endpoint& endpoint): _handle(*IoService::current
 	_handle.bind(endpoint);
 }
 
+UdpSocket::UdpSocket(UdpSocket&& other): _handle(std::move(other._handle)) {
+
+}
+
+UdpSocket& UdpSocket::operator=(UdpSocket&& other) {
+	_handle = std::move(other._handle);
+	return *this;
+}
+
 size_t UdpSocket::send(const Buffer& buffer, const udp::endpoint& endpoint) {
 	AsioTask2<size_t> task;
 	_handle.async_send_to(buffer.usefulData(), endpoint, task.callback());

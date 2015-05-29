@@ -1,6 +1,7 @@
 
 #include "CoroPool.h"
 #include "IoService.h"
+#include "Finally.h"
 
 CoroPool::CoroPool(bool killOnJoin): _killOnJoin(killOnJoin), _joinCalled(false) {
 }
@@ -9,20 +10,12 @@ CoroPool::~CoroPool() {
 	join();
 }
 
-class GC {
-public:
-	GC(std::function<void()> fn): _fn(std::move(fn)) {}
-	~GC() {
-		IoService::current()->post(_fn);
-	}
-
-private:
-	std::function<void()> _fn;
-};
-
 Coro* CoroPool::exec(std::function<void()> routine) {
 	auto coro = new Coro([=] {
-		GC gc(std::bind(&CoroPool::onCoroDone, this, Coro::current()));
+		Finally cleanup([=] {
+			onCoroDone(Coro::current());
+		});
+
 		routine();
 	});
 	_execCoros.insert(coro);
@@ -51,14 +44,16 @@ void CoroPool::join() {
 }
 
 void CoroPool::onCoroDone(Coro* coro) {
-	_execCoros.erase(coro);
-	for (auto exception: coro->exceptions()) {
-		assert(exception);
-		_rootCoro->resume(exception);
-	}
-	delete coro;
+	IoService::current()->post([=] {
+		_execCoros.erase(coro);
+		for (auto exception: coro->exceptions()) {
+			assert(exception);
+			_rootCoro->resume(exception);
+		}
+		delete coro;
 
-	if (_execCoros.empty() && _joinCalled) {
-		_rootCoro->resume();
-	}
+		if (_execCoros.empty() && _joinCalled) {
+			_rootCoro->resume();
+		}
+	});
 }
