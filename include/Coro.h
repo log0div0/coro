@@ -3,17 +3,29 @@
 
 #include <functional>
 #include <vector>
+#include <memory>
 #include <boost/context/all.hpp>
+#include <boost/coroutine/stack_context.hpp>
+#include <boost/coroutine/protected_stack_allocator.hpp>
 #include <deque>
 #include <boost/version.hpp>
 
+struct CancelError {};
+
 #ifdef _DEBUG
-#define CORO_STACK_SIZE 1024 * 1024 * 10
+#define CORO_STACK_SIZE 1024 * 1024 * 4
 #else
 #define CORO_STACK_SIZE 1024 * 32
 #endif
 
-struct CancelError {};
+struct CoroStack: public boost::coroutines::stack_context {
+	CoroStack() {
+		boost::coroutines::protected_stack_allocator().allocate(*this, CORO_STACK_SIZE);
+	}
+	~CoroStack() {
+		boost::coroutines::protected_stack_allocator().deallocate(*this);
+	}
+};
 
 class Coro {
 public:
@@ -41,7 +53,7 @@ private:
 	void throwException();
 
 	std::function<void()> _routine;
-	std::vector<uint8_t> _stack;
+	std::unique_ptr<CoroStack, std::function<void(CoroStack*)>&> _stack;
 #if BOOST_VERSION >= 105600
 	boost::context::fcontext_t _context, _savedContext;
 #else

@@ -1,6 +1,7 @@
 
 #include "Coro.h"
 #include "ThreadLocal.h"
+#include "ObjectPool.h"
 #include <cassert>
 #include <boost/log/trivial.hpp>
 
@@ -16,10 +17,10 @@ Coro* Coro::current() {
 
 Coro::Coro(std::function<void()> routine)
 	: _routine(std::move(routine)),
-	  _stack(CORO_STACK_SIZE),
+	  _stack(ObjectPool<CoroStack>::take()),
 	  _isDone(false), _yieldNoThrow(false)
 {
-	_context = boost::context::make_fcontext(&_stack.back(), _stack.size(), Run);
+	_context = boost::context::make_fcontext(_stack->sp, _stack->size, Run);
 #if BOOST_VERSION >= 105600
 	_savedContext = nullptr;
 #endif
