@@ -39,6 +39,7 @@ struct CoroStack: public boost::coroutines::stack_context {
 };
 
 class Coro {
+	friend class CoroPool;
 public:
 	static Coro* current();
 
@@ -55,10 +56,6 @@ public:
 	void yieldNoThrow();
 
 	void cancel();
-
-	const std::deque<std::exception_ptr>& exceptions() const {
-		return _exceptions;
-	}
 
 private:
 	void throwException();

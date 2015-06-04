@@ -48,10 +48,11 @@ void CoroPool::join() {
 void CoroPool::onCoroDone(Coro* coro) {
 	IoService::current()->post([=] {
 		_execCoros.erase(coro);
-		for (auto exception: coro->exceptions()) {
+		for (auto exception: coro->_exceptions) {
 			assert(exception);
 			_rootCoro->resume(exception);
 		}
+		coro->_exceptions.clear();
 		delete coro;
 
 		if (_execCoros.empty() && _joinCalled) {
