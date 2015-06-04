@@ -32,7 +32,9 @@ void CoroPool::join() {
 
 	if (_killOnJoin) {
 		for (auto coro: _execCoros) {
-			coro->resume(CancelError());
+			IoService::current()->post([=] {
+				coro->resume(CancelError());
+			});
 		}
 	}
 

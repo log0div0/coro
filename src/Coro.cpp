@@ -28,6 +28,26 @@ Coro::Coro(std::function<void()> routine)
 
 Coro::~Coro() {
 	assert(_isDone);
+	if (_exceptions.size()) {
+		std::string what;
+		for (auto exception: _exceptions) {
+			what += "\n";
+			try {
+				std::rethrow_exception(exception);
+			}
+			catch (const std::exception& error) {
+				what += error.what();
+			}
+			catch (const CancelError&) {
+				what += "CancelError";
+			}
+			catch (...) {
+				what += "...";
+			}
+		}
+		BOOST_LOG_TRIVIAL(debug) << "Coro::~Coro: " << _exceptions.size() << " unhandled exceptions: "
+			<< what;
+	}
 }
 
 void Coro::resume() {
