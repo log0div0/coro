@@ -4,11 +4,15 @@
 #include <functional>
 #include <vector>
 #include <memory>
+#include <boost/version.hpp>
 #include <boost/context/all.hpp>
 #include <boost/coroutine/stack_context.hpp>
+#if BOOST_VERSION >= 105600
 #include <boost/coroutine/protected_stack_allocator.hpp>
+#else
+#include <boost/coroutine/stack_allocator.hpp>
+#endif
 #include <deque>
-#include <boost/version.hpp>
 
 struct CancelError {};
 
@@ -19,11 +23,18 @@ struct CancelError {};
 #endif
 
 struct CoroStack: public boost::coroutines::stack_context {
+
+#if BOOST_VERSION >= 105600
+	typedef boost::coroutines::protected_stack_allocator stack_allocator;
+#else
+	typedef boost::coroutines::stack_allocator stack_allocator;
+#endif
+
 	CoroStack() {
-		boost::coroutines::protected_stack_allocator().allocate(*this, CORO_STACK_SIZE);
+		stack_allocator().allocate(*this, CORO_STACK_SIZE);
 	}
 	~CoroStack() {
-		boost::coroutines::protected_stack_allocator().deallocate(*this);
+		stack_allocator().deallocate(*this);
 	}
 };
 
