@@ -42,7 +42,7 @@ UdpServer::UdpServer(const udp::endpoint& endpoint)
 }
 
 void UdpServer::run(std::function<void(UdpServerConnection)> callback) {
-	CoroPool coroPool;
+	CoroPool coroPool(true);
 	while (true) {
 		auto buffer = MallocBuffer();
 		udp::endpoint endpoint;
