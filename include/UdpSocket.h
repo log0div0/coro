@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Buffer.h"
-#include <boost/asio.hpp>
+#include "Mutex.h"
 
 class UdpSocket {
 public:
@@ -17,4 +17,5 @@ public:
 
 private:
 	boost::asio::ip::udp::socket _handle;
+	Mutex _receiveMutex, _sendMutex;
 };

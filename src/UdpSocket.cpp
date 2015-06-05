@@ -30,12 +30,14 @@ UdpSocket& UdpSocket::operator=(UdpSocket&& other) {
 }
 
 size_t UdpSocket::send(const Buffer& buffer, const udp::endpoint& endpoint) {
+	std::lock_guard<Mutex> lock(_sendMutex);
 	AsioTask2<size_t> task;
 	_handle.async_send_to(buffer.usefulData(), endpoint, task.callback());
 	return task.wait(_handle);
 }
 
 size_t UdpSocket::receive(Buffer* buffer, udp::endpoint* endpoint) {
+	std::lock_guard<Mutex> lock(_receiveMutex);
 	AsioTask2<size_t> task;
 	_handle.async_receive_from(buffer->freeSpace(), *endpoint, task.callback());
 	return task.wait(_handle);

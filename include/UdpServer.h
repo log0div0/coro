@@ -3,7 +3,6 @@
 
 #include "UdpSocket.h"
 #include "Queue.h"
-#include "Mutex.h"
 
 class UdpServer;
 
@@ -42,9 +41,6 @@ public:
 	void run(std::function<void(UdpServerConnection)> callback);
 
 private:
-	void send(BufferUniquePtr buffer, const boost::asio::ip::udp::endpoint& endpoint);
-
 	std::map<boost::asio::ip::udp::endpoint, Queue<BufferUniquePtr>> _inputQueues;
 	UdpSocket _socket;
-	Mutex _mutex;
 };

@@ -4,6 +4,7 @@
 
 #include "StreamIterator.h"
 #include "AsioTask.h"
+#include "Mutex.h"
 
 
 template <typename Handle>
@@ -31,6 +32,7 @@ public:
 
 	template <typename T>
 	size_t doWrite(const T& t) {
+		std::lock_guard<Mutex> lock(_writeMutex);
 		AsioTask2<size_t> task;
 		boost::asio::async_write(_handle, t, task.callback());
 		return task.wait(_handle);
@@ -38,6 +40,7 @@ public:
 
 	template <typename T>
 	size_t doRead(const T& t) {
+		std::lock_guard<Mutex> lock(_readMutex);
 		AsioTask2<size_t> task;
 		boost::asio::async_read(_handle, t, task.callback());
 		return task.wait(_handle);
@@ -53,6 +56,7 @@ public:
 
 	template <typename T>
 	size_t doWriteSome(const T& t) {
+		std::lock_guard<Mutex> lock(_writeMutex);
 		AsioTask2<size_t> task;
 		_handle.async_write_some(t, task.callback());
 		return task.wait(_handle);
@@ -60,6 +64,7 @@ public:
 
 	template <typename T>
 	size_t doReadSome(const T& t) {
+		std::lock_guard<Mutex> lock(_readMutex);
 		AsioTask2<size_t> task;
 		_handle.async_read_some(t, task.callback());
 		return task.wait(_handle);
@@ -83,4 +88,5 @@ public:
 
 protected:
 	Handle _handle;
+	Mutex _readMutex, _writeMutex;
 };

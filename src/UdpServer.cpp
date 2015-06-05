@@ -29,7 +29,7 @@ UdpServerConnection::~UdpServerConnection() {
 }
 
 void UdpServerConnection::send(BufferUniquePtr buffer) {
-	_server->send(std::move(buffer), _endpoint);
+	_server->_socket.send(*buffer, _endpoint);
 }
 
 BufferUniquePtr UdpServerConnection::receive() {
@@ -58,9 +58,4 @@ void UdpServer::run(std::function<void(UdpServerConnection)> callback) {
 		}
 		it->second.push(std::move(buffer));
 	}
-}
-
-void UdpServer::send(BufferUniquePtr buffer, const boost::asio::ip::udp::endpoint& endpoint) {
-	std::lock_guard<Mutex> lock(_mutex);
-	_socket.send(*buffer, endpoint);
 }
