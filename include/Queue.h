@@ -30,8 +30,9 @@ public:
 		_data.push(std::forward<U>(u));
 
 		if (!_consumers.empty()) {
-			_consumers.front()->resume();
+			auto coro = _consumers.front();
 			_consumers.pop_front();
+			coro->resume();
 		}
 	}
 
