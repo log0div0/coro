@@ -6,12 +6,6 @@
 #include "Coro.h"
 #include "IoService.h"
 
-// Без decltype конструкция наподобии
-// Timeout timeout(std::chrono::seconds(3))
-// НЕ ПОПАДАЕТ в бинарник
-// WTF????
-#define DECLARE_TIMEOUT(duration) Timeout timeout((decltype(duration))duration)
-
 class TimeoutError: public std::runtime_error {
 public:
 	TimeoutError(uint64_t timeoutId): std::runtime_error("TimeoutError"), _timeoutId(timeoutId) {}
