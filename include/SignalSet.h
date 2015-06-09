@@ -10,5 +10,5 @@ public:
 	int32_t wait();
 
 private:
-	boost::asio::signal_set _handler;
+	boost::asio::signal_set _handle;
 };
