@@ -1,7 +1,7 @@
 
 #include "Coro.h"
 #include "ThreadLocal.h"
-#include "ObjectPool.h"
+#include "ObjectFactory.h"
 #include <cassert>
 #include <boost/log/trivial.hpp>
 
@@ -17,7 +17,7 @@ Coro* Coro::current() {
 
 Coro::Coro(std::function<void()> routine)
 	: _routine(std::move(routine)),
-	  _stack(ObjectPool<CoroStack>::take()),
+	  _stack(ObjectFactory<CoroStack>::make()),
 	  _isDone(false), _yieldNoThrow(false)
 {
 	_context = boost::context::make_fcontext(_stack->sp, _stack->size, Run);

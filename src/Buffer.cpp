@@ -1,6 +1,6 @@
 
 #include "Buffer.h"
-#include "ObjectPool.h"
+#include "ObjectFactory.h"
 
 Buffer::Buffer(size_t size)
 	: _begin(new uint8_t[size]),
@@ -321,7 +321,7 @@ bool BufferIteratorRange::operator!=(const std::vector<uint8_t>& other) const {
 
 
 BufferUniquePtr MallocBuffer() {
-	auto buffer = ObjectPool<Buffer>::take();
+	auto buffer = ObjectFactory<Buffer>::make();
 	buffer->clear();
 	return buffer;
 }
@@ -333,7 +333,7 @@ BufferUniquePtr MallocBuffer(size_t size) {
 }
 
 BufferUniquePtr MallocBuffer(const std::initializer_list<uint8_t>& data) {
-	auto buffer = ObjectPool<Buffer>::take();
+	auto buffer = ObjectFactory<Buffer>::make();
 	buffer->assign(data);
 	return buffer;
 }

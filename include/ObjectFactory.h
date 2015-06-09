@@ -4,12 +4,12 @@
 #include <boost/lockfree/queue.hpp>
 
 template <typename T>
-class ObjectPool {
+class ObjectFactory {
 public:
-	ObjectPool(): _queue(1024) {
+	ObjectFactory(): _queue(1024) {
 	}
 
-	~ObjectPool() {
+	~ObjectFactory() {
 		T* t;
 		while (_queue.pop(t)) {
 			delete t;
@@ -29,8 +29,8 @@ public:
 		_queue.push(t);
 	}
 
-	static std::unique_ptr<T, std::function<void(T*)>&> take() {
-		static ObjectPool<T> pool;
+	static std::unique_ptr<T, std::function<void(T*)>&> make() {
+		static ObjectFactory<T> pool;
 		static std::function<void(T*)> pushObjectBack = [&](T* t) {
 			pool.push(t);
 		};
