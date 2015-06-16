@@ -3,8 +3,8 @@
 
 #include <boost/asio/steady_timer.hpp>
 #include <atomic>
-#include "Coro.h"
-#include "IoService.h"
+#include "coro/Coro.h"
+#include "coro/IoService.h"
 
 class TimeoutError: public std::runtime_error {
 public:

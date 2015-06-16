@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Stream.h"
+#include "coro/Stream.h"
 
 class TcpSocket: public Stream<boost::asio::ip::tcp::socket> {
 public:

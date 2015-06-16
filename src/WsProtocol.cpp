@@ -1,9 +1,9 @@
 
-#include "WsProtocol.h"
-#include "Format.h"
+#include "coro/WsProtocol.h"
+#include "coro/Format.h"
 #ifndef _MSC_VER
 #include <openssl/sha.h>
-#include "base64.h"
+#include "coro/base64.h"
 #endif
 
 

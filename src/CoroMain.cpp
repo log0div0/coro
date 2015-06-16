@@ -1,7 +1,7 @@
 
-#include "CoroMain.h"
-#include "IoService.h"
-#include "Coro.h"
+#include "coro/CoroMain.h"
+#include "coro/IoService.h"
+#include "coro/Coro.h"
 
 void CoroMain(std::function<void()> routine) {
 	IoService ioService;

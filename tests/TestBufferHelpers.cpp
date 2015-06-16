@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "BufferHelpers.h"
+#include "coro/BufferHelpers.h"
 
 
 BOOST_AUTO_TEST_SUITE(SuiteBufferHelpers)

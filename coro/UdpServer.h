@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "UdpSocket.h"
-#include "Queue.h"
+#include "coro/UdpSocket.h"
+#include "coro/Queue.h"
 
 class UdpServer;
 

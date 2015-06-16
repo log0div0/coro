@@ -1,7 +1,7 @@
 
 #include <boost/test/unit_test.hpp>
-#include "UdpSocket.h"
-#include "CoroPool.h"
+#include "coro/UdpSocket.h"
+#include "coro/CoroPool.h"
 
 
 using namespace boost::asio::ip;

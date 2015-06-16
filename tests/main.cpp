@@ -1,8 +1,8 @@
 
 #define BOOST_TEST_MODULE test_coro
 #include <boost/test/unit_test.hpp>
-#include "Coro.h"
-#include "IoService.h"
+#include "coro/Coro.h"
+#include "coro/IoService.h"
 
 int BOOST_TEST_CALL_DECL main(int argc, char* argv[])
 {

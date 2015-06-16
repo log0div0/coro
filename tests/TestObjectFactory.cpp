@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "ObjectFactory.h"
+#include "coro/ObjectFactory.h"
 
 
 BOOST_AUTO_TEST_SUITE(SuiteObjectFactory)

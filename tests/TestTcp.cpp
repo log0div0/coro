@@ -1,8 +1,8 @@
 
 #include <boost/test/unit_test.hpp>
-#include "TcpServer.h"
-#include "TcpSocket.h"
-#include "CoroPool.h"
+#include "coro/TcpServer.h"
+#include "coro/TcpSocket.h"
+#include "coro/CoroPool.h"
 
 using namespace boost::asio::ip;
 

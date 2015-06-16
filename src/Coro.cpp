@@ -1,7 +1,7 @@
 
-#include "Coro.h"
-#include "ThreadLocal.h"
-#include "ObjectFactory.h"
+#include "coro/Coro.h"
+#include "coro/ThreadLocal.h"
+#include "coro/ObjectFactory.h"
 #include <cassert>
 #include <boost/log/trivial.hpp>
 

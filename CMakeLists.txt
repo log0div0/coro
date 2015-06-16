@@ -12,7 +12,7 @@ endif()
 include(FindBoost)
 find_package(Boost COMPONENTS REQUIRED system)
 
-include_directories(${Boost_INCLUDE_DIRS} ./include)
+include_directories(${Boost_INCLUDE_DIRS} .)
 file(GLOB SRC "src/*.cpp")
 
 add_library(coro STATIC ${SRC})

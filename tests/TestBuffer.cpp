@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "Buffer.h"
+#include "coro/Buffer.h"
 #include <algorithm>
 
 

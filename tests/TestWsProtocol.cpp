@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "WsProtocol.h"
+#include "coro/WsProtocol.h"
 
 
 namespace qi = boost::spirit::qi;

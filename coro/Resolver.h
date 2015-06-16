@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "IoService.h"
-#include "AsioTask.h"
+#include "coro/IoService.h"
+#include "coro/AsioTask.h"
 
 template <typename InternetProtocol>
 class Resolver {

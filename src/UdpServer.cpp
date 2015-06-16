@@ -1,6 +1,6 @@
 
-#include "UdpServer.h"
-#include "CoroPool.h"
+#include "coro/UdpServer.h"
+#include "coro/CoroPool.h"
 
 using namespace boost::asio::ip;
 

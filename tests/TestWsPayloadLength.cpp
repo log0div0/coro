@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "WsPayloadLength.h"
+#include "coro/WsPayloadLength.h"
 
 
 BOOST_AUTO_TEST_SUITE(SuiteWsPayloadLength)

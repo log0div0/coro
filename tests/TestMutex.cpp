@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "Mutex.h"
+#include "coro/Mutex.h"
 
 
 BOOST_AUTO_TEST_SUITE(SuiteMutex)

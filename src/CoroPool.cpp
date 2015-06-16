@@ -1,7 +1,7 @@
 
-#include "CoroPool.h"
-#include "IoService.h"
-#include "Finally.h"
+#include "coro/CoroPool.h"
+#include "coro/IoService.h"
+#include "coro/Finally.h"
 
 CoroPool::CoroPool(bool killOnJoin): _killOnJoin(killOnJoin), _joinCalled(false) {
 }

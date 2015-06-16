@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Stream.h"
+#include "coro/Stream.h"
 
 class UnixSocket: public Stream<boost::asio::local::stream_protocol::socket> {
 public:

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Buffer.h"
+#include "coro/Buffer.h"
 
 template <typename Stream>
 class StreamIterator {

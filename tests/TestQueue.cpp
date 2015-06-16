@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "Queue.h"
+#include "coro/Queue.h"
 
 
 BOOST_AUTO_TEST_SUITE(SuiteQueue)

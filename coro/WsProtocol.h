@@ -2,9 +2,9 @@
 #pragma once
 
 
-#include "HttpParsers.h"
-#include "Buffer.h"
-#include "WsPayloadLength.h"
+#include "coro/HttpParsers.h"
+#include "coro/Buffer.h"
+#include "coro/WsPayloadLength.h"
 
 /**
   * @warning Используется Buffer::Iterator, изменение буфера запрещено на время работы с WsMessage

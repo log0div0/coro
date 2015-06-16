@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "Coro.h"
+#include "coro/Coro.h"
 
 
 BOOST_AUTO_TEST_SUITE(SuiteCoro)

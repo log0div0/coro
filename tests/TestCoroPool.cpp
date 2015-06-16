@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "CoroPool.h"
+#include "coro/CoroPool.h"
 
 
 BOOST_AUTO_TEST_SUITE(SuiteCoroPool)

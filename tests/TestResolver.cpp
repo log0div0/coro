@@ -1,6 +1,6 @@
 
 #include <boost/test/unit_test.hpp>
-#include "Resolver.h"
+#include "coro/Resolver.h"
 
 
 using namespace boost::asio::ip;

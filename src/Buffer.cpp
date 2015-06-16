@@ -1,6 +1,6 @@
 
-#include "Buffer.h"
-#include "ObjectFactory.h"
+#include "coro/Buffer.h"
+#include "coro/ObjectFactory.h"
 
 Buffer::Buffer(size_t size)
 	: _begin(new uint8_t[size]),
