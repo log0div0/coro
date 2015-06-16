@@ -2,6 +2,7 @@
 #pragma once
 
 #include "coro/Coro.h"
+#include "coro/Finally.h"
 #include <queue>
 #include <list>
 
@@ -10,14 +11,11 @@ class Queue {
 public:
 	T pop() {
 		if (_data.empty()) {
-			try {
-				_consumers.push_back(Coro::current());
-				_consumers.back()->yield();
-			}
-			catch (...) {
-				_consumers.remove(Coro::current());
-				throw;
-			}
+			Finally cleanup([&] {
+				_coros.remove(Coro::current());
+			});
+			_coros.push_back(Coro::current());
+			_coros.back()->yield();
 		}
 
 		T t = std::move(_data.front());
@@ -29,10 +27,8 @@ public:
 	void push(U&& u) {
 		_data.push(std::forward<U>(u));
 
-		if (!_consumers.empty()) {
-			auto coro = _consumers.front();
-			_consumers.pop_front();
-			coro->resume();
+		if (!_coros.empty()) {
+			_coros.front()->resume();
 		}
 	}
 
@@ -42,5 +38,5 @@ public:
 
 private:
 	std::queue<T> _data;
-	std::list<Coro*> _consumers;
+	std::list<Coro*> _coros;
 };

@@ -12,5 +12,5 @@ public:
 
 private:
 	Coro* _owner = nullptr;
-	std::list<Coro*> _nonOwners;
+	std::list<Coro*> _coros;
 };

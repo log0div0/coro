@@ -1,16 +1,14 @@
 
 #include "coro/Mutex.h"
+#include "coro/Finally.h"
 
 void Mutex::lock() {
 	if (_owner) {
-		try {
-			_nonOwners.push_back(Coro::current());
-			_nonOwners.back()->yield();
-		}
-		catch (...) {
-			_nonOwners.remove(Coro::current());
-			throw;
-		}
+		Finally cleanup([&] {
+			_coros.remove(Coro::current());
+		});
+		_coros.push_back(Coro::current());
+		_coros.back()->yield();
 	}
 
 	assert(_owner == nullptr);
@@ -21,9 +19,7 @@ void Mutex::unlock() {
 	assert(_owner == Coro::current());
 	_owner = nullptr;
 
-	if (!_nonOwners.empty()) {
-		auto coro = _nonOwners.front();
-		_nonOwners.pop_front();
-		coro->resume();
+	if (!_coros.empty()) {
+		_coros.front()->resume();
 	}
 }
