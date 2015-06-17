@@ -8,7 +8,8 @@ class UdpServer;
 
 class UdpServerConnection {
 public:
-	UdpServerConnection(UdpServer* server, const boost::asio::ip::udp::endpoint& endpoint);
+	UdpServerConnection(UdpServer* server, BufferUniquePtr firstPacket,
+		const boost::asio::ip::udp::endpoint& endpoint);
 	UdpServerConnection(const UdpServerConnection& other) = delete;
 	UdpServerConnection(UdpServerConnection&& other);
 	~UdpServerConnection();
@@ -38,9 +39,10 @@ class UdpServer {
 public:
 	UdpServer(const boost::asio::ip::udp::endpoint& endpoint);
 
+	UdpServerConnection accept();
 	void run(std::function<void(UdpServerConnection)> callback);
 
 private:
-	std::map<boost::asio::ip::udp::endpoint, Queue<BufferUniquePtr>> _inputQueues;
+	std::map<boost::asio::ip::udp::endpoint, Queue<BufferUniquePtr>> _inputQueues; //< TODO: std::unordered_map
 	UdpSocket _socket;
 };

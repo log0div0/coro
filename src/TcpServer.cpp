@@ -30,9 +30,8 @@ tcp::socket TcpServer::accept() {
 void TcpServer::run(std::function<void(tcp::socket)> callback) {
 	CoroPool coroPool(true);
 	while (true) {
-		auto socket = std::make_shared<tcp::socket>(accept());
-		coroPool.exec([=]() {
-			callback(std::move(*socket));
+		coroPool.exec([&]() {
+			callback(accept());
 		});
 	}
 }

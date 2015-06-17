@@ -4,13 +4,15 @@
 
 using namespace boost::asio::ip;
 
-UdpServerConnection::UdpServerConnection(UdpServer* server, const boost::asio::ip::udp::endpoint& endpoint)
+UdpServerConnection::UdpServerConnection(UdpServer* server, BufferUniquePtr firstPacket,
+	const boost::asio::ip::udp::endpoint& endpoint)
 	: _server(server),
 	  _endpoint(endpoint)
 {
 	auto pair = _server->_inputQueues.emplace(_endpoint, Queue<BufferUniquePtr>());
 	assert(pair.second);
 	_inputQueue = &pair.first->second;
+	_inputQueue->push(std::move(firstPacket));
 }
 
 UdpServerConnection::UdpServerConnection(UdpServerConnection&& other)
@@ -41,8 +43,7 @@ UdpServer::UdpServer(const udp::endpoint& endpoint)
 {
 }
 
-void UdpServer::run(std::function<void(UdpServerConnection)> callback) {
-	CoroPool coroPool(true);
+UdpServerConnection UdpServer::accept() {
 	while (true) {
 		auto buffer = MallocBuffer();
 		udp::endpoint endpoint;
@@ -50,12 +51,17 @@ void UdpServer::run(std::function<void(UdpServerConnection)> callback) {
 
 		auto it = _inputQueues.find(endpoint);
 		if (it == _inputQueues.end()) {
-			coroPool.exec([&] {
-				callback(UdpServerConnection(this, endpoint));
-			});
-			it = _inputQueues.find(endpoint);
-			assert(it != _inputQueues.end());
+			return UdpServerConnection(this, std::move(buffer), endpoint);
 		}
 		it->second.push(std::move(buffer));
+	}
+}
+
+void UdpServer::run(std::function<void(UdpServerConnection)> callback) {
+	CoroPool coroPool(true);
+	while (true) {
+		coroPool.exec([&] {
+			callback(accept());
+		});
 	}
 }
