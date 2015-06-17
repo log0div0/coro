@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(TestTcpSocketAndServer) {
 		BOOST_REQUIRE(data == test_data);
 		clientDone = true;
 	});
-	pool.join();
+	pool.waitAll();
 
 	BOOST_REQUIRE(serverDone && clientDone);
 }
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(TestCancelAccept) {
 			success = true;
 		}
 	})->cancel();
-	pool.join();
+	pool.waitAll();
 
 	BOOST_REQUIRE(success);
 }

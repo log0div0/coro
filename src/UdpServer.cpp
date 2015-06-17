@@ -58,7 +58,7 @@ UdpServerConnection UdpServer::accept() {
 }
 
 void UdpServer::run(std::function<void(UdpServerConnection)> callback) {
-	CoroPool coroPool(true);
+	CoroPool coroPool;
 	while (true) {
 		coroPool.exec([&] {
 			callback(accept());

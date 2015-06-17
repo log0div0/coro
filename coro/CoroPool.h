@@ -6,15 +6,16 @@
 
 class CoroPool {
 public:
-	CoroPool(bool killOnJoin = false);
+	CoroPool();
 	~CoroPool();
 	Coro* exec(std::function<void()> routine);
-	void join();
+	void waitAll();
+	void killAll();
 
 private:
 	void onCoroDone(Coro* coro);
 
 	std::set<Coro*> _execCoros;
 	Coro* _rootCoro = Coro::current();
-	bool _killOnJoin, _joinCalled;
+	bool _wakeUpRoot;
 };

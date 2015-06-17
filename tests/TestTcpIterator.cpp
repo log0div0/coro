@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(TestSTL) {
 
 		clientDone = true;
 	});
-	pool.join();
+	pool.waitAll();
 
 	BOOST_REQUIRE(serverDone && clientDone);
 }
