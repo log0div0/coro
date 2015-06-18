@@ -30,8 +30,9 @@ tcp::socket TcpServer::accept() {
 void TcpServer::run(std::function<void(tcp::socket)> callback) {
 	CoroPool coroPool;
 	while (true) {
-		coroPool.exec([&]() {
-			callback(accept());
+		auto socket = accept();
+		coroPool.exec([&] {
+			callback(std::move(socket));
 		});
 	}
 }

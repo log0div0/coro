@@ -60,8 +60,9 @@ UdpServerConnection UdpServer::accept() {
 void UdpServer::run(std::function<void(UdpServerConnection)> callback) {
 	CoroPool coroPool;
 	while (true) {
+		auto socket = accept();
 		coroPool.exec([&] {
-			callback(accept());
+			callback(std::move(socket));
 		});
 	}
 }
