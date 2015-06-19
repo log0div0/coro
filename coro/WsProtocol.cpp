@@ -80,10 +80,3 @@ std::string WsProtocol::generateResponse() {
 	return Format(handshakeResponse, "-");
 #endif
 }
-
-
-void WsProtocol::writeMessage(WsMessage::OpCode opCode, Buffer& buffer) const {
-	WriteWsPayloadLength(buffer, buffer.usefulDataSize());
-	buffer.pushFront(1);
-	buffer.front() = 0x80 | static_cast<uint8_t>(opCode);
-}

@@ -3,6 +3,7 @@
 #include "coro/CoroPool.h"
 #include "coro/TcpServer.h"
 #include "coro/TcpSocket.h"
+#include "coro/StreamIterator.h"
 #include "coro/WsProtocol.h"
 #include <iostream>
 
@@ -20,14 +21,9 @@ public:
 	}
 
 	void doHandshake() {
+		StreamIterator<TcpSocket, Buffer> it(_socket, *_inputBuffer), end;
 		auto outputBuffer = MallocBuffer();
-		_inputBuffer->popFront(
-			_wsProtocol.doHandshake(
-				_socket.iterator(*_inputBuffer),
-				_socket.iterator(),
-				*outputBuffer
-			)
-		);
+		_inputBuffer->popFront(_wsProtocol.doHandshake(it, end, *outputBuffer));
 		_socket.write(*outputBuffer);
 	}
 
@@ -44,10 +40,8 @@ public:
 			doHandshake();
 
 			while (true) {
-				WsMessage message = _wsProtocol.readMessage(
-					_socket.iterator(*_inputBuffer),
-					_socket.iterator()
-				);
+				StreamIterator<TcpSocket, Buffer> it(_socket, *_inputBuffer), end;
+				WsMessage message = _wsProtocol.readMessage(it, end);
 
 				if (message.opCode() == WsMessage::OpCode::Close) {
 					auto outputBuffer = MallocBuffer();

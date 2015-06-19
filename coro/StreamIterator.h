@@ -1,21 +1,18 @@
 
 #pragma once
 
-#include "coro/Buffer.h"
-
-template <typename Stream>
+template <typename Stream, typename Buffer, typename BufferIterator = typename Buffer::iterator>
 class StreamIterator {
 public:
-	typedef ptrdiff_t difference_type;
-	typedef uint8_t value_type;
-	typedef uint8_t* pointer;
-	typedef uint8_t& reference;
+	typedef typename BufferIterator::difference_type difference_type;
+	typedef typename BufferIterator::value_type value_type;
+	typedef typename BufferIterator::pointer pointer;
+	typedef typename BufferIterator::reference reference;
 	typedef std::forward_iterator_tag iterator_category;
 
 	StreamIterator()
 		: _stream(nullptr),
-		  _buffer(nullptr),
-		  _offset(-1)
+		  _buffer(nullptr)
 	{
 
 	}
@@ -23,25 +20,24 @@ public:
 	StreamIterator(Stream& handle, Buffer& buffer)
 		: _stream(&handle),
 		  _buffer(&buffer),
-		  _offset(0)
+		  _it(_buffer->begin())
 	{
 	}
 
-	reference operator*() {
-		read();
-		return *_buffer->getPointer(_offset);
+	operator BufferIterator() const {
+		return _it;
 	}
 
-	pointer operator->() {
-		read();
-		return _buffer->getPointer(_offset);
+	reference operator*() const {
+		return _it.operator*();
+	}
+
+	pointer operator->() const {
+		return _it.operator->();
 	}
 
 	StreamIterator& operator++() {
-		if (static_cast<size_t>(_offset + 1) > _buffer->size()) {
-			throw std::range_error("StreamIterator::operator++");
-		}
-		++_offset;
+		moveForward(1);
 		return *this;
 	}
 
@@ -52,10 +48,7 @@ public:
 	}
 
 	StreamIterator& operator+=(difference_type distance) {
-		if (static_cast<size_t>(_offset + distance) > _buffer->size()) {
-			throw std::range_error("StreamIterator::operator+=");
-		}
-		_offset += distance;
+		moveForward(distance);
 		return *this;
 	}
 
@@ -66,34 +59,31 @@ public:
 	void operator=(const StreamIterator& other) {
 		_stream = other._stream;
 		_buffer = other._buffer;
-		_offset = other._offset;
+		_it = other._it;
 	}
 
 	bool operator!=(const StreamIterator& other) const {
-		return _offset != other._offset;
+		return _it != other._it;
 	}
 
 	bool operator==(const StreamIterator& other) const {
-		return _offset == other._offset;
+		return _it == other._it;
 	}
 
 	difference_type operator-(const StreamIterator& other) const {
-		return other._offset - _offset;
-	}
-
-	operator Buffer::Iterator() const {
-		return _buffer->begin() + _offset;
+		return other._it - _it;
 	}
 
 private:
-	void read() {
-		while (static_cast<size_t>(_offset) >= _buffer->usefulDataSize()) {
-			_buffer->pushBack(_stream->readSome(_buffer));
+	void moveForward(size_t size) {
+		while (static_cast<size_t>(_buffer->end() - _it) > size) {
+			_stream->readSomeToBuffer(_buffer);
 		}
+		_it += size;
 	}
 
 	Stream* _stream;
 	Buffer* _buffer;
-	difference_type _offset;
+	BufferIterator _it;
 };
 

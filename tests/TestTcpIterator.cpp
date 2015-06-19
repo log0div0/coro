@@ -2,6 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include "coro/TcpServer.h"
 #include "coro/TcpSocket.h"
+#include "coro/StreamIterator.h"
 #include "coro/CoroPool.h"
 
 
@@ -32,19 +33,13 @@ BOOST_AUTO_TEST_CASE(TestSTL) {
 
 		Buffer buffer;
 
-		BOOST_REQUIRE(std::equal(
-			test_data.begin(),
-			test_data.end(),
-			socket.iterator(buffer)
-		));
+		StreamIterator<TcpSocket, Buffer> it(socket, buffer);
+		BOOST_REQUIRE(std::equal(test_data.begin(), test_data.end(), it));
 
 		buffer.popFront(4);
 
-		BOOST_REQUIRE(std::equal(
-			socket.iterator(buffer),
-			socket.iterator(buffer) + 4,
-			test_data2.begin()
-		));
+		StreamIterator<TcpSocket, Buffer>(socket, buffer);
+		BOOST_REQUIRE(std::equal(it, it + 4, test_data2.begin()));
 
 		clientDone = true;
 	});
@@ -57,7 +52,7 @@ BOOST_AUTO_TEST_CASE(TestSTL) {
 BOOST_AUTO_TEST_CASE(TestCastToBufferIterator) {
 	TcpSocket socket;
 	Buffer buffer(8);
-	auto it = socket.iterator(buffer);
+	StreamIterator<TcpSocket, Buffer> it(socket, buffer);
 	buffer.pushBack(test_data.begin(), test_data.end());
 	BOOST_REQUIRE(*(it + 1) == *(buffer.begin() + 1));
 	BOOST_REQUIRE(buffer.end() == (it + 4));

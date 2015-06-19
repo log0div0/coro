@@ -113,8 +113,13 @@ public:
 		return message;
 	}
 
-	// Обрамляют данные в буфере так, чтобы получилось ws сообщение
-	void writeMessage(WsMessage::OpCode opCode, Buffer& buffer) const;
+	// Обрамляет данные в буфере так, чтобы получилось ws сообщение
+	void writeMessage(WsMessage::OpCode opCode, Buffer& buffer) const {
+		WriteWsPayloadLength(buffer, buffer.size());
+		buffer.pushFront(1);
+		buffer.front() = 0x80 | static_cast<uint8_t>(opCode);
+	}
+
 
 private:
 	static const std::string handshakeRequest;
