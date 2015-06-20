@@ -39,7 +39,7 @@ socket.async_read_some(boost::asio::buffer(data, size), [=](const boost::system:
 I like this code:
 
 ```
-socket.readSome(&buffer);
+socket.readSome(buffer);
 ```
 
 Where method `readSome` should throw an exception if an error occurs.
@@ -53,22 +53,23 @@ The solution is well known, it's coroutines. The question is how much handy the 
 This is the code of an **asynchronous** tcp echo server (e.g. it can process multiple sessions simultaneously):
 
 ```
-TcpServer server(endpoint);
-server.run([](TcpSocket socket) {
-	Buffer buffer;
+Acceptor acceptor(endpoint);
+acceptor.run([](TcpSocket socket) {
+	std::vector<uint8_t> buffer(1024);
 	while (true) {
-		buffer.pushBack(socket.readSome(&buffer));
-		buffer.popFront(socket.write(buffer));
+		auto bytesTransfered = socket.readSome(boost::asio::buffer(buffer));
+		socket.write(boost::asio::buffer(&buffer[0], bytesTransfered));
 	}
 });
 ```
-
-A few words about `Buffer` class. It's a binary circular buffer. It has two parts: 'useful data' and 'free space'. You can move boundaries of the parts with `pushFront/Back` and `popFront/Back` methods.
 
 ## Example 2
 
 You can use STL algorithms **asynchronously**:
 
 ```
-auto newline = std::find(socket.iterator(buffer), socket.iterator(), '\n');
+TcpSocket socket = ....
+std::string buffer;
+StreamIterator<TcpSocket, std::string> begin(socket, buffer), end;
+auto it = std::find(begin, end, '\n');
 ```
