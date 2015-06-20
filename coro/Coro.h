@@ -19,7 +19,7 @@ struct CancelError {};
 #ifdef _DEBUG
 #define CORO_STACK_SIZE 1024 * 1024 * 4
 #else
-#define CORO_STACK_SIZE 1024 * 32
+#define CORO_STACK_SIZE boost::coroutines::stack_traits::minimum_size()
 #endif
 
 struct CoroStack: public boost::coroutines::stack_context {
@@ -61,7 +61,7 @@ private:
 	void throwException();
 
 	std::function<void()> _routine;
-	std::unique_ptr<CoroStack, std::function<void(CoroStack*)>&> _stack;
+	CoroStack _stack;
 #if BOOST_VERSION >= 105600
 	boost::context::fcontext_t _context, _savedContext;
 #else

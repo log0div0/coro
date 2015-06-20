@@ -1,9 +1,7 @@
 
 #include "coro/Coro.h"
 #include "coro/ThreadLocal.h"
-#include "coro/ObjectFactory.h"
 #include <cassert>
-#include <boost/log/trivial.hpp>
 
 THREAD_LOCAL Coro* t_coro = nullptr;
 
@@ -17,10 +15,9 @@ Coro* Coro::current() {
 
 Coro::Coro(std::function<void()> routine)
 	: _routine(std::move(routine)),
-	  _stack(ObjectFactory<CoroStack>::make()),
 	  _isDone(false), _yieldNoThrow(false)
 {
-	_context = boost::context::make_fcontext(_stack->sp, _stack->size, Run);
+	_context = boost::context::make_fcontext(_stack.sp, _stack.size, Run);
 #if BOOST_VERSION >= 105600
 	_savedContext = nullptr;
 #endif
@@ -28,6 +25,7 @@ Coro::Coro(std::function<void()> routine)
 
 Coro::~Coro() {
 	assert(_isDone);
+#ifdef _DEBUG
 	if (_exceptions.size()) {
 		std::string what;
 		for (auto exception: _exceptions) {
@@ -45,14 +43,16 @@ Coro::~Coro() {
 				what += "...";
 			}
 		}
-		BOOST_LOG_TRIVIAL(debug) << "Coro::~Coro: " << _exceptions.size() << " unhandled exceptions: "
-			<< what;
+		printf("Coro::~Coro: unhandled exceptions: %s", what.c_str());
 	}
+#endif
 }
 
 void Coro::resume() {
 	if (_isDone) {
-		BOOST_LOG_TRIVIAL(debug) << "Coro::resume: Coro is done already";
+#ifdef _DEBUG
+		printf("Coro::resume: coro is done already\n");
+#endif
 		return;
 	}
 	auto coro = t_coro;

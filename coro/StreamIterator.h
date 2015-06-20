@@ -1,89 +1,72 @@
 
 #pragma once
 
-template <typename Stream, typename Buffer, typename BufferIterator = typename Buffer::iterator>
-class StreamIterator {
+#include <algorithm>
+#include <boost/iterator/iterator_facade.hpp>
+
+template <typename Stream, typename Buffer>
+class StreamIterator
+	: public boost::iterator_facade<
+		StreamIterator<Stream, Buffer>,
+		typename Buffer::value_type,
+		boost::random_access_traversal_tag,
+		typename Buffer::reference,
+		size_t
+	  >
+{
 public:
-	typedef typename BufferIterator::difference_type difference_type;
-	typedef typename BufferIterator::value_type value_type;
-	typedef typename BufferIterator::pointer pointer;
-	typedef typename BufferIterator::reference reference;
-	typedef std::forward_iterator_tag iterator_category;
+	enum { MinimumChunkSize = 1024 };
 
 	StreamIterator()
 		: _stream(nullptr),
-		  _buffer(nullptr)
+		  _buffer(nullptr),
+		  _offset(-1)
 	{
 
 	}
 
-	StreamIterator(Stream& handle, Buffer& buffer)
+	StreamIterator(Stream& handle, Buffer& buffer, size_t offset = 0)
 		: _stream(&handle),
 		  _buffer(&buffer),
-		  _it(_buffer->begin())
+		  _offset(offset)
 	{
 	}
 
-	operator BufferIterator() const {
-		return _it;
+	operator typename Buffer::iterator () const {
+		return _buffer->begin() + _offset;
 	}
 
-	reference operator*() const {
-		return _it.operator*();
-	}
-
-	pointer operator->() const {
-		return _it.operator->();
-	}
-
-	StreamIterator& operator++() {
-		moveForward(1);
-		return *this;
-	}
-
-	StreamIterator operator++(int) {
-		StreamIterator copy(*this);
-		++*this;
-		return copy;
-	}
-
-	StreamIterator& operator+=(difference_type distance) {
-		moveForward(distance);
-		return *this;
-	}
-
-	StreamIterator operator+(difference_type distance) const {
-		return StreamIterator(*this) += distance;
-	}
-
-	void operator=(const StreamIterator& other) {
-		_stream = other._stream;
-		_buffer = other._buffer;
-		_it = other._it;
-	}
-
-	bool operator!=(const StreamIterator& other) const {
-		return _it != other._it;
-	}
-
-	bool operator==(const StreamIterator& other) const {
-		return _it == other._it;
-	}
-
-	difference_type operator-(const StreamIterator& other) const {
-		return other._it - _it;
+	operator typename Buffer::const_iterator () const {
+		return _buffer->cbegin() + _offset;
 	}
 
 private:
-	void moveForward(size_t size) {
-		while (static_cast<size_t>(_buffer->end() - _it) > size) {
-			_stream->readSomeToBuffer(_buffer);
+	friend class boost::iterator_core_access;
+
+	void increment() {
+		advance(1);
+	}
+
+	void advance(size_t distance) {
+		_offset += distance;
+	}
+
+	bool equal(const StreamIterator& other) const {
+		return _offset == other._offset;
+	}
+
+	typename Buffer::reference dereference() const {
+		while (_offset >= _buffer->size()) {
+			size_t chunkSize = std::max(static_cast<size_t>(MinimumChunkSize), _offset - _buffer->size());
+			Buffer chunk(chunkSize, typename Buffer::value_type());
+			chunk.resize(_stream->readSome(boost::asio::buffer(&chunk[0], chunk.size())));
+			_buffer->insert(_buffer->end(), chunk.begin(), chunk.end());
 		}
-		_it += size;
+		return (*_buffer)[_offset];
 	}
 
 	Stream* _stream;
 	Buffer* _buffer;
-	BufferIterator _it;
+	size_t _offset;
 };
 

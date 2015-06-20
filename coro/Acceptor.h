@@ -3,9 +3,9 @@
 
 #include <boost/asio.hpp>
 
-class TcpServer {
+class Acceptor {
 public:
-	TcpServer(const boost::asio::ip::tcp::endpoint& endpoint);
+	Acceptor(const boost::asio::ip::tcp::endpoint& endpoint);
 
 	boost::asio::ip::tcp::socket accept();
 	void run(std::function<void(boost::asio::ip::tcp::socket)> callback);

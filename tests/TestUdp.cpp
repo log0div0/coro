@@ -12,24 +12,24 @@ BOOST_AUTO_TEST_SUITE(SuiteUdp)
 
 BOOST_AUTO_TEST_CASE(TestSendReceive) {
 	udp::endpoint serverEndpoint(address_v4::from_string("127.0.0.1"), 44442), senderEndpoint;
-	Buffer testData { 0x01, 0x02, 0x03, 0x04 };
+	std::vector<uint8_t> testData { 0x01, 0x02, 0x03, 0x04 };
 
 	UdpSocket server(serverEndpoint);
 	UdpSocket client;
 
-	client.send(testData, serverEndpoint);
+	client.send(boost::asio::buffer(testData), serverEndpoint);
 
 	{
-		Buffer tempData;
-		tempData.pushBack(server.receive(&tempData, &senderEndpoint));
+		std::vector<uint8_t> tempData(4);
+		server.receive(boost::asio::buffer(tempData), senderEndpoint);
 		BOOST_REQUIRE(tempData == testData);
 	}
 
-	server.send(testData, senderEndpoint);
+	server.send(boost::asio::buffer(testData), senderEndpoint);
 
 	{
-		Buffer tempData(10000);
-		tempData.pushBack(client.receive(&tempData, &senderEndpoint));
+		std::vector<uint8_t> tempData(4);
+		client.receive(boost::asio::buffer(tempData), senderEndpoint);
 		BOOST_REQUIRE(tempData == testData);
 		BOOST_REQUIRE(serverEndpoint == senderEndpoint);
 	}

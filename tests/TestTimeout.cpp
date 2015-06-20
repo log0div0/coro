@@ -2,7 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include "coro/Timeout.h"
 #include "coro/Queue.h"
-#include "coro/TcpServer.h"
+#include "coro/Acceptor.h"
 #include "coro/TcpSocket.h"
 #include "coro/UdpSocket.h"
 #include <thread>
@@ -84,28 +84,28 @@ BOOST_AUTO_TEST_CASE(TestQueue) {
 }
 
 
-BOOST_AUTO_TEST_CASE(TestTcpServerAccept) {
+BOOST_AUTO_TEST_CASE(TestAcceptor) {
 	Timeout timeout(std::chrono::milliseconds(100));
-	TcpServer server(endpoint);
-	BOOST_REQUIRE_THROW(server.accept(), TimeoutError);
+	Acceptor acceptor(endpoint);
+	BOOST_REQUIRE_THROW(acceptor.accept(), TimeoutError);
 }
 
 
 BOOST_AUTO_TEST_CASE(TestTcpSocketRead) {
 	Timeout timeout(std::chrono::milliseconds(100));
-	TcpServer server(endpoint);
+	Acceptor acceptor(endpoint);
 	TcpSocket socket;
 	socket.connect(endpoint);
-	Buffer buffer;
-	BOOST_REQUIRE_THROW(socket.readSome(&buffer), TimeoutError);
+	std::vector<uint8_t> buffer(10);
+	BOOST_REQUIRE_THROW(socket.read(boost::asio::buffer(buffer)), TimeoutError);
 }
 
 BOOST_AUTO_TEST_CASE(TestUdpSocketReceive) {
 	Timeout timeout(std::chrono::milliseconds(100));
 	UdpSocket socket(udp::endpoint(address_v4::from_string("127.0.0.1"), 44442));
-	Buffer buffer;
+	std::vector<uint8_t> buffer(10);
 	udp::endpoint endpoint;
-	BOOST_REQUIRE_THROW(socket.receive(&buffer, &endpoint), TimeoutError);
+	BOOST_REQUIRE_THROW(socket.receive(boost::asio::buffer(buffer), endpoint), TimeoutError);
 }
 
 

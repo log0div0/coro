@@ -1,5 +1,5 @@
 
-#include "coro/TcpServer.h"
+#include "coro/Acceptor.h"
 #include "coro/AsioTask.h"
 #include "coro/IoService.h"
 #include "coro/CoroPool.h"
@@ -8,7 +8,7 @@ using boost::system::error_code;
 using boost::system::system_error;
 using namespace boost::asio::ip;
 
-TcpServer::TcpServer(const tcp::endpoint& endpoint): _handle(*IoService::current())
+Acceptor::Acceptor(const tcp::endpoint& endpoint): _handle(*IoService::current())
 {
 	_handle.open(endpoint.protocol());
 	boost::asio::socket_base::reuse_address option(true);
@@ -17,7 +17,7 @@ TcpServer::TcpServer(const tcp::endpoint& endpoint): _handle(*IoService::current
 	_handle.listen();
 }
 
-tcp::socket TcpServer::accept() {
+tcp::socket Acceptor::accept() {
 	tcp::socket socket(*IoService::current());
 
 	AsioTask1 task;
@@ -27,7 +27,7 @@ tcp::socket TcpServer::accept() {
 	return socket;
 }
 
-void TcpServer::run(std::function<void(tcp::socket)> callback) {
+void Acceptor::run(std::function<void(tcp::socket)> callback) {
 	CoroPool coroPool;
 	while (true) {
 		auto socket = accept();
