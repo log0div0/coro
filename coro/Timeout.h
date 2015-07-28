@@ -18,6 +18,16 @@ private:
 	uint64_t _timeoutId;
 };
 
+// WARNING: Этот код НЕ РАБОТАЕТ:
+//
+// #define MY_TIMEOUT 10
+// void f() {
+// 	Timeout timeout(std::chrono::seconds(MY_TIMEOUT));
+// 	....
+// }
+//
+// Здесь не объявление переменной, здесь объявление ФУНКЦИИ
+
 class Timeout {
 public:
 	template <typename Duration>
