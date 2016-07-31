@@ -26,7 +26,7 @@ thread_local void* t_fiber = nullptr;
 
 namespace coro {
 
-void Fiber::convertThreadToFiber() {
+void Fiber::initialize() {
 	assert(!t_fiber);
 #if _WIN32_WINNT >= _WIN32_WINNT_WIN7
 	t_fiber = ConvertThreadToFiberEx(0, FIBER_FLAG_FLOAT_SWITCH);
@@ -35,14 +35,9 @@ void Fiber::convertThreadToFiber() {
 #endif
 }
 
-void Fiber::convertFiberToThread() {
+void Fiber::deinitialize() {
 	assert(t_fiber);
 	ConvertFiberToThread();
-}
-
-void Fiber::exit() {
-	assert(t_fiber);
-	SwitchToFiber(t_fiber);
 }
 
 Fiber::Fiber(LPFIBER_START_ROUTINE startRoutine, LPVOID parameter) {
@@ -60,8 +55,17 @@ Fiber::~Fiber() {
 	DeleteFiber(_fiber);
 }
 
-void Fiber::switchTo() {
+void Fiber::enter() {
 	SwitchToFiber(_fiber);
+}
+
+void Fiber::switchTo(Fiber& fiber) {
+	SwitchToFiber(fiber._fiber);
+}
+
+void Fiber::exit() {
+	assert(t_fiber);
+	SwitchToFiber(t_fiber);
 }
 
 }

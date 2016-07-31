@@ -45,10 +45,10 @@
     <ClCompile Include="Strand.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Fiber.cpp">
+    <ClCompile Include="StrandPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StrandPool.cpp">
+    <ClCompile Include="FiberWindows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

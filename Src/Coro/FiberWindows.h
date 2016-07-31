@@ -9,11 +9,9 @@ namespace coro {
 class Fiber {
 public:
 	/// ConvertThreadToFiber
-	static void convertThreadToFiber();
+	static void initialize();
 	/// ConvertFiberToThread
-	static void convertFiberToThread();
-	/// Выход из текущего файбера (SwitchToFiber)
-	static void exit();
+	static void deinitialize();
 
 	/// CreateFiber
 	Fiber(LPFIBER_START_ROUTINE startRoutine, LPVOID parameter);
@@ -26,8 +24,9 @@ public:
 	Fiber& operator=(const Fiber& other) = delete;
 	Fiber& operator=(Fiber&& other);
 
-	/// Вход в файбер (SwitchToFiber)
-	void switchTo();
+	void enter();
+	void switchTo(Fiber& fiber);
+	void exit();
 
 private:
 	void* _fiber;

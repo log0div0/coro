@@ -11,7 +11,11 @@ namespace coro {
 
 thread_local Coro* t_currentCoro = nullptr;
 
-void Run(void* coro) {
+void
+#ifdef _MSC_VER
+__stdcall
+#endif
+Run(void* coro) {
 	reinterpret_cast<Coro*>(coro)->run();
 }
 

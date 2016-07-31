@@ -23,7 +23,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Coro.cpp" />
     <ClCompile Include="CoroPool.cpp" />
-    <ClCompile Include="Fiber.cpp" />
+    <ClCompile Include="FiberWindows.cpp" />
     <ClCompile Include="IoService.cpp" />
     <ClCompile Include="Mutex.cpp" />
     <ClCompile Include="SignalSet.cpp" />
