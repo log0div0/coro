@@ -1,0 +1,127 @@
+
+#include "coro/Coro.h"
+#include <Utils/Finally.h>
+#include <cassert>
+
+static const std::string TokenStart = "__start__";
+static const std::string TokenThrow = "__throw__";
+
+namespace coro {
+
+thread_local Coro* t_currentCoro = nullptr;
+
+void __stdcall Run(void* coro) {
+	reinterpret_cast<Coro*>(coro)->run();
+}
+
+Coro* Coro::current() {
+	if (!t_currentCoro) {
+		throw std::logic_error("Current coroutine is null");
+	}
+	return t_currentCoro;
+}
+
+Coro::Coro(std::function<void()> routine): _routine(std::move(routine)), _fiber(Run, this),
+	_previousCoro(nullptr), _tokens({TokenStart})
+{
+}
+
+Coro::~Coro() {
+	assert(_tokens.empty());
+#ifdef _DEBUG
+	std::string what;
+	for (auto exception: _exceptions) {
+		try {
+			std::rethrow_exception(exception);
+		}
+		catch (const std::exception& error) {
+			what += error.what();
+		}
+		catch (const CancelError&) {
+			continue;
+		}
+		catch (...) {
+			what += "...";
+		}
+		what += "\n";
+	}
+	if (what.size()) {
+		printf("Coro::~Coro: unhandled exceptions: %s\n", what.c_str());
+	}
+#endif
+}
+
+void Coro::start() {
+	resume(TokenStart);
+}
+
+void Coro::resume(const std::string& token) {
+	if (std::find(_tokens.begin(), _tokens.end(), token) == _tokens.end()) {
+		return;
+	}
+
+	_previousCoro = t_currentCoro;
+	t_currentCoro = this;
+	_fiber.switchTo();
+	t_currentCoro = _previousCoro;
+	_previousCoro = nullptr;
+}
+
+void Coro::throwException(std::exception_ptr exception) {
+	assert(exception);
+	_exceptions.push_back(exception);
+	resume(TokenThrow);
+}
+
+void Coro::yield(std::vector<std::string> tokens) {
+	_tokens = std::move(tokens);
+	Finally clearTokens([&] {
+		_tokens.clear();
+	});
+
+	rethrowException();
+
+	if (_previousCoro) {
+		_previousCoro->_fiber.switchTo();
+	} else {
+		Fiber::exit();
+	}
+
+	rethrowException();
+}
+
+void Coro::cancel() {
+	throwException(CancelError());
+}
+
+void Coro::rethrowException() {
+	if (std::find(_tokens.begin(), _tokens.end(), TokenThrow) == _tokens.end()) {
+		return;
+	}
+	if (_exceptions.size()) {
+		auto exception = _exceptions.front();
+		_exceptions.pop_front();
+		assert(exception);
+		std::rethrow_exception(exception);
+	}
+}
+
+void Coro::run() {
+	try
+	{
+		_routine();
+	}
+	catch (const CancelError&) {
+		// do nothing
+	}
+	catch (...)
+	{
+		auto exception = std::current_exception();
+		assert(exception);
+		_exceptions.push_front(exception);
+	}
+	_routine = nullptr;
+	yield({});
+}
+
+}
