@@ -1,6 +1,6 @@
 
-#include "coro/SignalSet.h"
-#include "coro/IoService.h"
+#include "Coro/SignalSet.h"
+#include "Coro/IoService.h"
 
 namespace coro {
 

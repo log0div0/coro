@@ -1,6 +1,6 @@
 
-#include "coro/TcpSocket.h"
-#include "coro/IoService.h"
+#include "Coro/TcpSocket.h"
+#include "Coro/IoService.h"
 
 using namespace asio::ip;
 

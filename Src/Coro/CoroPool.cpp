@@ -1,6 +1,6 @@
 
-#include "coro/Strand.h"
-#include "coro/CoroPool.h"
+#include "Coro/Strand.h"
+#include "Coro/CoroPool.h"
 #include <Utils/Finally.h>
 
 namespace coro {

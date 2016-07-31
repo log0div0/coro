@@ -3,9 +3,9 @@
 
 #include <asio/steady_timer.hpp>
 #include <atomic>
-#include "coro/Coro.h"
-#include "coro/IoService.h"
-#include "coro/Strand.h"
+#include "Coro/Coro.h"
+#include "Coro/IoService.h"
+#include "Coro/Strand.h"
 
 namespace coro {
 

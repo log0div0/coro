@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "coro/IoService.h"
-#include "coro/Strand.h"
-#include "coro/Coro.h"
+#include "Coro/IoService.h"
+#include "Coro/Strand.h"
+#include "Coro/Coro.h"
 #include <thread>
 
 /*!

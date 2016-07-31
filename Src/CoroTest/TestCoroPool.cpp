@@ -1,5 +1,5 @@
 
-#include "coro/CoroPool.h"
+#include "Coro/CoroPool.h"
 #include <catch.hpp>
 
 using namespace coro;

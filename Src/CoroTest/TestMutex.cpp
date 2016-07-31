@@ -1,5 +1,5 @@
 
-#include "coro/Mutex.h"
+#include "Coro/Mutex.h"
 #include <catch.hpp>
 
 using namespace coro;

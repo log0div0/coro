@@ -2,8 +2,8 @@
 #pragma once
 
 
-#include "coro/Strand.h"
-#include "coro/Coro.h"
+#include "Coro/Strand.h"
+#include "Coro/Coro.h"
 
 
 namespace coro {
@@ -22,10 +22,13 @@ protected:
 			_coro->yield({token(), TokenThrow});
 		}
 		catch (...) {
+			auto exception = std::current_exception();
 			handle.cancel();
 			_coro->yield({token()});
 			assert(_isCallbackExecuted);
-			throw;
+
+			// не используйте здесь throw, gcc это не переваривает
+			std::rethrow_exception(exception);
 		}
 	}
 

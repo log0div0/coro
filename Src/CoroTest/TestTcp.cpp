@@ -1,7 +1,7 @@
 
-#include "coro/Acceptor.h"
-#include "coro/TcpSocket.h"
-#include "coro/CoroPool.h"
+#include "Coro/Acceptor.h"
+#include "Coro/TcpSocket.h"
+#include "Coro/CoroPool.h"
 #include <catch.hpp>
 
 using namespace asio::ip;

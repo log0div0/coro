@@ -1,6 +1,6 @@
 #include <atomic>
 #include <catch.hpp>
-#include "coro/StrandPool.h"
+#include "Coro/StrandPool.h"
 
 using namespace coro;
 

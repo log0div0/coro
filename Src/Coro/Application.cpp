@@ -1,6 +1,8 @@
 
-#include "coro/Application.h"
+#include "Coro/Application.h"
+#ifdef _MSC_VER
 #include <ObjBase.h>
+#endif
 
 namespace coro {
 
@@ -19,19 +21,19 @@ Application::~Application() {
 }
 
 void Application::run() {
+#ifdef _MSC_VER
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+#endif
 	_ioService.run();
+#ifdef _MSC_VER
 	CoUninitialize();
+#endif
 }
 
 void Application::runAsync(size_t threadsCount) {
 	_threads.resize(threadsCount);
 	for (auto& thread: _threads) {
-		thread = std::thread([&] {
-			CoInitializeEx(NULL, COINIT_MULTITHREADED);
-			_ioService.run();
-			CoUninitialize();
-		});
+		thread = std::thread([=] { run(); });
 	}
 }
 

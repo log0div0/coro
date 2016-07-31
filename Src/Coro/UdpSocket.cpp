@@ -1,7 +1,7 @@
 
-#include "coro/UdpSocket.h"
-#include "coro/AsioTask.h"
-#include "coro/IoService.h"
+#include "Coro/UdpSocket.h"
+#include "Coro/AsioTask.h"
+#include "Coro/IoService.h"
 
 using namespace asio::ip;
 

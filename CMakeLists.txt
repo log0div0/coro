@@ -1,21 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0017 OLD)
 
-add_definitions(-std=c++1y -Wall)
+project(coro)
 
-if(BUILD_DEBUG)
-	add_definitions(-O0 -g)
-else()
-	add_definitions(-DNDEBUG)
-endif()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
 
-include(FindBoost)
-find_package(Boost COMPONENTS REQUIRED system)
+add_definitions(-Wall -Wextra -g -O3 -std=c++14)
 
-include_directories(. ${Boost_INCLUDE_DIRS})
-file(GLOB SRC "coro/*.cpp")
-
-add_library(coro STATIC ${SRC})
-set_target_properties(coro PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out)
-
-subdirs(tests)
+add_subdirectory(Src/Coro)
+add_subdirectory(Src/CoroTest)

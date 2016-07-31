@@ -1,6 +1,11 @@
 
-#include "coro/IoService.h"
-#include "coro/Fiber.h"
+#include "Coro/IoService.h"
+#ifdef _MSC_VER
+#include "Coro/FiberWindows.h"
+#endif
+#ifdef __GNUC__
+#include "Coro/FiberLinux.h"
+#endif
 
 namespace coro {
 
@@ -11,11 +16,11 @@ IoService* IoService::current() {
 }
 
 void IoService::run() {
-	Fiber::convertThreadToFiber();
+	Fiber::initialize();
 	t_ioService = this;
 	_impl.run();
 	t_ioService = nullptr;
-	Fiber::convertFiberToThread();
+	Fiber::deinitialize();
 }
 
 }

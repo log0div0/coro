@@ -2,8 +2,8 @@
 #pragma once
 
 #include <asio/windows/object_handle.hpp>
-#include "coro/AsioTask.h"
-#include "coro/IoService.h"
+#include "Coro/AsioTask.h"
+#include "Coro/IoService.h"
 
 namespace coro {
 

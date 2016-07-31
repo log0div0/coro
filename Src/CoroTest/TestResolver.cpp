@@ -1,5 +1,5 @@
 
-#include "coro/Resolver.h"
+#include "Coro/Resolver.h"
 #include <catch.hpp>
 
 using namespace asio::ip;

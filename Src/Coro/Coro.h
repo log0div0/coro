@@ -1,7 +1,12 @@
 
 #pragma once
 
-#include "coro/Fiber.h"
+#ifdef _MSC_VER
+#include "Coro/FiberWindows.h"
+#endif
+#ifdef __GNUC__
+#include "Coro/FiberLinux.h"
+#endif
 #include <functional>
 #include <string>
 #include <list>

@@ -1,6 +1,6 @@
 
-#include "coro/UdpSocket.h"
-#include "coro/CoroPool.h"
+#include "Coro/UdpSocket.h"
+#include "Coro/CoroPool.h"
 #include <catch.hpp>
 
 using namespace asio::ip;

@@ -1,5 +1,5 @@
 
-#include "coro/Queue.h"
+#include "Coro/Queue.h"
 #include <catch.hpp>
 
 using namespace coro;

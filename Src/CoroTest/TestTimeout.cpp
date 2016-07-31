@@ -1,11 +1,12 @@
 
-#include "coro/Timeout.h"
-#include "coro/Queue.h"
+#include "Coro/Timeout.h"
+#include "Coro/Queue.h"
 #include "Coro/Mutex.h"
-#include "coro/Acceptor.h"
-#include "coro/TcpSocket.h"
-#include "coro/UdpSocket.h"
+#include "Coro/Acceptor.h"
+#include "Coro/TcpSocket.h"
+#include "Coro/UdpSocket.h"
 #include <catch.hpp>
+#include <thread>
 
 using namespace asio::ip;
 using namespace coro;

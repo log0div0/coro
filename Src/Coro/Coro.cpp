@@ -1,6 +1,7 @@
 
-#include "coro/Coro.h"
+#include "Coro/Coro.h"
 #include <Utils/Finally.h>
+#include <algorithm>
 #include <cassert>
 
 static const std::string TokenStart = "__start__";
@@ -10,7 +11,7 @@ namespace coro {
 
 thread_local Coro* t_currentCoro = nullptr;
 
-void __stdcall Run(void* coro) {
+void Run(void* coro) {
 	reinterpret_cast<Coro*>(coro)->run();
 }
 
@@ -62,7 +63,11 @@ void Coro::resume(const std::string& token) {
 
 	_previousCoro = t_currentCoro;
 	t_currentCoro = this;
-	_fiber.switchTo();
+	if (_previousCoro) {
+		_previousCoro->_fiber.switchTo(_fiber);
+	} else {
+		_fiber.enter();
+	}
 	t_currentCoro = _previousCoro;
 	_previousCoro = nullptr;
 }
@@ -82,9 +87,9 @@ void Coro::yield(std::vector<std::string> tokens) {
 	rethrowException();
 
 	if (_previousCoro) {
-		_previousCoro->_fiber.switchTo();
+		_fiber.switchTo(_previousCoro->_fiber);
 	} else {
-		Fiber::exit();
+		_fiber.exit();
 	}
 
 	rethrowException();

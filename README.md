@@ -9,7 +9,7 @@ socket.async_read_some(boost::asio::buffer(data, size),
   boost::bind(&MyClass::readHandler1, this,
     boost::asio::placeholders::error,
     boost::asio::placeholders::bytes_transferred));
-    
+
 // somewhere far from here ....
 
 void MyClass::readHandler1(const boost::system::error_code& error, size_t bytesTransferred) {
@@ -50,7 +50,7 @@ The solution is well known, it's coroutines. The question is how much handy the 
 
 ## Example
 
-This is the code of an **asynchronous** tcp echo server (e.g. it can process multiple sessions simultaneously):
+This is the code of an **asynchronous** tcp echo server:
 
 ```
 Acceptor acceptor(endpoint);
@@ -61,15 +61,4 @@ acceptor.run([](TcpSocket socket) {
 		socket.write(boost::asio::buffer(&buffer[0], bytesTransfered));
 	}
 });
-```
-
-## Example 2
-
-You can use STL algorithms **asynchronously**:
-
-```
-TcpSocket socket = ....
-std::string buffer;
-StreamIterator<TcpSocket, std::string> begin(socket, buffer), end;
-auto it = std::find(begin, end, '\n');
 ```

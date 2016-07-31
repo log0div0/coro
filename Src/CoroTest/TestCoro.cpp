@@ -1,7 +1,7 @@
 
 #include <Utils/Finally.h>
 #include <catch.hpp>
-#include "coro/Coro.h"
+#include "Coro/Coro.h"
 
 using namespace coro;
 

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "coro/Strand.h"
-#include "coro/Coro.h"
+#include "Coro/Strand.h"
+#include "Coro/Coro.h"
 #include <map>
 
 namespace coro {

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "coro/IoService.h"
-#include "coro/AsioTask.h"
+#include "Coro/IoService.h"
+#include "Coro/AsioTask.h"
 
 namespace coro {
 
