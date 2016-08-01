@@ -3,8 +3,8 @@
 #include "Coro/Queue.h"
 #include "Coro/Mutex.h"
 #include "Coro/Acceptor.h"
-#include "Coro/TcpSocket.h"
-#include "Coro/UdpSocket.h"
+#include "Coro/StreamSocket.h"
+#include "Coro/DatagramSocket.h"
 #include <catch.hpp>
 #include <thread>
 
@@ -83,14 +83,14 @@ TEST_CASE("Timeout + queue", "[Timeout]") {
 
 TEST_CASE("Timeout + acceptor", "[Timeout]") {
 	Timeout timeout(std::chrono::milliseconds(100));
-	Acceptor acceptor(endpoint);
+	TcpAcceptor acceptor(endpoint);
 	REQUIRE_THROWS_AS(acceptor.accept(), TimeoutError);
 }
 
 
 TEST_CASE("Timeout + TCP socket", "[Timeout]") {
 	Timeout timeout(std::chrono::milliseconds(100));
-	Acceptor acceptor(endpoint);
+	TcpAcceptor acceptor(endpoint);
 	TcpSocket socket;
 	socket.connect(endpoint);
 	std::vector<uint8_t> buffer(10);

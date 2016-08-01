@@ -1,29 +1,59 @@
 
 #pragma once
 
-#include <functional>
-#include <asio.hpp>
+#include "Coro/AsioTask.h"
+#include "Coro/IoService.h"
+#include "Coro/CoroPool.h"
 
 namespace coro {
 
 /// Wrapper вокруг asio::ip::tcp::acceptor
+template <typename Protocol>
 class Acceptor {
 public:
-	Acceptor(const asio::ip::tcp::endpoint& endpoint);
+	Acceptor(const typename Protocol::endpoint& endpoint): _handle(*IoService::current())
+	{
+		_handle.open(endpoint.protocol());
+		asio::socket_base::reuse_address option(true);
+		_handle.set_option(option);
+		_handle.bind(endpoint);
+		_handle.listen();
+	}
 
-	asio::ip::tcp::socket accept();
+	typename Protocol::socket accept()
+	{
+		typename Protocol::socket socket(*IoService::current());
+
+		AsioTask1 task;
+		_handle.async_accept(socket, task.callback());
+		task.wait(_handle);
+
+		return socket;
+	}
+
 	/*!
 		@brief В цикле принимает подключения и запускает их обработчики в отдельных Strand
 		@param callback - функция-обработчик соединения
 	*/
-	void run(std::function<void(asio::ip::tcp::socket)> callback);
+	void run(std::function<void(typename Protocol::socket)> callback)
+	{
+		CoroPool coroPool;
+		while (true) {
+			auto socket = accept();
+			coroPool.exec([&] {
+				callback(std::move(socket));
+			});
+		}
+	}
 
-	asio::ip::tcp::acceptor& handle() {
+	typename Protocol::acceptor& handle() {
 		return _handle;
 	}
 
-private:
-	asio::ip::tcp::acceptor _handle;
+protected:
+	typename Protocol::acceptor _handle;
 };
+
+using TcpAcceptor = Acceptor<asio::ip::tcp>;
 
 }

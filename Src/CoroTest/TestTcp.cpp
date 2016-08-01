@@ -1,6 +1,6 @@
 
 #include "Coro/Acceptor.h"
-#include "Coro/TcpSocket.h"
+#include "Coro/StreamSocket.h"
 #include "Coro/CoroPool.h"
 #include <catch.hpp>
 
@@ -15,7 +15,7 @@ TEST_CASE("TCP server + TCP client") {
 
 	CoroPool pool;
 	pool.exec([&] {
-		Acceptor acceptor(endpoint);
+		TcpAcceptor acceptor(endpoint);
 		TcpSocket socket = acceptor.accept();
 		std::vector<uint8_t> data(4);
 		REQUIRE(socket.read(asio::buffer(data)) == 4);
@@ -44,7 +44,7 @@ TEST_CASE("Cancel Acceptor::accept") {
 
 	CoroPool pool;
 	pool.exec([&] {
-		Acceptor acceptor(endpoint);
+		TcpAcceptor acceptor(endpoint);
 		try {
 			acceptor.accept();
 		}

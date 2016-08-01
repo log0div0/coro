@@ -1,5 +1,5 @@
 
-#include "Coro/UdpSocket.h"
+#include "Coro/DatagramSocket.h"
 #include "Coro/CoroPool.h"
 #include <catch.hpp>
 

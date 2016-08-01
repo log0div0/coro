@@ -7,13 +7,11 @@
 
 namespace coro {
 
-/// Базовый класс для TCP сокета, UNIX сокета и файла
 template <typename Handle>
 class Stream {
 public:
 	Stream(Handle handle): _handle(std::move(handle)) {}
 
-	// VS2013 не умеет их генерить
 	Stream(Stream&& other): _handle(std::move(other._handle)) {}
 
 	Stream& operator=(Stream&& other) {
