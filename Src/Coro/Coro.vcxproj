@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Acceptor.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Coro.cpp" />
     <ClCompile Include="CoroPool.cpp" />
@@ -29,8 +28,6 @@
     <ClCompile Include="SignalSet.cpp" />
     <ClCompile Include="Strand.cpp" />
     <ClCompile Include="StrandPool.cpp" />
-    <ClCompile Include="TcpSocket.cpp" />
-    <ClCompile Include="UdpSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Acceptor.h" />
@@ -38,6 +35,7 @@
     <ClInclude Include="AsioTask.h" />
     <ClInclude Include="Coro.h" />
     <ClInclude Include="CoroPool.h" />
+    <ClInclude Include="DatagramSocket.h" />
     <ClInclude Include="Fiber.h" />
     <ClInclude Include="IoService.h" />
     <ClInclude Include="Mutex.h" />
@@ -47,10 +45,9 @@
     <ClInclude Include="Strand.h" />
     <ClInclude Include="StrandPool.h" />
     <ClInclude Include="Stream.h" />
-    <ClInclude Include="TcpSocket.h" />
+    <ClInclude Include="StreamSocket.h" />
     <ClInclude Include="Timeout.h" />
     <ClInclude Include="Timer.h" />
-    <ClInclude Include="UdpSocket.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BC8CAEF5-70F4-488E-B7FF-DA05B9B618B0}</ProjectGuid>

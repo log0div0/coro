@@ -9,7 +9,7 @@ namespace coro {
 template <typename Protocol>
 class DatagramSocket {
 public:
-	DatagramSocket(): _handle(*IoService::current()) {
+	DatagramSocket(Protocol protocol): _handle(*IoService::current(), protocol) {
 
 	}
 	DatagramSocket(const typename Protocol::endpoint& endpoint): _handle(*IoService::current())

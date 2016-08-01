@@ -11,7 +11,7 @@ TEST_CASE("A basic UDP socket test") {
 	std::vector<uint8_t> testData { 0x01, 0x02, 0x03, 0x04 };
 
 	UdpSocket server(serverEndpoint);
-	UdpSocket client;
+	UdpSocket client(udp::v4());
 
 	client.send(asio::buffer(testData), serverEndpoint);
 
