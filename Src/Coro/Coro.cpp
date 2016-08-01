@@ -4,9 +4,6 @@
 #include <algorithm>
 #include <cassert>
 
-static const std::string TokenStart = "__start__";
-static const std::string TokenThrow = "__throw__";
-
 namespace coro {
 
 thread_local Coro* t_currentCoro = nullptr;

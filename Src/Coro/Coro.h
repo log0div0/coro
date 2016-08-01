@@ -14,7 +14,8 @@
 
 namespace coro {
 
-static const std::string TokenThrow;
+static constexpr auto TokenStart = "__start__";
+static constexpr auto TokenThrow = "__throw__";
 
 /*!
 	@brief Икслючение для отмены корутин
