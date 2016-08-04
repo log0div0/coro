@@ -9,12 +9,11 @@ namespace coro {
 template <typename Protocol>
 class DatagramSocket {
 public:
-	DatagramSocket(Protocol protocol): _handle(*IoService::current(), protocol) {
+	DatagramSocket(Protocol protocol = Protocol()): _handle(*IoService::current(), protocol) {
 
 	}
-	DatagramSocket(const typename Protocol::endpoint& endpoint): _handle(*IoService::current())
+	DatagramSocket(const typename Protocol::endpoint& endpoint): _handle(*IoService::current(), endpoint.protocol())
 	{
-		_handle.open(endpoint.protocol());
 		asio::socket_base::reuse_address option(true);
 		_handle.set_option(option);
 		_handle.bind(endpoint);
@@ -41,6 +40,10 @@ public:
 		AsioTask2<size_t> task;
 		_handle.async_receive_from(t, endpoint, task.callback());
 		return task.wait(_handle);
+	}
+
+	const typename Protocol::socket& handle() const {
+		return _handle;
 	}
 
 protected:

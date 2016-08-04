@@ -18,7 +18,7 @@ Run(void* coro) {
 
 Coro* Coro::current() {
 	if (!t_currentCoro) {
-		throw std::logic_error("Current coroutine is null");
+		throw std::logic_error("Coro::current is nullptr");
 	}
 	return t_currentCoro;
 }
@@ -29,7 +29,7 @@ Coro::Coro(std::function<void()> routine): _routine(std::move(routine)), _fiber(
 }
 
 Coro::~Coro() {
-	assert(_tokens.empty());
+	assert(_tokens.empty() || _tokens == std::vector<std::string>{TokenStart});
 #ifdef _DEBUG
 	std::string what;
 	for (auto exception: _exceptions) {

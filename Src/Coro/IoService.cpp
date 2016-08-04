@@ -12,6 +12,9 @@ namespace coro {
 thread_local IoService* t_ioService = nullptr;
 
 IoService* IoService::current() {
+	if (!t_ioService) {
+		throw std::runtime_error("IoService::current() is nullptr");
+	}
 	return t_ioService;
 }
 
