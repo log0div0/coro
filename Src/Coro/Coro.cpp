@@ -73,7 +73,7 @@ void Coro::resume(const std::string& token) {
 	_previousCoro = nullptr;
 }
 
-void Coro::throwException(std::exception_ptr exception) {
+void Coro::propagateException(std::exception_ptr exception) {
 	assert(exception);
 	_exceptions.push_back(exception);
 	resume(TokenThrow);
@@ -85,7 +85,7 @@ void Coro::yield(std::vector<std::string> tokens) {
 		_tokens.clear();
 	});
 
-	rethrowException();
+	propagateException();
 
 	if (_previousCoro) {
 		_fiber.switchTo(_previousCoro->_fiber);
@@ -93,14 +93,14 @@ void Coro::yield(std::vector<std::string> tokens) {
 		_fiber.exit();
 	}
 
-	rethrowException();
+	propagateException();
 }
 
 void Coro::cancel() {
-	throwException(CancelError());
+	propagateException(CancelError());
 }
 
-void Coro::rethrowException() {
+void Coro::propagateException() {
 	if (std::find(_tokens.begin(), _tokens.end(), TokenThrow) == _tokens.end()) {
 		return;
 	}

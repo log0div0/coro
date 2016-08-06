@@ -40,7 +40,7 @@ void CoroPool::waitAll(bool noThrow) {
 void CoroPool::cancelAll() {
 	for (auto coro: _childCoros) {
 		if (_childCoros.find(coro) != _childCoros.end()) {
-			coro->throwException(CancelError());
+			coro->propagateException(CancelError());
 		}
 	}
 }
@@ -58,7 +58,7 @@ void CoroPool::onCoroDone(Coro* childCoro) {
 				// (пытаться отменить корутину можно сколько угодно раз, поэтому исключений может быть несколько)
 			}
 			catch (...) {
-				_parentCoro->throwException(std::current_exception());
+				_parentCoro->propagateException(std::current_exception());
 			}
 		}
 		delete childCoro;

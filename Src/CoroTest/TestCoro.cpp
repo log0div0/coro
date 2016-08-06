@@ -56,7 +56,7 @@ TEST_CASE("Throw an exception into a coro", "[Coro]") {
 		}
 	});
 	coro.start();
-	coro.throwException(std::runtime_error("test"));
+	coro.propagateException(std::runtime_error("test"));
 	REQUIRE(success);
 }
 

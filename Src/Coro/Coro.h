@@ -64,11 +64,11 @@ public:
 	void yield(std::vector<std::string> tokens);
 
 	/// Бросить исключение в корутину
-	void throwException(std::exception_ptr exception);
+	void propagateException(std::exception_ptr exception);
 	/// Бросить исключение в корутину
 	template <typename Exception>
-	void throwException(Exception exception) {
-		throwException(std::make_exception_ptr(exception));
+	void propagateException(Exception exception) {
+		propagateException(std::make_exception_ptr(exception));
 	}
 	/// Бросить в корутину исключение CancelError
 	void cancel();
@@ -79,7 +79,7 @@ public:
 	}
 
 private:
-	void rethrowException();
+	void propagateException();
 
 	std::function<void()> _routine;
 	Fiber _fiber;

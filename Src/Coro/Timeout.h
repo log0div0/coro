@@ -53,9 +53,9 @@ public:
 				return _coro->resume(token());
 			}
 			if (errorCode) {
-				return _coro->throwException(std::system_error(errorCode));
+				return _coro->propagateException(std::system_error(errorCode));
 			}
-			_coro->throwException(TimeoutError(this));
+			_coro->propagateException(TimeoutError(this));
 		}));
 	}
 	/// Снять таймаут
