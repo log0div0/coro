@@ -14,7 +14,7 @@ public:
 	/// Запустить новую корутину в текущем Strand
 	Coro* exec(std::function<void()> routine);
 	/// Дождаться завершения всех дочерних корутин
-	void waitAll(bool noThrow);
+	void waitAll(bool noThrow = false);
 	/// Отменить все дочерние корутины
 	void cancelAll();
 
