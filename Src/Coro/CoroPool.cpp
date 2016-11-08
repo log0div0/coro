@@ -10,6 +10,19 @@ CoroPool::~CoroPool() {
 	waitAll(true);
 }
 
+CoroPool::CoroPool(CoroPool&& other):
+	_parentCoro(std::move(other._parentCoro)),
+	_childCoros(std::move(other._childCoros))
+{
+	other._parentCoro = nullptr;
+}
+
+CoroPool& CoroPool::operator=(CoroPool&& other) {
+	std::swap(_parentCoro, other._parentCoro);
+	std::swap(_childCoros, other._childCoros);
+	return *this;
+}
+
 Coro* CoroPool::exec(std::function<void()> routine) {
 	auto coro = new Coro([=] {
 		Finally cleanup([=] {

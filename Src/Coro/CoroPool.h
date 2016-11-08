@@ -10,7 +10,15 @@ namespace coro {
 class CoroPool {
 public:
 	/// Блокирует поток выполнения до тех пор, пока не завершатся все дочерние корутины
+	CoroPool() = default;
 	~CoroPool();
+
+	CoroPool(const CoroPool& other) = delete;
+	CoroPool(CoroPool&& other);
+
+	CoroPool& operator=(const CoroPool& other) = delete;
+	CoroPool& operator=(CoroPool&& other);
+
 	/// Запустить новую корутину в текущем Strand
 	Coro* exec(std::function<void()> routine);
 	/// Дождаться завершения всех дочерних корутин
