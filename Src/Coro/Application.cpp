@@ -43,4 +43,10 @@ void Application::cancel() {
 	});
 }
 
+void Application::propagateException(std::exception_ptr exception) {
+	_strand.post([=] {
+		_coro.propagateException(exception);
+	});
+}
+
 }

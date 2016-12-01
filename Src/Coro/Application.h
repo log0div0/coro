@@ -36,6 +36,13 @@ public:
 	void runAsync(size_t threadsCount = std::thread::hardware_concurrency());
 	/// Отменяет корневую корутину (планирует выброс исключения) и сразу возвращает управление
 	void cancel();
+	/// Бросить исключение в корневую корутину
+	void propagateException(std::exception_ptr exception);
+	/// Бросить исключение в корневую корутину
+	template <typename Exception>
+	void propagateException(Exception exception) {
+		propagateException(std::make_exception_ptr(exception));
+	}
 
 private:
 	IoService _ioService;
