@@ -8,6 +8,7 @@ namespace coro {
 /// Wrapper вокруг asio::io_service
 class IoService {
 public:
+	static void set_current(IoService* io_service);
 	static IoService* current();
 
 	void run();

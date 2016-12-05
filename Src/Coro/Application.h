@@ -44,7 +44,7 @@ public:
 		propagateException(std::make_exception_ptr(exception));
 	}
 
-private:
+protected:
 	IoService _ioService;
 	Strand _strand;
 	Coro _coro;
