@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-add_definitions(-DASIO_STANDALONE)
+add_definitions(-DASIO_STANDALONE -DASIO_DISABLE_EPOLL)
 
 include_directories(
 	${CORO_ROOT}/Src
