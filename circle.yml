@@ -1,0 +1,16 @@
+dependencies:
+  pre:
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - sudo apt-get update
+    - sudo apt-get install gcc-6
+    - sudo apt-get install g++-6
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 100
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 100
+
+compile:
+  override:
+    - cmake . && make
+
+test:
+  override:
+    - ./CoroTest/CoroTest
