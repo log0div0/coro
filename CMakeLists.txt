@@ -7,5 +7,5 @@ include_directories(
 	${CMAKE_SOURCE_DIR}
 )
 
-add_subdirectory(Coro)
-add_subdirectory(CoroTest)
+add_subdirectory(coro)
+add_subdirectory(coro_test)
