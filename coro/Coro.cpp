@@ -4,6 +4,10 @@
 #include <algorithm>
 #include <cassert>
 
+#include <cxxabi.h>
+
+using namespace __cxxabiv1;
+
 namespace coro {
 
 thread_local Coro* t_currentCoro = nullptr;
@@ -38,17 +42,18 @@ Coro::~Coro() {
 		}
 		catch (const std::exception& error) {
 			what += error.what();
+			what += "\n";
 		}
 		catch (const CancelError&) {
 			continue;
 		}
 		catch (...) {
-			what += "...";
+			what += abi::__cxa_current_exception_type()->name();
+			what += "\n";
 		}
-		what += "\n";
 	}
 	if (what.size()) {
-		printf("Coro::~Coro: unhandled exceptions: %s\n", what.c_str());
+		printf("Coro::~Coro: unhandled exceptions:\n%s", what.c_str());
 	}
 #endif
 }
@@ -85,7 +90,9 @@ void Coro::yield(std::vector<std::string> tokens) {
 		_tokens.clear();
 	});
 
-	propagateException();
+	if (std::find(_tokens.begin(), _tokens.end(), TokenThrow) != _tokens.end()) {
+		propagateException();
+	}
 
 	if (_previousCoro) {
 		_fiber.switchTo(_previousCoro->_fiber);
@@ -93,7 +100,9 @@ void Coro::yield(std::vector<std::string> tokens) {
 		_fiber.exit();
 	}
 
-	propagateException();
+	if (std::find(_tokens.begin(), _tokens.end(), TokenThrow) != _tokens.end()) {
+		propagateException();
+	}
 }
 
 void Coro::cancel() {
@@ -101,9 +110,6 @@ void Coro::cancel() {
 }
 
 void Coro::propagateException() {
-	if (std::find(_tokens.begin(), _tokens.end(), TokenThrow) == _tokens.end()) {
-		return;
-	}
 	if (_exceptions.size()) {
 		auto exception = _exceptions.front();
 		_exceptions.pop_front();

@@ -70,6 +70,7 @@ public:
 	void propagateException(Exception exception) {
 		propagateException(std::make_exception_ptr(exception));
 	}
+	void propagateException();
 	/// Бросить в корутину исключение CancelError
 	void cancel();
 
@@ -79,8 +80,6 @@ public:
 	}
 
 private:
-	void propagateException();
-
 	std::function<void()> _routine;
 	Fiber _fiber;
 	Coro* _previousCoro;

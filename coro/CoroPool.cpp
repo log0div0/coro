@@ -61,10 +61,9 @@ void CoroPool::cancelAll() {
 void CoroPool::onCoroDone(Coro* childCoro) {
 	Strand::current()->post([=] {
 		_childCoros.erase(childCoro);
-		for (auto exception: childCoro->exceptions()) {
-			assert(exception);
+		while (childCoro->exceptions().size()) {
 			try {
-				std::rethrow_exception(exception);
+				childCoro->propagateException();
 			}
 			catch (const CancelError&) {
 				// CancelError не пробрасываем в родительскую корутину
