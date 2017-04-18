@@ -9,3 +9,5 @@ include_directories(
 
 add_subdirectory(coro)
 add_subdirectory(coro_test)
+add_subdirectory(coro_extra)
+add_subdirectory(coro_extra_test)

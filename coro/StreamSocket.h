@@ -27,6 +27,4 @@ public:
 
 };
 
-using TcpSocket = StreamSocket<asio::ip::tcp>;
-
 }

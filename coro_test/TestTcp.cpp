@@ -15,8 +15,8 @@ TEST_CASE("TCP server + TCP client") {
 
 	CoroPool pool;
 	pool.exec([&] {
-		TcpAcceptor acceptor(endpoint);
-		TcpSocket socket = acceptor.accept();
+		Acceptor<tcp> acceptor(endpoint);
+		StreamSocket<tcp> socket = acceptor.accept();
 		std::vector<uint8_t> data(4);
 		REQUIRE(socket.read(asio::buffer(data)) == 4);
 		REQUIRE(data == TestData);
@@ -24,7 +24,7 @@ TEST_CASE("TCP server + TCP client") {
 		serverDone = true;
 	});
 	pool.exec([&] {
-		TcpSocket socket;
+		StreamSocket<tcp> socket;
 		socket.connect(endpoint);
 		REQUIRE(socket.write(asio::buffer(TestData)) == 4);
 		std::vector<uint8_t> data(4);
@@ -44,7 +44,7 @@ TEST_CASE("Cancel Acceptor::accept") {
 
 	CoroPool pool;
 	pool.exec([&] {
-		TcpAcceptor acceptor(endpoint);
+		Acceptor<tcp> acceptor(endpoint);
 		try {
 			acceptor.accept();
 		}

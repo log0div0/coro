@@ -54,6 +54,4 @@ protected:
 	typename Protocol::acceptor _handle;
 };
 
-using TcpAcceptor = Acceptor<asio::ip::tcp>;
-
 }

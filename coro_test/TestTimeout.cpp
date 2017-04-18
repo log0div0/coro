@@ -83,15 +83,15 @@ TEST_CASE("Timeout + queue", "[Timeout]") {
 
 TEST_CASE("Timeout + acceptor", "[Timeout]") {
 	Timeout timeout(std::chrono::milliseconds(100));
-	TcpAcceptor acceptor(endpoint);
+	Acceptor<tcp> acceptor(endpoint);
 	REQUIRE_THROWS_AS(acceptor.accept(), TimeoutError);
 }
 
 
 TEST_CASE("Timeout + TCP socket", "[Timeout]") {
 	Timeout timeout(std::chrono::milliseconds(100));
-	TcpAcceptor acceptor(endpoint);
-	TcpSocket socket;
+	Acceptor<tcp> acceptor(endpoint);
+	StreamSocket<tcp> socket;
 	socket.connect(endpoint);
 	std::vector<uint8_t> buffer(10);
 	REQUIRE_THROWS_AS(socket.read(asio::buffer(buffer)), TimeoutError);
@@ -99,7 +99,7 @@ TEST_CASE("Timeout + TCP socket", "[Timeout]") {
 
 TEST_CASE("Timeout + UDP socket", "[Timeout]") {
 	Timeout timeout(std::chrono::milliseconds(100));
-	UdpSocket socket(udp::endpoint(address::from_string("127.0.0.1"), 44442));
+	DatagramSocket<udp> socket(udp::endpoint(address::from_string("127.0.0.1"), 44442));
 	std::vector<uint8_t> buffer(10);
 	udp::endpoint endpoint;
 	REQUIRE_THROWS_AS(socket.receive(asio::buffer(buffer), endpoint), TimeoutError);

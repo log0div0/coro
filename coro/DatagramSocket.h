@@ -50,6 +50,4 @@ protected:
 	typename Protocol::socket _handle;
 };
 
-using UdpSocket = DatagramSocket<asio::ip::udp>;
-
 }
