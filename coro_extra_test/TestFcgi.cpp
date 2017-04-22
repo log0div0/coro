@@ -54,9 +54,16 @@ TEST_CASE("fcgireq") {
 	pool.exec([&] {
 		TcpSocket socket;
 		socket.connect(endpoint);
-		auto resp = Fcgi::Client::make_request("GET", "/testapi", "", socket, "127.0.0.1", 3033);
+
+		FcgiClient cli;
+		Buffer outbuf;
+		cli.writeRequest("GET", "/testapi", "", "127.0.0.1", 3033, outbuf);
+		socket.write(outbuf);
+
+		Buffer inputbuf;
+		auto resp = cli.readResponse(socket.iterator(inputbuf), socket.iterator());
 		REQUIRE(resp.status == 200);
-		REQUIRE(resp.text == "ok");
+		REQUIRE(resp.body == "ok");
 		clientDone = true;
 	});
 

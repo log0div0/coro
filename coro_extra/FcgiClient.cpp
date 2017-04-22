@@ -1,8 +1,5 @@
 #include "coro_extra/FcgiClient.h"
 
-using namespace coro;
-using namespace Fcgi;
-
 class FastcgiParam
 {
 public:
@@ -70,7 +67,7 @@ public:
 	std::vector<uint8_t> m_buffer;
 };
 
-Header::Header(RequestType t, size_t size)
+FcgiHeader::FcgiHeader(FcgiRequestType t, size_t size)
 {
 	version = 1;
 	type = (uint8_t)t;
@@ -86,45 +83,17 @@ Header::Header(RequestType t, size_t size)
 	}
 }
 
-static int get_http_status(const std::string &headers)
+void
+FcgiClient::writeRequest(const std::string& method, const std::string &URI,
+	const std::string &body, const std::string server, uint16_t port, Buffer& buffer)
 {
-	// Status: 200 OK
+	FcgiHeader beginRequestHeader(FcgiRequestType::BeginRequest, sizeof(FcgiBeginRequestBody));
+	buffer.pushBack(beginRequestHeader.begin(), beginRequestHeader.end());
 
-	const std::string status_tag = "Status:";
-	size_t pos = headers.find(status_tag);
-	if (pos == std::string::npos) {
-		return -1;
-	}
-	pos += status_tag.length();
-	while (!isdigit(headers[pos])) {
-		++pos;
-	}
-	if (pos >= headers.length()) {
-		return -1;
-	}
-	std::string code;
-	while (isdigit(headers[pos])) {
-		code += headers[pos];
-	++pos;
-	}
-	if (code.empty()) {
-		return -1;
-	}
-
-	return std::stoi(code);
-}
-
-Response
-Client::make_request(const std::string& method, const std::string &URI,
-	const std::string &body, TcpSocket& socket, const std::string server, uint16_t port)
-{
-	Header beginRequestHeader(RequestType::BeginRequest, sizeof(BeginRequestBody));
-	socket.write(beginRequestHeader.as_buf());
-
-	BeginRequestBody beginBody;
+	FcgiBeginRequestBody beginBody;
 	memset(&beginBody, 0, sizeof(beginBody));
 	beginBody.roleB0 = 1;
-	socket.write(beginBody.as_buf());
+	buffer.pushBack(beginBody.begin(), beginBody.end());
 
 	const uint8_t *input = nullptr;
 	const size_t input_size = body.size();
@@ -151,15 +120,15 @@ Client::make_request(const std::string& method, const std::string &URI,
 	{
 		param_size += item.m_buffer.size();
 	}
-	Header paramHeader(RequestType::Params, param_size);
-	socket.write(paramHeader.as_buf());
+	FcgiHeader paramHeader(FcgiRequestType::Params, param_size);
+	buffer.pushBack(paramHeader.begin(), paramHeader.end());
 
 	for (FastcgiParam& item : param_list)
 	{
-		socket.write(asio::buffer(item.m_buffer));
+		buffer.pushBack(item.m_buffer.begin(), item.m_buffer.end());
 	}
-	Header zeroParamHeader(RequestType::Params, 0);
-	socket.write(zeroParamHeader.as_buf());
+	FcgiHeader zeroParamHeader(FcgiRequestType::Params, 0);
+	buffer.pushBack(zeroParamHeader.begin(), zeroParamHeader.end());
 
 	if (method == "POST" || method == "PUT" || method == "DELETE")
 	{
@@ -167,55 +136,15 @@ Client::make_request(const std::string& method, const std::string &URI,
 		while (offset < input_size)
 		{
 			size_t block_size = std::min((size_t)65535, input_size - offset);
-			Header hdr(RequestType::StdIn, block_size);
-			socket.write(hdr.as_buf());
+			FcgiHeader hdr(FcgiRequestType::StdIn, block_size);
+			buffer.pushBack(hdr.begin(), hdr.end());
 
-			socket.write(asio::const_buffer(&input[offset], block_size));
+			buffer.pushBack(&input[offset], &input[offset+block_size]);
 
 			offset += 65535;
 		}
 	}
 
-	Header endHeader(RequestType::StdIn, 0);
-	socket.write(asio::const_buffer(&endHeader, sizeof(Header)));
-
-	std::string resp("");
-	while (1)
-	{
-		Header responseHeader(RequestType::UnknownType, 0);
-		socket.read(responseHeader.as_mbuf());
-		if (responseHeader.type == (uint8_t)RequestType::EndRequest)
-		{
-			break;
-		}
-
-		size_t len = responseHeader.contentLengthB1;
-		len = len << 8;
-		len += responseHeader.contentLengthB0;
-		if (len > 0)
-		{
-			std::string text_response;
-			text_response.resize(len);
-			socket.read(asio::mutable_buffer((void*)text_response.data(), len));
-			resp += text_response;
-		}
-
-		if (responseHeader.paddingLength > 0)
-		{
-			std::vector<uint8_t> padding;
-			padding.resize(responseHeader.paddingLength);
-			socket.read(padding.data(), responseHeader.paddingLength);
-		}
-	}
-
-	const std::string delimiter = "\r\n\r\n";
-	ssize_t body_pos = resp.find(delimiter);
-	const std::string headers = resp.substr(0, body_pos);
-
-	Response result;
-	result.status = get_http_status(headers);
-	result.text = resp.substr(body_pos + delimiter.length());
-	result.headers = headers;
-
-	return result;
+	FcgiHeader endHeader(FcgiRequestType::StdIn, 0);
+	buffer.pushBack(endHeader.begin(), endHeader.end());
 }

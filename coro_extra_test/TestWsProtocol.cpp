@@ -1,92 +1,90 @@
-#include "coro/IoService.h"
 #include "coro/CoroPool.h"
-#include "coro_extra/TcpServer.h"
-#include "coro_extra/TcpSocket.h"
+#include "coro/Acceptor.h"
 #include "coro_extra/WsProtocol.h"
-#include <iostream>
+#include "coro_extra/TcpSocket.h"
 #include <catch.hpp>
 
-using namespace std;
 using namespace asio::ip;
 using namespace coro;
 
-class WsEchoSession {
-public:
-	WsEchoSession(TcpSocket socket): _socket(move(socket))
-	{
-		cout << "WsEchoSession" << endl;
-	}
-	~WsEchoSession() {
-		cout << "~WsEchoSession" << endl;
-	}
+typedef StreamIterator<TcpSocket> SocketStreamIterator;
 
-	void doHandshake() {
-		Buffer outputBuffer;
-		_inputBuffer.popFront(
-			_wsProtocol.doHandshake(
-				_socket.iterator(_inputBuffer),
-				_socket.iterator(),
-				outputBuffer
+static auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
+static std::vector<uint8_t> message_sample { 0x30, 0x31, 0x32 };
+
+TEST_CASE("wsprotocol") {
+	bool serverDone = false;
+	bool clientDone = false;
+	CoroPool pool;
+
+	pool.exec([&] {
+		Acceptor<tcp> acceptor(endpoint);
+		TcpSocket socket = acceptor.accept();
+
+		WsProtocol protocol;
+		Buffer inputbuf;
+		Buffer outbuf;
+
+		inputbuf.popFront(
+			protocol.doHandshake(
+				socket.iterator(inputbuf),
+				socket.iterator(),
+				outbuf
 			)
 		);
-		_socket.write(outputBuffer);
-	}
+		socket.write(outbuf);
 
-	void printMessage(const WsMessage& message) {
-		if (message.opCode() == WsMessage::OpCode::Text) {
-			copy(message.payloadBegin(), message.payloadEnd(),
-				ostream_iterator<char>(cout));
-			cout << endl;
+		auto msg = protocol.readMessage(socket.iterator(inputbuf), socket.iterator());
+		REQUIRE(msg.opCode() == WsMessage::OpCode::Binary);
+		REQUIRE(msg.payloadLength() == message_sample.size());
+		REQUIRE(std::equal(msg.payloadBegin(), msg.payloadEnd(), message_sample.begin()));
+
+		outbuf.clear();
+		outbuf.pushBack(message_sample.begin(), message_sample.end());
+		protocol.writeMessage(WsMessage::OpCode::Binary, outbuf);
+		for (size_t i=0; i<30; ++i) {
+			socket.write(outbuf);
 		}
-	}
 
-	void run() {
-		try {
-			doHandshake();
-
-			while (true) {
-				WsMessage message = _wsProtocol.readMessage(
-					_socket.iterator(_inputBuffer),
-					_socket.iterator()
-				);
-
-				if (message.opCode() == WsMessage::OpCode::Close) {
-					Buffer outputBuffer;
-					_wsProtocol.writeMessage(WsMessage::OpCode::Close, outputBuffer);
-					_socket.write(outputBuffer);
-					return;
-				}
-
-				printMessage(message);
-
-				Buffer outputBuffer;
-				// копируем payload
-				outputBuffer.assign(message.payloadBegin(), message.payloadEnd());
-				// запаковываем в websockets
-				_wsProtocol.writeMessage(message.opCode(), outputBuffer);
-				// отправляем
-				_socket.write(outputBuffer);
-
-				_inputBuffer.popFront(message.end());
-			}
-		}
-		catch (const exception& error) {
-			cout << error.what() << endl;
-		}
-	}
-
-private:
-	TcpSocket _socket;
-	WsProtocol _wsProtocol;
-	Buffer _inputBuffer;
-};
-
-TEST_CASE("wsprotocol test") {
-	auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
-	TcpServer server(endpoint);
-	server.run([](TcpSocket socket) {
-		WsEchoSession session(std::move(socket));
-		session.run();
+		serverDone = true;
 	});
+
+	pool.exec([&] {
+		TcpSocket socket;
+		socket.connect(endpoint);
+
+		WsProtocol protocol;
+		Buffer inputbuf;
+		Buffer outbuf;
+
+		protocol.writeHandshakeRequest("/wsk", outbuf);
+		socket.write(outbuf);
+
+		inputbuf.popFront(
+			protocol.readHandshakeResponse(
+				socket.iterator(inputbuf),
+				socket.iterator()
+			)
+		);
+
+		outbuf.clear();
+		outbuf.pushBack(message_sample.begin(), message_sample.end());
+		protocol.writeMessage(WsMessage::OpCode::Binary, outbuf);
+		socket.write(outbuf);
+
+		for (size_t i=0; i<30; ++i) {
+			auto msg = protocol.readMessage(socket.iterator(inputbuf), socket.iterator());
+			REQUIRE(msg.opCode() == WsMessage::OpCode::Binary);
+			REQUIRE(msg.payloadLength() == message_sample.size());
+			REQUIRE(std::equal(msg.payloadBegin(), msg.payloadEnd(), message_sample.begin()));
+			inputbuf.popFront(msg.end());
+		}
+
+		clientDone = true;
+	});
+
+	REQUIRE_NOTHROW(pool.waitAll(false));
+	REQUIRE(serverDone);
+	REQUIRE(clientDone);
 }
 
