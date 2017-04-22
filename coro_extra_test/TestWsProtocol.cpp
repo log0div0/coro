@@ -33,6 +33,13 @@ TEST_CASE("wsprotocol") {
 			)
 		);
 		socket.write(outbuf);
+		auto headers = protocol.handshakeHeaders();
+		auto c1 = headers.find("CustomHeader1");
+		REQUIRE(c1 != headers.end());
+		REQUIRE(c1->second == "V1");
+		auto c2 = headers.find("CustomHeader2");
+		REQUIRE(c2 != headers.end());
+		REQUIRE(c2->second == "V2");
 
 		auto msg = protocol.readMessage(socket.iterator(inputbuf), socket.iterator());
 		REQUIRE(msg.opCode() == WsMessage::OpCode::Binary);
@@ -57,7 +64,10 @@ TEST_CASE("wsprotocol") {
 		Buffer inputbuf;
 		Buffer outbuf;
 
-		protocol.writeHandshakeRequest("/wsk", outbuf);
+		HttpHeaders headers;
+		headers.insert({"CustomHeader1", "V1"});
+		headers.insert({"CustomHeader2", "V2"});
+		protocol.writeHandshakeRequest("/wsk", headers, outbuf);
 		socket.write(outbuf);
 
 		inputbuf.popFront(
