@@ -40,6 +40,7 @@ private:
 class WsProtocol {
 public:
 	void writeHandshakeRequest(const std::string& path, Buffer& buffer) const;
+	void writeHandshakeRequest(const std::string& path, const HttpHeaders& headers, Buffer& buffer) const;
 
 	/**
 	  * @param [begin, end) - client HTTP request

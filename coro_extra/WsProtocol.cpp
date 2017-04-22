@@ -5,6 +5,8 @@
 #ifndef _MSC_VER
 #include <openssl/sha.h>
 #endif
+#include <sstream>
+
 
 WsMessage::OpCode WsMessage::opCode() const {
 	return _opCode;
@@ -39,11 +41,22 @@ size_t WsMessage::payloadLength() const {
 const std::string WsProtocol::handshakeRequest = "GET %1% HTTP/1.1\r\n\
 Connection: Upgrade\r\n\
 Upgrade: websocket\r\n\
+%2%\
 \r\n";
 
 
 void WsProtocol::writeHandshakeRequest(const std::string& path, Buffer& buffer) const {
-	std::string request = Format(handshakeRequest, path);
+	std::string request = Format(handshakeRequest, path, "");
+	buffer.pushBack(request.begin(), request.end());
+}
+
+
+void WsProtocol::writeHandshakeRequest(const std::string& path, const HttpHeaders& headers, Buffer& buffer) const {
+	std::stringstream compHeaders;
+	for (auto& h : headers) {
+		compHeaders << h.first << ": " << h.second << "\r\n";
+	}
+	std::string request = Format(handshakeRequest, path, compHeaders.str());
 	buffer.pushBack(request.begin(), request.end());
 }
 
