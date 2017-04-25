@@ -1,1 +1,25 @@
-script: echo bbbbbbbbbb
+language: cpp
+sudo: required
+dist: trusty
+compiler:
+  - g++
+os:
+  - linux
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-5
+
+before_install:
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 50
+
+script:
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make
+  - ./coro_test/coro_test
+  - ./coro_extra_test/coro_extra_test
