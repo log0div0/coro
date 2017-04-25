@@ -1,1 +1,27 @@
-script: echo aaaaaaaaaaaaaaaaa
+language: cpp
+sudo: required
+dist: trusty
+compiler:
+  - g++
+os:
+  - linux
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - boost-latest
+    packages:
+      - g++-5
+      - libboost1.55-all-dev
+
+before_install:
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 50
+
+script:
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make
+  - ./coro_test/coro_test
+  - ./coro_extra_test/coro_extra_test
