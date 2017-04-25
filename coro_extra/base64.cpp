@@ -43,7 +43,7 @@ vector<uint8_t> base64::decode(const string &str)
 	string encoded = str;
 	encoded.erase(std::remove_if(encoded.begin(), encoded.end(),
 				[](char x) {
-					return std::isspace(x);
+					return isspace(x);
 				}), encoded.end());
 	trim_right_if(encoded, is_any_of("="));
 

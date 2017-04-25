@@ -1,7 +1,7 @@
 
 #include "coro/CheckPoint.h"
-#include "coro/Coro.h"
 #include "coro/Strand.h"
+#include "coro/Coro.h"
 
 namespace coro {
 

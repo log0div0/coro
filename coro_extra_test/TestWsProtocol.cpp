@@ -1,5 +1,5 @@
-#include "coro/CoroPool.h"
 #include "coro/Acceptor.h"
+#include "coro/CoroPool.h"
 #include "coro_extra/WsProtocol.h"
 #include "coro_extra/TcpSocket.h"
 #include <catch.hpp>

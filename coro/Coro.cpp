@@ -4,9 +4,10 @@
 #include <algorithm>
 #include <cassert>
 
+#ifdef __GNUC__
 #include <cxxabi.h>
-
 using namespace __cxxabiv1;
+#endif
 
 namespace coro {
 
@@ -48,7 +49,11 @@ Coro::~Coro() {
 			continue;
 		}
 		catch (...) {
+#ifdef __GNUC__
 			what += abi::__cxa_current_exception_type()->name();
+#else
+			what += "...";
+#endif
 			what += "\n";
 		}
 	}
