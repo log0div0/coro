@@ -1,0 +1,27 @@
+
+os: Visual Studio 2015
+
+platform:
+  - Win32
+  - x64
+
+configuration:
+  - Debug
+  - Release
+
+clone_folder: C:\Projects\coro
+
+before_build:
+  - cmd: cd C:\Projects\coro
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 14 2015
+  - cmd: if "%platform%"=="x64" set CMAKE_GENERATOR_NAME=Visual Studio 14 2015 Win64
+  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DBOOST_ROOT=C:\Libraries\boost ..
+
+build:
+  project: C:\Projects\coro\build\Project.sln
+
+after_build:
+  - cmd: .\coro_test\%configuration%\coro_test.exe
+  - cmd: .\coro_extra_test\%configuration%\coro_extra_test.exe
