@@ -1,4 +1,4 @@
-# Coro
+# Coro [![Build Status](https://travis-ci.org/log0div0/coro.svg?branch=master)](https://travis-ci.org/log0div0/coro)
 
 ## What's the problem?
 
