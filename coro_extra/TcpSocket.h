@@ -25,7 +25,13 @@ public:
 	size_t write(const Buffer& buffer);
 	size_t readSome(Buffer* buffer);
 
-	void close();
+	void shutdown(asio::ip::tcp::socket::shutdown_type what = asio::ip::tcp::socket::shutdown_both) {
+		_handle.shutdown(what);
+	}
+
+	bool isOpen() {
+		return _handle.is_open();
+	}
 };
 
 }
