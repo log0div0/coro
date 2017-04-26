@@ -1,4 +1,4 @@
-# Coro [![Build Status](https://travis-ci.org/log0div0/coro.svg?branch=master)](https://travis-ci.org/log0div0/coro)
+# Coro [![Build Status](https://travis-ci.org/log0div0/coro.svg?branch=master)](https://travis-ci.org/log0div0/coro) [![Build status](https://ci.appveyor.com/api/projects/status/qhtgohdv3x59j6j7/branch/master?svg=true)](https://ci.appveyor.com/project/log0div0/coro/branch/master)
 
 ## What's the problem?
 
