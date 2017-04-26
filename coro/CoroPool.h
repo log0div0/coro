@@ -37,12 +37,6 @@ private:
 	std::set<Coro*> _childCoros;
 };
 
-inline void WaitOne(std::initializer_list<std::function<void()>> routines) {
-	CoroPool pool;
-	for (auto& routine: routines) {
-		pool.exec(std::move(routine));
-	}
-	Coro::current()->yield({pool.token(), TokenThrow});
-}
+void WaitOne(std::initializer_list<std::function<void()>> routines);
 
 }

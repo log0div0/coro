@@ -1,8 +1,10 @@
 
+#include "coro/Timer.h"
 #include "coro/CoroPool.h"
 #include <catch.hpp>
 
 using namespace coro;
+using namespace std::chrono_literals;
 
 TEST_CASE("CoroPool::wait", "[CoroPool]") {
 	std::vector<uint8_t> result;
@@ -51,11 +53,13 @@ TEST_CASE("WaitOne") {
 	int x = 0;
 	WaitOne({
 		[&] {
+			Timer timer;
+			timer.waitFor(123s);
 			x = 10;
 		},
 		[&] {
 			x = 20;
 		}
 	});
-	REQUIRE(x != 0);
+	REQUIRE(x == 20);
 }

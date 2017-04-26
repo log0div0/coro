@@ -37,17 +37,13 @@ Coro* CoroPool::exec(std::function<void()> routine) {
 }
 
 void CoroPool::waitAll(bool noThrow) {
-	if (_childCoros.empty()) {
-		return;
+	while(!_childCoros.empty()) {
+		if (noThrow) {
+			_parentCoro->yield({token()});
+		} else {
+			_parentCoro->yield({token(), TokenThrow});
+		}
 	}
-
-	if (noThrow) {
-		_parentCoro->yield({token()});
-	} else {
-		_parentCoro->yield({token(), TokenThrow});
-	}
-
-	assert(_childCoros.empty());
 }
 
 void CoroPool::cancelAll() {
@@ -75,9 +71,7 @@ void CoroPool::onCoroDone(Coro* childCoro) {
 		}
 		delete childCoro;
 
-		if (_childCoros.empty()) {
-			_parentCoro->resume(token());
-		}
+		_parentCoro->resume(token());
 	});
 }
 
@@ -87,6 +81,14 @@ std::string CoroPool::token() const {
 
 size_t CoroPool::size() const {
 	return _childCoros.size();
+}
+
+void WaitOne(std::initializer_list<std::function<void()>> routines) {
+	CoroPool pool;
+	for (auto& routine: routines) {
+		pool.exec(std::move(routine));
+	}
+	Coro::current()->yield({pool.token(), TokenThrow});
 }
 
 }
