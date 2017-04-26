@@ -9,10 +9,10 @@ using namespace coro;
 
 typedef StreamIterator<TcpSocket> SocketStreamIterator;
 
-static auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
-static std::vector<uint8_t> message_sample { 0x30, 0x31, 0x32 };
-
 TEST_CASE("wsprotocol") {
+	auto endpoint = tcp::endpoint(address_v4::from_string("127.0.0.1"), 44442);
+	std::vector<uint8_t> message_sample { 0x30, 0x31, 0x32 };
+
 	bool serverDone = false;
 	bool clientDone = false;
 	CoroPool pool;

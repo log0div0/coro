@@ -8,6 +8,13 @@
 
 namespace coro {
 
+#if _MSC_VER
+#if (!defined(_WIN32_WINNT) || _WIN32_WINNT < 0x0600)
+	#pragma warning(push)
+	#pragma warning(disable:4996)
+#endif
+#endif
+
 /// Базовый класс асинхронной операции
 class AsioTask {
 protected:
@@ -96,5 +103,11 @@ private:
 	std::error_code _errorCode;
 	Result _result;
 };
+
+#if _MSC_VER
+#if (!defined(_WIN32_WINNT) || _WIN32_WINNT < 0x0600)
+#pragma warning(pop)
+#endif
+#endif
 
 }

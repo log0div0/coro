@@ -18,6 +18,7 @@ if (WIN32)
 	include_directories(
 		${BOOST_ROOT}
 	)
+	add_definitions(-D_WIN32_WINNT=0x0501 -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 add_subdirectory(coro)

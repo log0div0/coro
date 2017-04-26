@@ -89,8 +89,9 @@ public:
 		auto opCode = static_cast<WsMessage::OpCode>(*it & 0x0f);
 		++it;
 		uint8_t maskFlag = *it & 0x80;
-		uint64_t payloadLength;
-		it = ReadWsPayloadLength(it, end, &payloadLength);
+		uint64_t _payloadLength = 0;
+		it = ReadWsPayloadLength(it, end, &_payloadLength);
+		size_t payloadLength = (size_t)_payloadLength;
 
 		if (!finFlag) {
 			throw std::runtime_error("Websocket message segmentation is not implemented");
@@ -99,7 +100,7 @@ public:
 		if (maskFlag) {
 			std::vector<uint8_t> maskingKey(it, it + 4);
 			it += 4;
-			for(uint64_t i = 0; i < payloadLength; ++i) {
+			for(size_t i = 0; i < payloadLength; ++i) {
 				*(it + i) ^= maskingKey[i % 4];
 			}
 		}

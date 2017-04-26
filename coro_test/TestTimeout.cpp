@@ -11,8 +11,6 @@
 using namespace asio::ip;
 using namespace coro;
 
-static auto endpoint = tcp::endpoint(address::from_string("127.0.0.1"), 44442);
-
 TEST_CASE("A basic Timeout test", "[Timeout]") {
 	auto coro = Coro::current();
 
@@ -83,6 +81,7 @@ TEST_CASE("Timeout + queue", "[Timeout]") {
 
 TEST_CASE("Timeout + acceptor", "[Timeout]") {
 	Timeout timeout(std::chrono::milliseconds(100));
+	auto endpoint = tcp::endpoint(address::from_string("127.0.0.1"), 44442);
 	Acceptor<tcp> acceptor(endpoint);
 	REQUIRE_THROWS_AS(acceptor.accept(), TimeoutError);
 }
@@ -90,6 +89,7 @@ TEST_CASE("Timeout + acceptor", "[Timeout]") {
 
 TEST_CASE("Timeout + TCP socket", "[Timeout]") {
 	Timeout timeout(std::chrono::milliseconds(100));
+	auto endpoint = tcp::endpoint(address::from_string("127.0.0.1"), 44442);
 	Acceptor<tcp> acceptor(endpoint);
 	StreamSocket<tcp> socket;
 	socket.connect(endpoint);
