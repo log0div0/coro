@@ -138,7 +138,12 @@ void Coro::run() {
 		_exceptions.push_front(exception);
 	}
 	_routine = nullptr;
-	yield({});
+	_tokens.clear();
+	if (_previousCoro) {
+		_fiber.switchTo(_previousCoro->_fiber);
+	} else {
+		_fiber.exit();
+	}
 }
 
 }
