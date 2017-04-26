@@ -3,6 +3,7 @@
 
 #include "coro/Coro.h"
 #include <set>
+#include <initializer_list>
 
 namespace coro {
 
@@ -26,13 +27,22 @@ public:
 	/// Отменить все дочерние корутины
 	void cancelAll();
 
+	std::string token() const;
+	size_t size() const;
+
 private:
 	void onCoroDone(Coro* coro);
-
-	std::string token() const;
 
 	Coro* _parentCoro = Coro::current();
 	std::set<Coro*> _childCoros;
 };
+
+inline void WaitOne(std::initializer_list<std::function<void()>> routines) {
+	CoroPool pool;
+	for (auto& routine: routines) {
+		pool.exec(std::move(routine));
+	}
+	Coro::current()->yield({pool.token(), TokenThrow});
+}
 
 }

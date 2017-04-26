@@ -57,7 +57,7 @@ Coro::~Coro() {
 			what += "\n";
 		}
 	}
-	if (what.size()) {
+	if (!what.empty()) {
 		printf("Coro::~Coro: unhandled exceptions:\n%s", what.c_str());
 	}
 #endif
@@ -115,7 +115,7 @@ void Coro::cancel() {
 }
 
 void Coro::propagateException() {
-	if (_exceptions.size()) {
+	if (!_exceptions.empty()) {
 		auto exception = _exceptions.front();
 		_exceptions.pop_front();
 		assert(exception);
@@ -138,7 +138,12 @@ void Coro::run() {
 		_exceptions.push_front(exception);
 	}
 	_routine = nullptr;
-	yield({});
+	_tokens.clear();
+	if (_previousCoro) {
+		_fiber.switchTo(_previousCoro->_fiber);
+	} else {
+		_fiber.exit();
+	}
 }
 
 }

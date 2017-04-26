@@ -16,7 +16,12 @@ Application::Application(const std::function<void()>& main): _strand(&_ioService
 
 Application::~Application() {
 	for (auto& thread: _threads) {
-		thread.join();
+		try{
+			thread.join();
+		}
+		catch (const std::exception&){
+			// Подавление ошибок
+		}
 	}
 }
 
@@ -26,7 +31,9 @@ void Application::run() {
 #endif
 	_ioService.run();
 #ifdef _MSC_VER
-	CoUninitialize();
+	// https://support.microsoft.com/ru-ru/help/293278/prb-problems-when-you-call-coinitialize-and-couninitialize-repeatedly-in-multithreaded-apartment
+	// По рекомендациям от microsoft для многопоточного COM нужно однократно вызывать CoInitializeEx в потоке и
+	// не вызывать CoUninitialize() - ресурсы вернутся в систему при завершении программы
 #endif
 }
 

@@ -5,17 +5,17 @@
 using namespace coro;
 
 TEST_CASE("A basic queue test") {
-	std::vector<uint8_t> actual, expected = {0, 1, 2, 3};
+	std::vector<uint32_t> actual, expected = {0, 1, 2, 3};
 
-	Queue<uint8_t> queue;
+	Queue<uint32_t> queue;
 
 	Coro consumer([&] {
-		for (auto i = 0; i < 4; ++i) {
+		for (uint32_t i = 0; i < 4; ++i) {
 			actual.push_back(queue.pop());
 		}
 	});
 	Coro producer([&] {
-		for (auto i = 0; i < 4; ++i) {
+		for (uint32_t i = 0; i < 4; ++i) {
 			queue.push(i);
 		}
 	});
@@ -27,9 +27,9 @@ TEST_CASE("A basic queue test") {
 
 
 TEST_CASE("Throw exception from Queue::pop") {
-	std::vector<uint8_t> actual, expected = {};
+	std::vector<uint32_t> actual, expected = {};
 
-	Queue<uint8_t> queue;
+	Queue<uint32_t> queue;
 
 	Coro consumer([&] {
 		actual.push_back(queue.pop());

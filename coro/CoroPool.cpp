@@ -85,4 +85,8 @@ std::string CoroPool::token() const {
 	return "CoroPool " + std::to_string((uint64_t)this);
 }
 
+size_t CoroPool::size() const {
+	return _childCoros.size();
+}
+
 }
