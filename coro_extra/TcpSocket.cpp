@@ -17,4 +17,9 @@ size_t TcpSocket::readSome(Buffer* buffer) {
 	return task.wait(_handle);
 }
 
+void TcpSocket::close() {
+	_handle.shutdown(tcp::socket::shutdown_both);
+	_handle.close();
+}
+
 }

@@ -24,6 +24,8 @@ public:
 
 	size_t write(const Buffer& buffer);
 	size_t readSome(Buffer* buffer);
+
+	void close();
 };
 
 }
