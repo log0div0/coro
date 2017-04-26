@@ -16,7 +16,12 @@ Application::Application(const std::function<void()>& main): _strand(&_ioService
 
 Application::~Application() {
 	for (auto& thread: _threads) {
-		thread.join();
+		try{
+			thread.join();
+		}
+		catch (const std::exception&){
+			// Подавление ошибок
+		}
 	}
 }
 
