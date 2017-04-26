@@ -46,3 +46,16 @@ TEST_CASE("CoroPool::cancelAll crash", "[CoroPool]") {
 	pool.cancelAll();
 	REQUIRE_NOTHROW(pool.waitAll(false));
 }
+
+TEST_CASE("WaitOne") {
+	int x = 0;
+	WaitOne({
+		[&] {
+			x = 10;
+		},
+		[&] {
+			x = 20;
+		}
+	});
+	REQUIRE(x != 0);
+}
