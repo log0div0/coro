@@ -32,6 +32,7 @@ public:
 
 private:
 	void onCoroDone(Coro* coro);
+	void assertCurrentIsParent();
 
 	Coro* _parentCoro = Coro::current();
 	std::set<Coro*> _childCoros;

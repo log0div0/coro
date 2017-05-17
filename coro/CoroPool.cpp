@@ -23,7 +23,19 @@ CoroPool& CoroPool::operator=(CoroPool&& other) {
 	return *this;
 }
 
+void CoroPool::assertCurrentIsParent() {
+	if (Coro::current() != _parentCoro) {
+		throw std::runtime_error(
+			"Пулом корутин можно пользоватся только в той корутине, "
+			"в которой этот пул был создан. Реорганизуйте Ваш код так, "
+			"чтобы пулы корутин образовывали строгую иерархию."
+		);
+	}
+}
+
 Coro* CoroPool::exec(std::function<void()> routine) {
+	assertCurrentIsParent();
+
 	auto coro = new Coro([=] {
 		Finally cleanup([=] {
 			onCoroDone(Coro::current());
@@ -37,6 +49,8 @@ Coro* CoroPool::exec(std::function<void()> routine) {
 }
 
 void CoroPool::waitAll(bool noThrow) {
+	assertCurrentIsParent();
+
 	while(!_childCoros.empty()) {
 		if (noThrow) {
 			_parentCoro->yield({token()});
@@ -47,6 +61,8 @@ void CoroPool::waitAll(bool noThrow) {
 }
 
 void CoroPool::cancelAll() {
+	assertCurrentIsParent();
+
 	for (auto coro: _childCoros) {
 		if (_childCoros.find(coro) != _childCoros.end()) {
 			coro->propagateException(CancelError());

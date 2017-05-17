@@ -63,3 +63,15 @@ TEST_CASE("WaitOne") {
 	});
 	REQUIRE(x == 20);
 }
+
+TEST_CASE("DO NOT DO IT", "[CoroPool]")
+{
+	CoroPool inPool;
+	CoroPool outPool;
+	outPool.exec([&]
+	{
+		REQUIRE_THROWS(inPool.exec([]
+		{
+		}));
+	});
+}
