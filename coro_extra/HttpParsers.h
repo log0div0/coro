@@ -19,9 +19,24 @@ struct HttpResponse {
 	HttpHeaders headers;
 };
 
+struct HttpUrl {
+	std::string protocol;
+	std::string host;
+	int port;
+	std::string path;
+
+	std::string get_path() const {
+		if (path.length()>0) {
+			return path;
+		} else {
+			return "/";
+		}
+	}
+};
 
 BOOST_FUSION_ADAPT_STRUCT(HttpRequest, (HttpHeaders, headers));
 BOOST_FUSION_ADAPT_STRUCT(HttpResponse, (int, code) (HttpHeaders, headers));
+BOOST_FUSION_ADAPT_STRUCT(HttpUrl, (std::string, protocol) (std::string, host) (int, port) (std::string, path));
 
 
 template <typename Iterator>
@@ -84,4 +99,27 @@ struct HttpResponseParser: boost::spirit::qi::grammar<Iterator, HttpResponse()>
 
 	boost::spirit::qi::rule<Iterator, HttpResponse()> _response;
 	HttpHeadersParser<Iterator> _headers;
+};
+
+template <typename Iterator>
+struct HttpUrlParser: boost::spirit::qi::grammar<Iterator, HttpUrl()>
+{
+	HttpUrlParser(): HttpUrlParser::base_type(_url)
+	{
+		using namespace boost::spirit::qi;
+
+		_protocol = +(char_ - ":");
+		_host = +(char_ - ":" - "/");
+		_port = omit[lit(":")] >> ushort_;
+		_path = *char_;
+
+		_url = _protocol >> omit[lit("://")] >> _host >> -_port >> -_path;
+	}
+
+	boost::spirit::qi::rule<Iterator, std::string()> _protocol;
+	boost::spirit::qi::rule<Iterator, std::string()> _host;
+	boost::spirit::qi::rule<Iterator, int()> _port;
+	boost::spirit::qi::rule<Iterator, std::string()> _path;
+
+	boost::spirit::qi::rule<Iterator, HttpUrl()> _url;
 };
