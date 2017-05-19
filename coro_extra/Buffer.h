@@ -215,6 +215,11 @@ public:
 		std::copy(first, last, pos);
 	}
 
+	// Очень упрощает добавление констант типа b.pushBack("HTTP/1.1\r\n");
+	void pushBack(const std::string& s) {
+		pushBack(s.begin(), s.end());
+	}
+
 	size_t size() const;
 
 	bool operator==(const Buffer& other) const;
